@@ -1,0 +1,38 @@
+
+server.port: 8888
+
+spring:
+  application:
+    name: config-server
+  # profiles:
+  #   active:
+  # # ローカルフォルダから取得するときはnativeをプロファイルに設定
+  #   - native
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${GIT_URL}
+          default-label: main
+          searchPaths: env
+          username: ${GIT_USERNAME}
+          password: ${GIT_PASSWORD}
+
+management:
+  endpoints.web.exposure.include: '*'
+  endpoint:
+    health.show-details: always
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+    propagation:
+      type: w3c
+  metics.distribution.percentiles-histogram.http.server.requests: true
+  zipkin:
+    tracing:
+      endpoint: http://tempo:9411/api/v2/spans
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId},%X{spanId}]"

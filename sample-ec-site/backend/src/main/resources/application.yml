@@ -1,0 +1,31 @@
+
+spring:
+  application:
+    name: backend
+  config:
+    import: optional:configserver:http://config-server:8888
+  cloud:
+    config:
+      name: application
+  mvc:
+    problemdetails:
+      enabled: true
+
+management:
+  endpoints.web.exposure.include: '*'
+  endpoint:
+    health.show-details: always
+    env.show-values: ALWAYS
+
+logging:
+  level:
+    root: info
+    web: info
+    sql: info
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId},%X{spanId}]"
+
+logback.access:
+  enabled: true
+
+

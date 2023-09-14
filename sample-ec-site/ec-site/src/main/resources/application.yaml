@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: ec-site
+  config:
+    import: optional:configserver:http://config-server:8888
+  cloud:
+    compatibility-verifier.enabled: false
+    config:
+      name: application
+
+management:
+  endpoints.web.exposure.include: '*'
+  endpoint:
+    health.show-details: always
+    env.show-values: ALWAYS
+
+logging:
+  level:
+    web: info
+    sql: info
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId},%X{spanId}]"
+
+logback.access:
+  enabled: true
+
+

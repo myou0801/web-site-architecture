@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-BatchApplication<batch>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.myou.ec.batch.BatchApplication",
+            "projectName": "batch",
+            "args": [
+                "--spring.profiles.active=docker"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

@@ -1,0 +1,136 @@
+
+@startuml EC_UseCases
+
+left to right direction
+
+actor "利用者" as user
+actor "管理者" as admin
+
+rectangle "利用者ユースケース" {
+  user -- (ログイン : ログイン画面)
+  user -- (商品検索 : 商品検索画面)
+  user -- (商品詳細表示 : 商品詳細画面)
+  user -- (注文開始 : 注文入力画面)
+  user -- (注文入力完了 : 注文確認画面)
+  user -- (注文確認完了 : 注文完了画面)
+  user -- (プロフィール表示 : ユーザの詳細画面)
+  user -- (アカウント設定 : アカウント設定画面)
+}
+
+rectangle "管理者ユースケース" {
+  admin -- (ログイン : ログイン画面)
+  admin -- (商品管理 : 商品管理画面)
+  admin -- (ユーザー管理 : ユーザー管理画面)
+  admin -- (ユーザー追加 : ユーザー追加画面)
+  admin -- (ユーザー修正 : ユーザー修正画面)
+  admin -- (ユーザー削除 : ユーザー削除画面)
+  admin -- (アカウント設定 : アカウント設定画面)
+}
+
+@enduml
+
+
+
+
+@startuml EC_User
+title ECサイト画面遷移図 - 利用者
+
+state "ログイン画面" as login
+state "メニュー画面" as menu
+state "商品検索画面" as search
+state "商品詳細画面" as details
+state "注文入力画面" as order_input
+state "注文確認画面" as order_confirm
+state "注文完了画面" as order_complete
+state "ユーザの詳細画面" as profile
+state "アカウント設定画面" as account_settings
+
+[*] --> login
+login --> menu : ログイン成功
+
+menu --> search : 商品検索を選択
+search --> details : 商品を選択
+details --> order_input : 注文を開始
+order_input --> order_confirm : 入力完了
+order_confirm --> order_complete : 確認完了
+order_complete --> menu : 注文完了
+
+menu --> profile : プロフィール表示
+profile --> account_settings : アカウント設定を表示
+account_settings --> menu : メニュー画面へ戻る
+
+@enduml
+
+
+@startuml EC_Admin
+title ECサイト画面遷移図 - 管理者
+
+state "ログイン画面" as login
+state "メニュー画面" as menu
+state "商品管理画面" as product_management
+state "ユーザー管理画面" as user_management
+state "ユーザー追加画面" as user_add
+state "ユーザー修正画面" as user_edit
+state "ユーザー削除画面" as user_delete
+state "アカウント設定画面" as account_settings
+
+[*] --> login
+login --> menu : ログイン成功
+
+menu --> product_management : 商品管理を選択
+menu --> user_management : ユーザー管理を選択
+menu --> account_settings : アカウント設定を選択
+
+user_management --> user_add : ユーザー追加を選択
+user_management --> user_edit : ユーザー修正を選択
+user_management --> user_delete : ユーザー削除を選択
+
+user_add --> user_management : ユーザー管理へ戻る
+user_edit --> user_management : ユーザー管理へ戻る
+user_delete --> user_management : ユーザー管理へ戻る
+
+product_management --> menu : メニュー画面へ戻る
+user_management --> menu : メニュー画面へ戻る
+account_settings --> menu : メニュー画面へ戻る
+
+@enduml
+
+
+@startuml ER図
+entity "User" as user {
+  + id : int <<PK>>
+  --
+  username : varchar
+  email : varchar
+  password : varchar
+  role : enum
+}
+
+entity "Product" as product {
+  + id : int <<PK>>
+  --
+  name : varchar
+  description : varchar
+  price : decimal
+}
+
+entity "Order" as order {
+  + id : int <<PK>>
+  --
+  user_id : int <<FK>>
+  status : enum
+  created_at : datetime
+}
+
+entity "OrderDetail" as orderDetail {
+  + id : int <<PK>>
+  --
+  order_id : int <<FK>>
+  product_id : int <<FK>>
+  quantity : int
+}
+
+user ||--o{ order : places
+order ||--o{ orderDetail : has
+product ||--o{ orderDetail : contains
+@enduml

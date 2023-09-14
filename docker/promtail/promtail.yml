@@ -1,0 +1,70 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: app
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          log_type: app
+          __path__: /var/logs/application-*.log
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp:
+            message:
+            logger_name:
+            thread_name:
+            level:
+            trace_id: traceId
+            span_id: spanId
+            stack_trace:
+            app_name: appName
+      - labels:
+          app_name:
+          level:
+          trace_id:
+          span_id:
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+      # - output:
+      #     source: message
+
+  - job_name: access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          log_type: access
+          __path__: /var/logs/access-*.log
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp:
+            method:
+            status_code:
+            requested_url:
+            requested_uri:
+            remote_host:
+            elapsed_time:
+            app_name: appName
+      - labels:
+          app_name:
+          method:
+          status_code:
+          requested_url:
+          requested_uri:
+          remote_host:
+          elapsed_time:
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano

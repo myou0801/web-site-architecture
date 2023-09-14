@@ -1,0 +1,14 @@
+
+spring:
+  application:
+    name: batch
+  config:
+    import: optional:configserver:http://config-server:8888
+  cloud:
+    config:
+      name: application
+logging:
+  level:
+    sql: debug
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId},%X{spanId}]"

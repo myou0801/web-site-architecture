@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-EcSiteApplication<ec-site>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.myou.ec.ecsite.EcSiteApplication",
+            "projectName": "ec-site",
+            "args": [
+                "--spring.profiles.active=docker"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

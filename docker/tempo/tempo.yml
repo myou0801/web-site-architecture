@@ -1,0 +1,16 @@
+server:
+  http_listen_port: 3200  # tempoサーバーの公開ポート
+
+distributor:
+  receivers:
+    zipkin:   # トレースのレシーバーとしてZipkin互換のAPIを利用するための設定
+#    otlp:
+#      protocols:
+#        grpc:
+
+storage:
+  trace:
+    backend: local  # tempoのデータストレージはサーバーローカルとする
+    local:
+      path: /tmp/tempo/blocks  # ローカルストレージの保存先
+
