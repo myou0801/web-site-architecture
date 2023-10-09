@@ -69,7 +69,13 @@ services:
     ports:
       - "3001:3000"  # 3000から3001に変更
       - "22:22"
-    
+
+  rabbitmq:
+    image: "rabbitmq:management"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
   postgres:
     image: postgres:15
     environment:
