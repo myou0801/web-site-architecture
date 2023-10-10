@@ -5,11 +5,17 @@ spring:
   config:
     import: optional:configserver:http://config-server:8888
   cloud:
+    compatibility-verifier.enabled: false
     config:
       name: application
+    bus:
+      trace:
+        enabled: true
   mvc:
     problemdetails:
       enabled: true
+  rabbitmq:
+    host: rabbitmq
 
 management:
   endpoints.web.exposure.include: '*'
