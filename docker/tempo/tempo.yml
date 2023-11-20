@@ -4,9 +4,9 @@ server:
 distributor:
   receivers:
     zipkin:   # トレースのレシーバーとしてZipkin互換のAPIを利用するための設定
-#    otlp:
-#      protocols:
-#        grpc:
+    otlp:
+      protocols:
+        http:
 
 storage:
   trace:

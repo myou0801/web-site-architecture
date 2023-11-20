@@ -32,6 +32,9 @@ management:
   zipkin:
     tracing:
       endpoint: http://tempo:9411/api/v2/spans
+  otlp:
+    tracing:
+      endpoint: http://tempo:4318/v1/traces
 
 logging:
   pattern:
