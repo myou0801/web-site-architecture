@@ -19,6 +19,7 @@ public class MenuController {
     @GetMapping("/")
     @ResponseBody
     public String home() {
+        logger.info("menu");
         return "success";
     }
 

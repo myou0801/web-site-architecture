@@ -2,7 +2,8 @@ spring:
   application:
     name: ec-site
   config:
-    import: optional:configserver:http://config-server:8888
+    import:
+      - optional:configserver:http://config-server:8888
   cloud:
     compatibility-verifier.enabled: false
     config:
@@ -10,11 +11,9 @@ spring:
     bus:
       trace:
         enabled: true
-  rabbitmq:
-    host: rabbitmq
 
 management:
-  endpoints.web.exposure.include: '*'
+  endpoints.web.exposure.include: "*"
   endpoint:
     health.show-details: always
     env.show-values: ALWAYS
@@ -28,5 +27,3 @@ logging:
 
 logback.access:
   enabled: true
-
-

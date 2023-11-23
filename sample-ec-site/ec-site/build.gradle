@@ -18,7 +18,7 @@ repositories {
 
 ext {
 	set('springCloudVersion', "2022.0.4")
-	set('springCloudAwsVersion', "3.0.1")
+	set('springCloudAwsVersion', "3.0.3")
 }
 
 dependencies {
@@ -35,6 +35,10 @@ dependencies {
 	implementation 'io.awspring.cloud:spring-cloud-aws-starter'
 	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 	implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-metrics'
+	
 	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 	// implementation 'io.micrometer:micrometer-tracing-bridge-brave'

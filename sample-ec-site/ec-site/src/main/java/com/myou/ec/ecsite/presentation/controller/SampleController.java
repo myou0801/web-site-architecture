@@ -6,7 +6,9 @@ import java.time.Duration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,13 +17,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import io.micrometer.observation.annotation.Observed;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 
 @Controller
 @RequestMapping("sample")
-@Observed
+@RefreshScope
 public class SampleController {
 
     private static Logger logger = LoggerFactory.getLogger(SampleController.class);
@@ -32,12 +33,19 @@ public class SampleController {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    public SampleController(RestTemplateBuilder restTemplateBuilder, S3Client s3Client, RedisTemplate<String, String> redisTemplate) {
+    @Value("${ssm.data1:}")
+    private String ssmData1;
+
+    @Value("${test.local.data1}")
+    private String localData1;
+
+    public SampleController(RestTemplateBuilder restTemplateBuilder, S3Client s3Client,
+            RedisTemplate<String, String> redisTemplate) {
         this.restTemplate = restTemplateBuilder.build();
         this.s3Client = s3Client;
-        this.redisTemplate=redisTemplate;
+        this.redisTemplate = redisTemplate;
     }
- 
+
     @GetMapping("rest")
     @ResponseBody
     public String rest() {
@@ -64,7 +72,7 @@ public class SampleController {
         ListBucketsResponse listBucketsResponse = s3Client.listBuckets();
         logger.info(listBucketsResponse.toString());
 
-        return "success";
+        return listBucketsResponse.toString();
     }
 
     @GetMapping("redis")
@@ -73,6 +81,14 @@ public class SampleController {
         redisTemplate.opsForValue().set("test", "test", Duration.ofSeconds(30));
         logger.info(redisTemplate.opsForValue().get("test"));
         return "success";
+    }
+
+    @GetMapping("parameter")
+    @ResponseBody
+    public String parameter() {
+        logger.info(ssmData1);
+        logger.info(localData1);
+        return ssmData1;
     }
 
 }

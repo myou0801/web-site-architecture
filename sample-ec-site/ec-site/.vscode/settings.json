@@ -3,6 +3,6 @@
     "java.configuration.updateBuildConfiguration": "interactive",
     "maven.view": "hierarchical",
     "java.project.explorer.showNonJavaResources": true,
-    "java.dependency.syncWithFolderExplorer": false,
+    "java.dependency.syncWithFolderExplorer": true,
     "java.compile.nullAnalysis.mode": "automatic"
 }

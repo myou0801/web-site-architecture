@@ -12,7 +12,7 @@ services:
       - ./docker/promtail/app-logs:/usr/src/ec-site/log
     env_file:
       - .env
-  
+
   backend:
     build:
       context: ./docker/java
@@ -67,7 +67,7 @@ services:
     volumes:
       - ./docker/gitea/data:/data
     ports:
-      - "3001:3000"  # 3000から3001に変更
+      - "3001:3000" # 3000から3001に変更
       - "22:22"
 
   rabbitmq:
@@ -84,7 +84,7 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
-  
+
   redis:
     image: redis:latest
     # volumes:
@@ -95,14 +95,16 @@ services:
   localstack:
     image: localstack/localstack
     ports:
-      - "127.0.0.1:4566:4566"            # LocalStack Gateway
-      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+      - "127.0.0.1:4566:4566" # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559" # external services port range
     environment:
       - DEBUG=1
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
       - "./docker/localstack/init:/etc/localstack/init/ready.d"
-  
+    env_file:
+      - .env
+
   loki:
     image: grafana/loki:latest
     ports:
@@ -113,7 +115,7 @@ services:
     volumes:
       - ./docker/loki/loki-config.yml:/etc/config/loki-config.yml
       - ./docker/loki/data:/data/loki
-  
+
   promtail:
     image: grafana/promtail
     command:
@@ -128,7 +130,6 @@ services:
       - ./docker/promtail/app-logs:/var/logs
     ports:
       - "9080:9080"
-    
 
   prometheus:
     image: prom/prometheus
@@ -149,9 +150,9 @@ services:
       - ./docker/tempo/tempo.yml:/etc/tempo.yml
       - ./docker/tempo/data:/tmp/tempo
     ports:
-      - "3200:3200"   # tempo
-      - "9411:9411"   # zipkin
-      - "4317:4317"   # OTLP
+      - "3200:3200" # tempo
+      - "9411:9411" # zipkin
+      - "4317:4317" # OTLP
 
   grafana:
     image: grafana/grafana

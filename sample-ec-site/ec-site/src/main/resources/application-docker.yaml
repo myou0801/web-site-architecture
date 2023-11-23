@@ -1,0 +1,13 @@
+spring:
+  config:
+    import:
+      - aws-parameterstore:/config/test/
+  cloud:
+    aws:
+      parameterstore:
+        reload.strategy: REFRESH
+
+  rabbitmq:
+    host: rabbitmq
+
+test.local.data1: ${ssm.data1}
