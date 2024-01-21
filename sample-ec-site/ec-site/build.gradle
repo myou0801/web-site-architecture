@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.1.2'
-	id 'io.spring.dependency-management' version '1.1.2'
+	id 'org.springframework.boot' version '3.2.2'
+	id 'io.spring.dependency-management' version '1.1.4'
 	id 'org.dddjava.jig-gradle-plugin' version '2023.7.1'
 }
 
@@ -17,8 +17,10 @@ repositories {
 }
 
 ext {
-	set('springCloudVersion', "2022.0.4")
-	set('springCloudAwsVersion', "3.0.3")
+	set('springCloudVersion', "2023.0.0")
+	set('springCloudAwsVersion', "3.1.0")
+	set('logbackAccessSpringVersion', "4.1.1")
+	set('logstashLogbackEncoderVersion', "7.4")
 }
 
 dependencies {
@@ -44,8 +46,8 @@ dependencies {
 	// implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	// implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
-	implementation 'dev.akkinoc.spring.boot:logback-access-spring-boot-starter:4.0.0'
-	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+	implementation "dev.akkinoc.spring.boot:logback-access-spring-boot-starter:${logbackAccessSpringVersion}"
+	implementation "net.logstash.logback:logstash-logback-encoder:${logstashLogbackEncoderVersion}"
 
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.h2database:h2'
