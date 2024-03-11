@@ -1,0 +1,22 @@
+[versions]
+springDependencyManagementVersion = "1.1.4"
+jigVerasion = "2024.2.1"
+springBootVersion = "3.2.3"
+springCloudVersion =  "2023.0.0"
+springCloudAwsVersion = "3.1.0"
+logbackAccessSpringVersion =  "4.1.1"
+logstashLogbackEncoderVersion =  "7.4"
+lombokVersion = "1.18.30"
+
+[plugins]
+spring-boot-plugin = { id = "org.springframework.boot", version.ref = "springBootVersion" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "springDependencyManagementVersion" }
+jig-plugin = { id = "org.dddjava.jig-gradle-plugin", version.ref = "jigVerasion" }
+
+[libraries]
+spring-boot-bom = {module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBootVersion"}
+spring-cloud-dependencies = {module="org.springframework.cloud:spring-cloud-dependencies", version.ref = "springCloudVersion"}
+spring-cloud-aws-dependencies = {module="io.awspring.cloud:spring-cloud-aws-dependencies", version.ref = "springCloudAwsVersion"}
+logback-access-spring = {module = "dev.akkinoc.spring.boot:logback-access-spring-boot-starter", version.ref = "logbackAccessSpringVersion"}
+logstash-logback-encoder = {module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashLogbackEncoderVersion"}
+lombok = {module = "org.projectlombok:lombok", version.ref = "lombokVersion"}

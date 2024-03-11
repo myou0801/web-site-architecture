@@ -1,0 +1,12 @@
+plugins {
+    alias(libs.plugins.jig.plugin)
+}
+
+dependencies {
+    implementation platform(libs.spring.boot.bom)
+    implementation "org.springframework:spring-context"
+    implementation project(':domain')
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+}
