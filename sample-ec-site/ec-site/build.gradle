@@ -91,16 +91,12 @@ project(":presentation") {
     dependencies {
         implementation platform(libs.spring.boot.bom)
         implementation(platform(libs.spring.cloud.dependencies))
-        implementation(platform(libs.spring.cloud.aws.dependencies))
 
         implementation 'org.springframework.boot:spring-boot-starter-actuator'
         implementation 'org.springframework.boot:spring-boot-starter-web'
         implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
         implementation 'org.springframework.session:spring-session-data-redis'
         implementation 'org.springframework.cloud:spring-cloud-starter-config'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 
         implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 
@@ -117,7 +113,9 @@ project(":presentation") {
 project(":application") {
     dependencies {
         implementation platform(libs.spring.boot.bom)
+
         implementation "org.springframework:spring-context"
+
         implementation project(':domain')
 
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -128,15 +126,18 @@ project(":application") {
 project(":infrastructure") {
     dependencies {
         implementation platform(libs.spring.boot.bom)
+        implementation(platform(libs.spring.cloud.aws.dependencies))
         implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+        implementation 'org.apache.httpcomponents.client5:httpclient5'
         implementation project(':application')
         implementation project(':domain')
 
         runtimeOnly 'com.h2database:h2'
 
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        testImplementation 'org.apache.httpcomponents.client5:httpclient5'
     }
 }
 

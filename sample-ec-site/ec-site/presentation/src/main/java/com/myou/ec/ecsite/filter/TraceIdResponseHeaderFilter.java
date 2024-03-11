@@ -26,13 +26,11 @@ public class TraceIdResponseHeaderFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 現在のスパンからトレースIDを取得
         String traceId = Optional.ofNullable(tracer.currentSpan())
                 .map(Span::context)
                 .map(TraceContext::traceId)
                 .orElse("");
 
-        // トレースIDをレスポンスヘッダに設定
         response.addHeader("X-Trace-Id", traceId);
 
         filterChain.doFilter(request, response);

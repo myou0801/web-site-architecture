@@ -12,7 +12,7 @@ public class UserForm {
     private String mailAddress;
 
     public User toUser() {
-        return new User(null,
+        return User.createNewUser(
                 new UserName(this.userName),
                 new MailAddress(this.mailAddress));
     }
