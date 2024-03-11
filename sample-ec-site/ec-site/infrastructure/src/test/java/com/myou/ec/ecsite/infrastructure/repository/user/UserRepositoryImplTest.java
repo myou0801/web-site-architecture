@@ -29,7 +29,7 @@ class UserRepositoryImplTest {
     void register() {
         Assertions.assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate,"\"USER\"")).isEqualTo(0) ;
         UserRepositoryImpl target = new UserRepositoryImpl(userJdbcRepository);
-        target.register(new User(new UserName("test"), new MailAddress("test@mail.com")));
+        target.register(new User(null, new UserName("test"), new MailAddress("test@mail.com")));
         Assertions.assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate,"\"USER\"")).isEqualTo(1) ;
     }
 

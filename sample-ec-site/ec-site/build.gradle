@@ -1,92 +1,147 @@
-//plugins {
-//	id 'java'
-//	alias(libs.plugins.spring.boot.plugin)
-//	id 'org.springframework.boot' version '3.2.2' apply false
-//	id 'io.spring.dependency-management' version '1.1.4'
-//	id 'org.dddjava.jig-gradle-plugin' version '2024.2.1'
-//}
-
-
-
-
-
-//ext {
-//	set('springCloudVersion', "2023.0.0")
-//	set('springCloudAwsVersion', "3.1.0")
-//	set('logbackAccessSpringVersion', "4.1.1")
-//	set('logstashLogbackEncoderVersion', "7.4")
-//}
+plugins {
+    alias(libs.plugins.spring.boot.plugin)
+    alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.jig.plugin)
+}
 
 allprojects {
-	repositories {
-		mavenCentral()
-	}
+
 }
 
 subprojects {
-	apply plugin: 'java'
-//	apply plugin: 'org.springframework.boot'
-//	apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'java'
+    apply plugin: 'org.dddjava.jig-gradle-plugin'
 
-	group = 'com.myou.ec'
-	version = '0.0.1-SNAPSHOT'
+    group = 'com.myou.ec'
+    version = '0.0.1-SNAPSHOT'
 
-	java {
-		sourceCompatibility = '21'
-	}
+    java {
+        sourceCompatibility = '21'
+    }
 
-	configurations {
-		compileOnly {
-			extendsFrom annotationProcessor
-		}
-	}
+    repositories {
+        mavenCentral()
+    }
 
-	dependencies {
-//		implementation(platform(libs.spring.cloud.dependencies))
-//		implementation(platform(libs.spring.cloud.aws.dependencies))
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
 
-		annotationProcessor libs.lombok
+    dependencies {
+        annotationProcessor libs.lombok
+    }
 
-//		implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"))
-//		implementation(platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"))
-//		implementation 'org.springframework.boot:spring-boot-starter-actuator'
-//		implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-//		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-//		implementation 'org.springframework.boot:spring-boot-starter-security'
-//		implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-//		implementation 'org.springframework.boot:spring-boot-starter-web'
-//		implementation 'org.springframework.cloud:spring-cloud-starter-config'
-//		implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
-//		implementation 'org.springframework.session:spring-session-data-redis'
-//		implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-//		implementation 'io.awspring.cloud:spring-cloud-aws-starter'
-//		implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
-//		implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
-//		implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
-//		implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
-//		implementation 'io.awspring.cloud:spring-cloud-aws-starter-metrics'
-//
-//		implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-//		implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
-//		// implementation 'io.micrometer:micrometer-tracing-bridge-brave'
-//		// implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
-//		implementation 'io.micrometer:micrometer-registry-prometheus'
-//		implementation "dev.akkinoc.spring.boot:logback-access-spring-boot-starter:${logbackAccessSpringVersion}"
-//		implementation "net.logstash.logback:logstash-logback-encoder:${logstashLogbackEncoderVersion}"
-//
-//		developmentOnly 'org.springframework.boot:spring-boot-devtools'
-//		runtimeOnly 'com.h2database:h2'
-//		testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//		testImplementation 'org.springframework.security:spring-security-test'
-//		testImplementation 'org.apache.httpcomponents.client5:httpclient5'
-
-	}
-
-	tasks.named('test') {
-		useJUnitPlatform()
-	}
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
 }
 
-//bootJar {
-//    mainClass.set('com.myou.ec.ecsite.EcSiteApplication')
-//}
+project(":boot") {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencies {
+
+        implementation(platform(libs.spring.cloud.dependencies))
+        implementation(platform(libs.spring.cloud.aws.dependencies))
+
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.cloud:spring-cloud-starter-config'
+        implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+        implementation 'org.springframework.session:spring-session-data-redis'
+        implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter-metrics'
+
+        implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+        implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+        // implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+        // implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+        implementation 'io.micrometer:micrometer-registry-prometheus'
+        implementation libs.logback.access.spring
+        implementation libs.logstash.logback.encoder
+
+        implementation project(':presentation')
+        implementation project(':application')
+        implementation project(':infrastructure')
+        implementation project(':domain')
+
+        developmentOnly 'org.springframework.boot:spring-boot-devtools'
+        runtimeOnly 'com.h2database:h2'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.springframework.security:spring-security-test'
+        testImplementation 'org.apache.httpcomponents.client5:httpclient5'
+
+    }
+}
+
+project(":presentation") {
+
+    dependencies {
+        implementation platform(libs.spring.boot.bom)
+        implementation(platform(libs.spring.cloud.dependencies))
+        implementation(platform(libs.spring.cloud.aws.dependencies))
+
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+        implementation 'org.springframework.session:spring-session-data-redis'
+        implementation 'org.springframework.cloud:spring-cloud-starter-config'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter'
+        implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+
+        implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+
+        implementation project(':application')
+        implementation project(':domain')
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.springframework.security:spring-security-test'
+        testImplementation 'org.apache.httpcomponents.client5:httpclient5'
+
+    }
+}
+
+project(":application") {
+    dependencies {
+        implementation platform(libs.spring.boot.bom)
+        implementation "org.springframework:spring-context"
+        implementation project(':domain')
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    }
+}
+
+project(":infrastructure") {
+    dependencies {
+        implementation platform(libs.spring.boot.bom)
+        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+
+        implementation project(':application')
+        implementation project(':domain')
+
+        runtimeOnly 'com.h2database:h2'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.apache.httpcomponents.client5:httpclient5'
+    }
+}
+
+project(":domain") {
+    dependencies {
+
+    }
+}

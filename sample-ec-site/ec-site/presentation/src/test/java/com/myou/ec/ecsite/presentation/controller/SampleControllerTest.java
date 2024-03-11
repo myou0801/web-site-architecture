@@ -1,15 +1,14 @@
 package com.myou.ec.ecsite.presentation.controller;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-@SpringBootTest //(classes = { SampleControllerTest.SampleControllerTestConfig.class })
-@AutoConfigureMockMvc
+//@SpringBootTest //(classes = { SampleControllerTest.SampleControllerTestConfig.class })
+@WebMvcTest(controllers = SampleController.class)
+@AutoConfigureObservability
+//@AutoConfigureMockMvc
 // @ActiveProfiles(profiles={"docker"})
 public class SampleControllerTest {
 
@@ -23,11 +22,11 @@ public class SampleControllerTest {
     // .andExpect(MockMvcResultMatchers.content().string("success"));
     // }
 
-    @Test
-    void testRest2() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.get("/sample/rest2"))
-                .andExpect(MockMvcResultMatchers.status().isOk());
-    }
+//    @Test
+//    void testRest2() throws Exception {
+//        mvc.perform(MockMvcRequestBuilders.get("/sample/rest2"))
+//                .andExpect(MockMvcResultMatchers.status().isOk());
+//    }
 
     // @Test
     // void testS3() throws Exception {

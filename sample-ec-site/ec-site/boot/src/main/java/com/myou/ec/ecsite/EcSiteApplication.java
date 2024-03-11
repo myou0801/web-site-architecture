@@ -12,26 +12,25 @@ import java.util.concurrent.ConcurrentHashMap;
 @SpringBootApplication
 public class EcSiteApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(EcSiteApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(EcSiteApplication.class, args);
+    }
 
 
+    @EnableSpringHttpSession
+    @Configuration
+    @Conditional(ProfileCondition.class)
+    static class SpringHttpSessionConfig {
+        @Bean
+        MapSessionRepository sessionRepository() {
+            return new MapSessionRepository(new ConcurrentHashMap<>());
+        }
+    }
 
-	@EnableSpringHttpSession
-	@Configuration
-	@Conditional(ProfileCondition.class)
-	static class SpringHttpSessionConfig {
-		@Bean
-		MapSessionRepository sessionRepository() {
-			return new MapSessionRepository(new ConcurrentHashMap<>());
-		}
-	}
-
-	static class ProfileCondition implements Condition {
-		@Override
-		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-			return !context.getEnvironment().matchesProfiles("docker");
-		}
-	}
+    static class ProfileCondition implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return !context.getEnvironment().matchesProfiles("docker");
+        }
+    }
 }
