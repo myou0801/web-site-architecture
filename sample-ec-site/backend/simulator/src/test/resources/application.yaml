@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: simulator
+
+logging:
+  level:
+    web: debug
+    sql: debug
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId},%X{spanId}]"
+
+logback.access:
+  enabled: true
