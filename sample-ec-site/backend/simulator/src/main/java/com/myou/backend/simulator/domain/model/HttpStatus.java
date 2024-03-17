@@ -1,16 +1,14 @@
 package com.myou.backend.simulator.domain.model;
 
-public class HttpStatus {
+import java.io.Serializable;
 
-    private final int value;
+public record HttpStatus(int value) implements Serializable {
 
-    private HttpStatus(int value) {
+    public HttpStatus {
         if (value < 100 || value > 599) {
             throw new IllegalArgumentException("Invalid HTTP status code: " + value);
         }
-        this.value = value;
     }
-
 
     public static HttpStatus ok(){
         return HttpStatus.of(200);
@@ -19,7 +17,4 @@ public class HttpStatus {
         return new HttpStatus(value);
     }
 
-    public int getValue() {
-        return value;
-    }
 }

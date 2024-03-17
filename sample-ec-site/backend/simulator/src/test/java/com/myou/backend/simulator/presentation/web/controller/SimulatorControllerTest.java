@@ -5,6 +5,7 @@ import com.myou.backend.simulator.domain.model.HttpStatus;
 import com.myou.backend.simulator.domain.model.ResponseData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -23,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SimulatorController.class)
+@AutoConfigureObservability
 class SimulatorControllerTest {
 
     @Autowired
@@ -34,7 +36,7 @@ class SimulatorControllerTest {
     @Test
     public void testProcessJsonRequest() throws Exception {
 
-        ResponseData responseData = new ResponseData(Map.of("Content-Type", List.of("application/json")), "{\"message\":\"Success\"}", HttpStatus.of(200));
+        ResponseData responseData = new ResponseData("responseId23", Map.of("Content-Type", List.of("application/json")), "{\"message\":\"Success\"}", HttpStatus.of(200));
         when(simulatorService.processRequest(any())).thenReturn(responseData);
 
         mockMvc.perform(post("/simulator/interfaceId123")
@@ -49,7 +51,7 @@ class SimulatorControllerTest {
     @Test
     public void testProcessXmlRequest() throws Exception {
 
-        ResponseData responseData = new ResponseData(Map.of("Content-Type", List.of("application/xml")), "<response>Success</response>", HttpStatus.of(200));
+        ResponseData responseData = new ResponseData("responseId23",Map.of("Content-Type", List.of("application/xml")), "<response>Success</response>", HttpStatus.of(200));
         when(simulatorService.processRequest(any())).thenReturn(responseData);
 
         mockMvc.perform(post("/simulator/interfaceIdXml")
@@ -64,7 +66,7 @@ class SimulatorControllerTest {
     @Test
     public void testProcessFormRequest() throws Exception {
 
-        ResponseData responseData = new ResponseData(Map.of("Content-Type", List.of("application/x-www-form-urlencoded")), "key=value&key2=value2", HttpStatus.of(200));
+        ResponseData responseData = new ResponseData("responseId23",Map.of("Content-Type", List.of("application/x-www-form-urlencoded")), "key=value&key2=value2", HttpStatus.of(200));
         when(simulatorService.processRequest(any())).thenReturn(responseData);
 
         mockMvc.perform(post("/simulator/interfaceIdForm")
@@ -78,7 +80,7 @@ class SimulatorControllerTest {
     @Test
     public void testProcessGetRequest() throws Exception {
 
-        ResponseData responseData = new ResponseData(Map.of(), "queryParamValue", HttpStatus.of(200));
+        ResponseData responseData = new ResponseData("responseId23",Map.of(), "queryParamValue", HttpStatus.of(200));
         when(simulatorService.processRequest(any())).thenReturn(responseData);
 
         mockMvc.perform(get("/simulator/interfaceIdGet?query=testQuery"))

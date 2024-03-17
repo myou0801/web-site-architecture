@@ -6,6 +6,13 @@ server:
 spring:
   application:
     name: simulator
+  cache:
+#    type:
+    type: SIMPLE
+  data:
+    redis:
+      host: redis
+
 
 management:
   endpoints.web.exposure.include: "*"
