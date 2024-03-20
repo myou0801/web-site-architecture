@@ -1,0 +1,70 @@
+@startuml
+!theme plain
+
+interface RequestContent {
+}
+
+class JsonContent implements RequestContent {
+}
+
+class XmlContent implements RequestContent {
+}
+
+class FormDataContent implements RequestContent {
+}
+
+class QueryParamsContent implements RequestContent {
+}
+
+class ConditionEntry {
+  +String interfaceId
+  +Policies policies
+}
+
+class Policies {
+  +List<Policy> policies
+}
+
+class Policy {
+  +String id
+  +Rules rules
+  +String responseId
+}
+
+class Rules {
+  +List<Rule> rules
+}
+
+class Rule {
+  +String id
+  +String type
+  +String value
+}
+
+class ResponseData {
+  +String responseId
+  +Map<String, List<String>> responseHeaders
+  +String responseBody
+  +HttpStatus statusCode
+}
+
+class RequestData {
+  +String interfaceId
+  +Map<String, List<String>> requestHeaders
+  +RequestContent content
+  +HttpMethod httpMethod
+}
+
+
+ConditionEntry "1" --> "1" Policies : contains
+Policies "1" --> "*" Policy : contains
+Policy "1" --> "1" Rules : contains
+Rules "1" --> "*" Rule : contains
+RequestData "0..*" - "1" ConditionEntry : evaluated by
+RequestData "1" - "1" RequestContent : has
+RequestContent <|.. JsonContent
+RequestContent <|.. XmlContent
+RequestContent <|.. FormDataContent
+RequestContent <|.. QueryParamsContent
+
+@enduml

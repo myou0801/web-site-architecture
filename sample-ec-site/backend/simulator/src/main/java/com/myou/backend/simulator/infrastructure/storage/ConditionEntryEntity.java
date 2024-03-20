@@ -15,40 +15,52 @@ import java.util.List;
 public record ConditionEntryEntity(@Id String interfaceId, List<PolicyEntity> policies) {
 
     public static ConditionEntryEntity from(ConditionEntry conditionEntry) {
-        List<ConditionEntryEntity.PolicyEntity> policies = conditionEntry.policies().stream()
-                .map(p -> new ConditionEntryEntity.PolicyEntity(p.rules().stream().map(r -> {
-                    if (r instanceof RequestHeaderConditionRule rhr) {
-                        return new ConditionEntryEntity.RuleEntity(RuleType.REQUEST_HEADER, rhr.headerName(), rhr.expectedValue());
-                    } else if (r instanceof RequestContentConditionRule rcr) {
-                        return new ConditionEntryEntity.RuleEntity(RuleType.REQUEST_CONTENT, rcr.key(), rcr.expectedValue());
-                    } else {
-                        throw new RuntimeException();
-                    }
-                }).toList(), p.responseId())).toList();
+        List<ConditionEntryEntity.PolicyEntity> policies = conditionEntry
+                .policies()
+                .stream()
+                .map(PolicyEntity::from)
+                .toList();
         return new ConditionEntryEntity(conditionEntry.interfaceId(), policies);
     }
 
     public ConditionEntry toConditionEntry() {
-        List<ConditionPolicy> policies = policies().stream().map(p -> {
-            return new ConditionPolicy(
-                    p.rules().stream()
-                            .map(r -> {
-                                return (ConditionRule) switch (r.type()) {
-                                    case REQUEST_HEADER -> new RequestHeaderConditionRule(r.key(), r.expectedValue());
-                                    case REQUEST_CONTENT -> new RequestContentConditionRule(r.key(), r.expectedValue());
-                                };
-                            }).toList(),
-                    p.responseId());
-        }).toList();
+        List<ConditionPolicy> policies = policies().stream().map(PolicyEntity::toConditionPolicy).toList();
         return new ConditionEntry(interfaceId, policies);
     }
 
 
     public record PolicyEntity(List<RuleEntity> rules, String responseId) {
 
+        public static PolicyEntity from(ConditionPolicy conditionPolicy) {
+            return new PolicyEntity(conditionPolicy.rules().stream().map(RuleEntity::from).toList(), conditionPolicy.responseId());
+        }
+
+        public ConditionPolicy toConditionPolicy() {
+            return new ConditionPolicy(
+                    rules.stream().map(RuleEntity::toConditionRule).toList(),
+                    responseId);
+        }
+
     }
 
     public record RuleEntity(RuleType type, String key, String expectedValue) {
+
+        public static RuleEntity from(ConditionRule conditionRule) {
+            if (conditionRule instanceof RequestHeaderConditionRule rhr) {
+                return new ConditionEntryEntity.RuleEntity(RuleType.REQUEST_HEADER, rhr.headerName(), rhr.expectedValue());
+            } else if (conditionRule instanceof RequestContentConditionRule rcr) {
+                return new ConditionEntryEntity.RuleEntity(RuleType.REQUEST_CONTENT, rcr.key(), rcr.expectedValue());
+            } else {
+                throw new RuntimeException();
+            }
+        }
+
+        public ConditionRule toConditionRule() {
+            return switch (type) {
+                case REQUEST_HEADER -> new RequestHeaderConditionRule(key, expectedValue);
+                case REQUEST_CONTENT -> new RequestContentConditionRule(key, expectedValue);
+            };
+        }
 
     }
 

@@ -10,9 +10,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.MultiValueMapAdapter;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-
 @RestController
 public class SimulatorController {
 
@@ -59,7 +56,7 @@ public class SimulatorController {
             @RequestHeader MultiValueMap<String, String> headers,
             @RequestParam(required = false) MultiValueMap<String, String> queryParams) {
         // GETリクエストの処理とレスポンスの生成
-        return doProcessRequest(interfaceId, headers, new GetRequestContent(queryParams));
+        return doProcessRequest(interfaceId, headers, new QueryParamsContent(queryParams));
     }
 
 
