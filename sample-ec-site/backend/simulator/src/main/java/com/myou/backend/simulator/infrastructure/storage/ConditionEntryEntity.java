@@ -1,6 +1,7 @@
 package com.myou.backend.simulator.infrastructure.storage;
 
 import com.myou.backend.simulator.domain.model.ConditionEntry;
+import com.myou.backend.simulator.domain.model.ConditionPolicies;
 import com.myou.backend.simulator.domain.policy.ConditionPolicy;
 import com.myou.backend.simulator.domain.policy.rule.ConditionRule;
 import com.myou.backend.simulator.domain.policy.rule.RequestContentConditionRule;
@@ -15,8 +16,9 @@ import java.util.List;
 public record ConditionEntryEntity(@Id String interfaceId, List<PolicyEntity> policies) {
 
     public static ConditionEntryEntity from(ConditionEntry conditionEntry) {
-        List<ConditionEntryEntity.PolicyEntity> policies = conditionEntry
+        List<PolicyEntity> policies = conditionEntry
                 .policies()
+                .conditionPolicies()
                 .stream()
                 .map(PolicyEntity::from)
                 .toList();
@@ -24,7 +26,7 @@ public record ConditionEntryEntity(@Id String interfaceId, List<PolicyEntity> po
     }
 
     public ConditionEntry toConditionEntry() {
-        List<ConditionPolicy> policies = policies().stream().map(PolicyEntity::toConditionPolicy).toList();
+        ConditionPolicies policies = new ConditionPolicies(policies().stream().map(PolicyEntity::toConditionPolicy).toList());
         return new ConditionEntry(interfaceId, policies);
     }
 
@@ -46,13 +48,11 @@ public record ConditionEntryEntity(@Id String interfaceId, List<PolicyEntity> po
     public record RuleEntity(RuleType type, String key, String expectedValue) {
 
         public static RuleEntity from(ConditionRule conditionRule) {
-            if (conditionRule instanceof RequestHeaderConditionRule rhr) {
-                return new ConditionEntryEntity.RuleEntity(RuleType.REQUEST_HEADER, rhr.headerName(), rhr.expectedValue());
-            } else if (conditionRule instanceof RequestContentConditionRule rcr) {
-                return new ConditionEntryEntity.RuleEntity(RuleType.REQUEST_CONTENT, rcr.key(), rcr.expectedValue());
-            } else {
-                throw new RuntimeException();
-            }
+            return switch (conditionRule){
+                case RequestHeaderConditionRule h -> new RuleEntity(RuleType.REQUEST_HEADER, h.headerName(), h.expectedValue());
+                case RequestContentConditionRule c ->  new RuleEntity(RuleType.REQUEST_CONTENT, c.key(), c.expectedValue());
+                default -> throw new IllegalStateException("Unexpected value: " + conditionRule);
+            };
         }
 
         public ConditionRule toConditionRule() {

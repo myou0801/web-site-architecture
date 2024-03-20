@@ -31,8 +31,6 @@ class ConditionEntryEntityTest {
         ConditionEntry actual = conditionEntryEntity.toConditionEntry();
 
         Assertions.assertThat(actual).isEqualTo(DomainModelUtils.getConditionEntry());
-        Assertions.assertThat(actual.toString())
-                .isEqualTo("ConditionEntry[interfaceId=interfaceId1, policies=[ConditionPolicy[rules=[RequestHeaderConditionRule[headerName=header1, expectedValue=value1], RequestContentConditionRule[key=key1, expectedValue=value1]], responseId=responseId1]]]");
     }
 
     @NotNull

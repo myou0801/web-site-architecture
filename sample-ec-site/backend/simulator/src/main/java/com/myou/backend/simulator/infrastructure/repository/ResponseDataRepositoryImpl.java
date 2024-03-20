@@ -2,27 +2,39 @@ package com.myou.backend.simulator.infrastructure.repository;
 
 import com.myou.backend.simulator.application.repository.ResponseDataRepository;
 import com.myou.backend.simulator.domain.model.ResponseData;
-import com.myou.backend.simulator.infrastructure.storage.InMemoryResponseDataRepository;
+import com.myou.backend.simulator.infrastructure.storage.ResponseDataEntity;
+import com.myou.backend.simulator.infrastructure.storage.ResponseDataStorage;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class ResponseDataRepositoryImpl implements ResponseDataRepository {
 
-    private final InMemoryResponseDataRepository inMemoryResponseDataRepository;
+    private final ResponseDataStorage responseDataStorage;
 
-    public ResponseDataRepositoryImpl(InMemoryResponseDataRepository inMemoryResponseDataRepository) {
-        this.inMemoryResponseDataRepository = inMemoryResponseDataRepository;
+    public ResponseDataRepositoryImpl(ResponseDataStorage responseDataStorage) {
+        this.responseDataStorage = responseDataStorage;
     }
 
     @Override
     public ResponseData save(ResponseData responseData) {
-        return inMemoryResponseDataRepository.save(responseData);
+        ResponseDataEntity entity = responseDataStorage.save(ResponseDataEntity.from(responseData));
+        return entity.toResponseData();
     }
 
     @Override
     public Optional<ResponseData> findByResponseId(String responseId) {
-        return Optional.ofNullable(inMemoryResponseDataRepository.findByResponseId(responseId));
+        return responseDataStorage.findById(responseId)
+                .flatMap(e -> Optional.of(e.toResponseData()));
+    }
+
+    @Override
+    public List<ResponseData> findAll() {
+        return responseDataStorage.findAll()
+                .stream()
+                .map(ResponseDataEntity::toResponseData)
+                .toList();
     }
 }

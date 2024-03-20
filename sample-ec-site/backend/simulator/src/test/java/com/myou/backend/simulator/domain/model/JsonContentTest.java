@@ -1,10 +1,27 @@
 package com.myou.backend.simulator.domain.model;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class JsonContentTest {
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "",
+            " ",
+            "  ",
+            "　",
+            "aaa"
+    })
+    public void testConstructor_failure(String content) {
+        Assertions.assertThatThrownBy(() -> new JsonContent(content))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 
     @Test
     public void testMatches_whenFieldMatches() {
@@ -77,6 +94,25 @@ class JsonContentTest {
         assertFalse(content.matches("/users/1/name", "John"));
     }
 
+
+    @Test
+    public void testMatches_failure() {
+        // 配列を含むJSON文字列を用意
+        String json = "{\"users\":[{\"name\":\"John\"}, {\"name\":\"Jane\"}]}";
+        JsonContent content = new JsonContent(json);
+
+        assertFalse(content.matches("test", "John"));
+    }
+
+    @Test
+    public void testToString() {
+        // 配列を含むJSON文字列を用意
+        String json = "{\"users\":[{\"name\":\"John\"}, {\"name\":\"Jane\"}]}";
+        JsonContent content = new JsonContent(json);
+
+        Assertions.assertThat(content.toString()).isEqualTo("""
+                JsonContent{content='{"users":[{"name":"John"}, {"name":"Jane"}]}'}""");
+    }
 
 
 }

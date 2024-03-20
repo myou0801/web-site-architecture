@@ -6,8 +6,6 @@ server:
 spring:
   application:
     name: simulator
-  cache:
-    type: SIMPLE
   data:
     redis:
       host: redis
@@ -17,7 +15,7 @@ spring:
 management:
   endpoints.web.exposure.include: "*"
   endpoint:
-    health.show-details: always
+    health.show-details: ALWAYS
     env.show-values: ALWAYS
 
 logging:

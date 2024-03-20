@@ -16,7 +16,7 @@ public class DomainModelUtils {
                 new RequestHeaderConditionRule("header1", "value1"),
                 new RequestContentConditionRule("key1", "value1"));
         ConditionPolicy conditionPolicy = new ConditionPolicy(rules, "responseId1");
-        List<ConditionPolicy> policies = List.of(conditionPolicy);
+        ConditionPolicies policies = new ConditionPolicies(List.of(conditionPolicy));
         return new ConditionEntry("interfaceId1", policies);
     }
 

@@ -1,8 +1,6 @@
 spring:
   application:
     name: simulator
-  cache:
-    type: SIMPLE
   data:
     redis:
       repositories:

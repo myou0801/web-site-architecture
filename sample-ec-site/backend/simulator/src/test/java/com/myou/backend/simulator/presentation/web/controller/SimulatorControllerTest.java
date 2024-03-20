@@ -48,6 +48,22 @@ class SimulatorControllerTest {
                 .andDo(print());
     }
 
+    // TODO いったんコメントアウト、例外ハンドリング実装後に解除
+//    @Test
+//    public void testProcessJsonRequest_failure() throws Exception {
+//
+//        ResponseData responseData = new ResponseData("responseId23", Map.of("Content-Type", List.of("application/json")), "{\"message\":\"Success\"}", HttpStatus.of(200));
+//        when(simulatorService.processRequest(any())).thenReturn(responseData);
+//
+//        mockMvc.perform(post("/interfaceId123")
+//                        .contentType("application/json")
+//                        .content("aa"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(content().string(containsString("{\"message\":\"Success\"}")))
+//                .andDo(print());
+//    }
+
     @Test
     public void testProcessXmlRequest() throws Exception {
 

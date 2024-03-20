@@ -2,7 +2,6 @@ package com.myou.backend.simulator.application.service;
 
 import com.myou.backend.simulator.application.repository.ConditionEntryRepository;
 import com.myou.backend.simulator.application.repository.ResponseDataRepository;
-import com.myou.backend.simulator.domain.model.ConditionPolicies;
 import com.myou.backend.simulator.domain.model.RequestData;
 import com.myou.backend.simulator.domain.model.ResponseData;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,7 @@ public class SimulatorServiceImpl implements SimulatorService {
     public ResponseData processRequest(RequestData requestData) {
 
         String responseId = conditionEntryRepository.findByInterfaceId(requestData.interfaceId())
-                .flatMap(e -> new ConditionPolicies(e.policies()).findResponseId(requestData))
+                .flatMap(e -> e.searchResponseId(requestData))
                 .orElseThrow(() -> new IllegalArgumentException("インターフェースIDの条件エントリが存在しない、またはリクエストの内容が条件に一致しない"));
 
         return responseDataRepository.findByResponseId(responseId)

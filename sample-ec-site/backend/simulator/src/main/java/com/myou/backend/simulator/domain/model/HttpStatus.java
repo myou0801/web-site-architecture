@@ -1,13 +1,14 @@
 package com.myou.backend.simulator.domain.model;
 
+import org.springframework.util.Assert;
+
 import java.io.Serializable;
 
 public record HttpStatus(int value) implements Serializable {
 
     public HttpStatus {
-        if (value < 100 || value > 599) {
-            throw new IllegalArgumentException("Invalid HTTP status code: " + value);
-        }
+        Assert.isTrue(value >= 100 && value <= 999,
+                () -> "Status code '" + value + "' should be a three-digit positive integer");
     }
 
     public static HttpStatus ok(){

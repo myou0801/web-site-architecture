@@ -1,5 +1,6 @@
 package com.myou.backend.simulator.application.service;
 
+import com.myou.backend.simulator.application.repository.ResponseDataRepository;
 import com.myou.backend.simulator.domain.model.HttpStatus;
 import com.myou.backend.simulator.domain.model.ResponseData;
 import org.assertj.core.api.Assertions;
@@ -9,23 +10,38 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @SpringBootTest
 class ResponseDataServiceImplTest {
 
     @Autowired
-    private ResponseDataServiceImpl target;
+    private ResponseDataRepository responseDataRepository;
 
     @Test
     void saveResponseData() {
 
         ResponseData responseData = new ResponseData("responseId1", Map.of("header1", List.of("data1")), "success", HttpStatus.ok());
+        ResponseDataServiceImpl target = new ResponseDataServiceImpl(responseDataRepository);
         target.saveResponseData(responseData);
 
-        var actual = target.getResponseDataById("responseId1");
+        Optional<ResponseData> actual =  responseDataRepository.findByResponseId("responseId1");
 
         Assertions.assertThat(actual.isPresent()).isTrue();
         Assertions.assertThat(actual.get()).isEqualTo(responseData);
 
+    }
+
+    @Test
+    void getResponseDataById(){
+
+        ResponseData responseData = new ResponseData("responseId1", Map.of("header1", List.of("data1")), "success", HttpStatus.ok());
+        responseDataRepository.save(responseData);
+
+        ResponseDataServiceImpl target = new ResponseDataServiceImpl(responseDataRepository);
+        Optional<ResponseData> actual = target.getResponseDataById("responseId1");
+
+        Assertions.assertThat(actual.isPresent()).isTrue();
+        Assertions.assertThat(actual.get()).isEqualTo(responseData);
     }
 }

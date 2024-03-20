@@ -1,5 +1,4 @@
 @startuml
-!theme plain
 
 interface RequestContent {
 }
@@ -55,16 +54,11 @@ class RequestData {
   +HttpMethod httpMethod
 }
 
-
 ConditionEntry "1" --> "1" Policies : contains
 Policies "1" --> "*" Policy : contains
 Policy "1" --> "1" Rules : contains
 Rules "1" --> "*" Rule : contains
 RequestData "0..*" - "1" ConditionEntry : evaluated by
 RequestData "1" - "1" RequestContent : has
-RequestContent <|.. JsonContent
-RequestContent <|.. XmlContent
-RequestContent <|.. FormDataContent
-RequestContent <|.. QueryParamsContent
 
 @enduml

@@ -64,7 +64,7 @@ class ConditionEntryControllerTest {
 
     @Test
     public void getConditionEntryByInterfaceId_ShouldReturnConditionEntry() throws Exception {
-        String interfaceId = "interface123";
+        String interfaceId = "interface999";
         mockMvc.perform(get("/api/conditions/{interfaceId}", interfaceId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
