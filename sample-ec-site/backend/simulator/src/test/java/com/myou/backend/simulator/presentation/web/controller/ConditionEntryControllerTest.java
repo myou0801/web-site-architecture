@@ -53,6 +53,12 @@ class ConditionEntryControllerTest {
                 .andExpect(content().string("Condition entry created successfully"))
                 .andDo(print());
 
+        String interfaceId = "interface123";
+        mockMvc.perform(get("/api/conditions/{interfaceId}", interfaceId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(print());
+
     }
 
 

@@ -43,6 +43,13 @@ class ResponseDataControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print());
 
+
+        String responseId = "response123";
+        mockMvc.perform(get("/api/responses/{responseId}", responseId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(print());
+
     }
 
     @Test

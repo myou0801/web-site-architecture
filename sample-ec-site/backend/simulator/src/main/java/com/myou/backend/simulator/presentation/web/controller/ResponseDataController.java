@@ -23,7 +23,9 @@ public class ResponseDataController {
     }
 
     @GetMapping("/{responseId}")
-    public ResponseEntity<ResponseData> getResponseData(@PathVariable String responseId) {
+    public ResponseEntity<ResponseData> getResponseData(@PathVariable("responseId") String responseId) {
+
+        // TODO レスポンスデータ用のレスポンスデータを作成する必要がある
         Optional<ResponseData> responseData = responseDataService.getResponseDataById(responseId);
         return responseData.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }

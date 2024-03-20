@@ -23,7 +23,7 @@ public class SimulatorServiceImpl implements SimulatorService {
 
         String responseId = conditionEntryRepository.findByInterfaceId(requestData.interfaceId())
                 .flatMap(e -> new ConditionPolicies(e.policies()).findResponseId(requestData))
-                .orElseThrow(() -> new IllegalArgumentException("条件に一致しない"));
+                .orElseThrow(() -> new IllegalArgumentException("インターフェースIDの条件エントリが存在しない、またはリクエストの内容が条件に一致しない"));
 
         return responseDataRepository.findByResponseId(responseId)
                 .orElseThrow(() -> new IllegalArgumentException("レスポンスIDがレスポンスデータに存在しない。responseId:" + responseId));

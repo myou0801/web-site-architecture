@@ -27,7 +27,9 @@ public class ConditionEntryController {
     }
 
     @GetMapping("/{interfaceId}")
-    public ResponseEntity<ConditionEntry> getConditionEntryByInterfaceId(@PathVariable String interfaceId) {
+    public ResponseEntity<ConditionEntry> getConditionEntryByInterfaceId(@PathVariable("interfaceId") String interfaceId) {
+
+        // TODO レスポンスデータ用のレスポンスデータを作成する必要がある
         Optional<ConditionEntry> entry = conditionEntryService.findByInterfaceId(interfaceId);
         return entry.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }

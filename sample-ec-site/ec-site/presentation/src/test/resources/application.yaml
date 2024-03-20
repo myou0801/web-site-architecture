@@ -5,31 +5,31 @@ spring:
     name: ec-site
   config:
     import: optional:configserver:http://config-server:8888
-  data:
-    redis:
-      host: redis
-  cloud:
-    config:
-      name: application
-    aws:
-      endpoint: http://localstack:4566
-      s3:
-        path-style-access-enabled: true
-
-management:
-  endpoints.web.exposure.include: '*'
-  endpoint:
-    health.show-details: always
-  tracing:
-    enabled: true
-    sampling:
-      probability: 1.0
-    propagation:
-      type: w3c
-  metics.distribution.percentiles-histogram.http.server.requests: true
-  zipkin:
-    tracing:
-      endpoint: http://tempo:9411/api/v2/spans
+#  data:
+#    redis:
+#      host: redis
+#  cloud:
+#    config:
+#      name: application
+#    aws:
+#      endpoint: http://localstack:4566
+#      s3:
+#        path-style-access-enabled: true
+#
+#management:
+#  endpoints.web.exposure.include: '*'
+#  endpoint:
+#    health.show-details: always
+#  tracing:
+#    enabled: true
+#    sampling:
+#      probability: 1.0
+#    propagation:
+#      type: w3c
+#  metics.distribution.percentiles-histogram.http.server.requests: true
+#  zipkin:
+#    tracing:
+#      endpoint: http://tempo:9411/api/v2/spans
 
 logging:
   level:
@@ -38,7 +38,5 @@ logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId},%X{spanId}]"
 
-logback.access:
-  enabled: true
-
-
+#logback.access:
+#  enabled: true

@@ -1,6 +1,12 @@
 spring:
   application:
     name: simulator
+  cache:
+    type: SIMPLE
+  data:
+    redis:
+      repositories:
+        enabled: false
 
 logging:
   level:

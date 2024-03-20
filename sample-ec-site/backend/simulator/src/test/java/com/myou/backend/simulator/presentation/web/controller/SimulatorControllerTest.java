@@ -39,7 +39,7 @@ class SimulatorControllerTest {
         ResponseData responseData = new ResponseData("responseId23", Map.of("Content-Type", List.of("application/json")), "{\"message\":\"Success\"}", HttpStatus.of(200));
         when(simulatorService.processRequest(any())).thenReturn(responseData);
 
-        mockMvc.perform(post("/simulator/interfaceId123")
+        mockMvc.perform(post("/interfaceId123")
                         .contentType("application/json")
                         .content("{\"key\":\"value\"}"))
                 .andExpect(status().isOk())
@@ -54,7 +54,7 @@ class SimulatorControllerTest {
         ResponseData responseData = new ResponseData("responseId23",Map.of("Content-Type", List.of("application/xml")), "<response>Success</response>", HttpStatus.of(200));
         when(simulatorService.processRequest(any())).thenReturn(responseData);
 
-        mockMvc.perform(post("/simulator/interfaceIdXml")
+        mockMvc.perform(post("/interfaceIdXml")
                         .contentType("application/xml")
                         .content("<request><key>value</key></request>"))
                 .andExpect(status().isOk())
@@ -69,7 +69,7 @@ class SimulatorControllerTest {
         ResponseData responseData = new ResponseData("responseId23",Map.of("Content-Type", List.of("application/x-www-form-urlencoded")), "key=value&key2=value2", HttpStatus.of(200));
         when(simulatorService.processRequest(any())).thenReturn(responseData);
 
-        mockMvc.perform(post("/simulator/interfaceIdForm")
+        mockMvc.perform(post("/interfaceIdForm")
                         .contentType("application/x-www-form-urlencoded")
                         .param("data", "formData"))
                 .andExpect(status().isOk())
@@ -83,7 +83,7 @@ class SimulatorControllerTest {
         ResponseData responseData = new ResponseData("responseId23",Map.of(), "queryParamValue", HttpStatus.of(200));
         when(simulatorService.processRequest(any())).thenReturn(responseData);
 
-        mockMvc.perform(get("/simulator/interfaceIdGet?query=testQuery"))
+        mockMvc.perform(get("/interfaceIdGet?query=testQuery"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("queryParamValue")))
                 .andDo(print());

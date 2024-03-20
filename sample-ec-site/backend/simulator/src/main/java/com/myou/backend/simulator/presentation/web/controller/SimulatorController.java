@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/simulator")
 public class SimulatorController {
 
     private final SimulatorService simulatorService;
@@ -27,7 +26,7 @@ public class SimulatorController {
 
     @PostMapping(value = "/{interfaceId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> processJsonRequest(
-            @PathVariable String interfaceId,
+            @PathVariable("interfaceId") String interfaceId,
             @RequestHeader MultiValueMap<String, String>  headers,
             @RequestBody String requestBody) {
 
@@ -37,7 +36,7 @@ public class SimulatorController {
 
     @PostMapping(value = "/{interfaceId}", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> processXmlRequest(
-            @PathVariable String interfaceId,
+            @PathVariable("interfaceId") String interfaceId,
             @RequestHeader MultiValueMap<String, String>  headers,
             @RequestBody String requestBody) {
         // XMLリクエストの処理とレスポンスの生成
@@ -46,7 +45,7 @@ public class SimulatorController {
 
     @PostMapping(value = "/{interfaceId}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<String> processFormRequest(
-            @PathVariable String interfaceId,
+            @PathVariable("interfaceId") String interfaceId,
             @RequestHeader MultiValueMap<String, String>  headers,
             @RequestParam MultiValueMap<String, String>  data) {
         // フォームデータの処理とレスポンスの生成
@@ -56,7 +55,7 @@ public class SimulatorController {
 
     @GetMapping("/{interfaceId}")
     public ResponseEntity<String> processGetRequest(
-            @PathVariable String interfaceId,
+            @PathVariable("interfaceId") String interfaceId,
             @RequestHeader MultiValueMap<String, String> headers,
             @RequestParam(required = false) MultiValueMap<String, String> queryParams) {
         // GETリクエストの処理とレスポンスの生成

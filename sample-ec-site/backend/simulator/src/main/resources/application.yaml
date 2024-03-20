@@ -7,12 +7,12 @@ spring:
   application:
     name: simulator
   cache:
-#    type:
     type: SIMPLE
   data:
     redis:
       host: redis
-
+      repositories:
+        enabled: false
 
 management:
   endpoints.web.exposure.include: "*"
