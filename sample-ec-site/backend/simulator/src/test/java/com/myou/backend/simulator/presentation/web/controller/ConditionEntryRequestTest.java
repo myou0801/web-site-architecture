@@ -1,32 +1,34 @@
 package com.myou.backend.simulator.presentation.web.controller;
 
-import com.myou.backend.simulator.domain.policy.rule.RequestHeaderConditionRule;
+import com.myou.backend.simulator.domain.model.DomainModelUtils;
 import com.myou.backend.simulator.domain.type.RuleType;
+import org.assertj.core.api.Assertions;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class ConditionEntryRequestTest {
 
     @Test
     void toConditionEntry() {
-
-
-        ConditionEntryRequest.RuleDefinitionRequest ruleDefinitionRequest = new ConditionEntryRequest.RuleDefinitionRequest(RuleType.REQUEST_HEADER, "key1", "value1");
-        List<ConditionEntryRequest.RuleDefinitionRequest> rules = new ArrayList<>();
-        rules.add(ruleDefinitionRequest);
-
-        ConditionEntryRequest.PolicyRequest policy = new ConditionEntryRequest.PolicyRequest(rules, "responseId");
-        List<ConditionEntryRequest.PolicyRequest> policies = new ArrayList<>();
-        policies.add(policy);
-        ConditionEntryRequest request = new ConditionEntryRequest("interfaceId", policies);
-
+        ConditionEntryRequest request = getConditionEntryRequest();
         var actual = request.toConditionEntry();
-
-        System.out.print(actual);
-
+        Assertions.assertThat(actual).isEqualTo(DomainModelUtils.getConditionEntry());
     }
+
+    @NotNull
+    private static ConditionEntryRequest getConditionEntryRequest() {
+        ConditionEntryRequest.RuleDefinitionRequest ruleDefinitionRequest1 =
+                new ConditionEntryRequest.RuleDefinitionRequest(RuleType.REQUEST_HEADER, "header1", "value1");
+        ConditionEntryRequest.RuleDefinitionRequest ruleDefinitionRequest2 =
+                new ConditionEntryRequest.RuleDefinitionRequest(RuleType.REQUEST_CONTENT, "key1", "value1");
+        List<ConditionEntryRequest.RuleDefinitionRequest> rules = List.of(ruleDefinitionRequest1, ruleDefinitionRequest2);
+
+        ConditionEntryRequest.PolicyRequest policy = new ConditionEntryRequest.PolicyRequest(rules, "responseId1");
+        List<ConditionEntryRequest.PolicyRequest> policies = List.of(policy);
+        return new ConditionEntryRequest("interfaceId1", policies);
+    }
+
+
 }
