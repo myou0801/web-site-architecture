@@ -5,6 +5,7 @@ import com.myou.backend.simulator.domain.model.ResponseData;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -16,8 +17,9 @@ public class ResponseDataController {
         this.responseDataService = responseDataService;
     }
 
-    @PostMapping
-    public ResponseEntity<Void> createResponseData(@RequestBody ResponseDataRequest responseDataRequest) {
+    @PostMapping("/{responseId}")
+    public ResponseEntity<Void> createResponseData(@PathVariable("responseId") String responseId,
+                                                   @RequestBody ResponseDataRequest responseDataRequest) {
         responseDataService.saveResponseData(responseDataRequest.toResponseData());
         return ResponseEntity.ok().build();
     }
@@ -29,5 +31,15 @@ public class ResponseDataController {
         Optional<ResponseData> responseData = responseDataService.getResponseDataById(responseId);
         return responseData.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/")
+    public ResponseEntity<List<ResponseData>> getAllResponseData() {
+
+        // TODO レスポンスデータ用のレスポンスデータを作成する必要がある
+        List<ResponseData> responseData = responseDataService.getAllResponseData();
+        return ResponseEntity.ok(responseData);
+    }
+
+
 
 }

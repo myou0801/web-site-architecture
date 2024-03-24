@@ -25,6 +25,11 @@ public class ResponseDataRepositoryImpl implements ResponseDataRepository {
     }
 
     @Override
+    public void saveAll(List<ResponseData> responseDataList) {
+        responseDataStorage.saveAll(responseDataList.stream().map(ResponseDataEntity::from).toList());
+    }
+
+    @Override
     public Optional<ResponseData> findByResponseId(String responseId) {
         return responseDataStorage.findById(responseId)
                 .flatMap(e -> Optional.of(e.toResponseData()));

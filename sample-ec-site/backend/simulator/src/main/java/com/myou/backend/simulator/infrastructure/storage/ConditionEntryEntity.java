@@ -1,7 +1,7 @@
 package com.myou.backend.simulator.infrastructure.storage;
 
 import com.myou.backend.simulator.domain.model.ConditionEntry;
-import com.myou.backend.simulator.domain.model.ConditionPolicies;
+import com.myou.backend.simulator.domain.model.ResponseIdCondition;
 import com.myou.backend.simulator.domain.policy.ConditionPolicy;
 import com.myou.backend.simulator.domain.policy.rule.ConditionRule;
 import com.myou.backend.simulator.domain.policy.rule.RequestContentConditionRule;
@@ -13,34 +13,51 @@ import org.springframework.data.keyvalue.annotation.KeySpace;
 import java.util.List;
 
 @KeySpace
-public record ConditionEntryEntity(@Id String interfaceId, List<PolicyEntity> policies) {
+public record ConditionEntryEntity(@Id String interfaceId, List<ResponseIdConditionEntity> responseIdConditions) {
 
     public static ConditionEntryEntity from(ConditionEntry conditionEntry) {
-        List<PolicyEntity> policies = conditionEntry
-                .policies()
-                .conditionPolicies()
+        List<ResponseIdConditionEntity> responseIdConditionEntityList = conditionEntry
+                .responseIdConditions()
                 .stream()
-                .map(PolicyEntity::from)
+                .map(ResponseIdConditionEntity::from)
                 .toList();
-        return new ConditionEntryEntity(conditionEntry.interfaceId(), policies);
+        return new ConditionEntryEntity(conditionEntry.interfaceId(), responseIdConditionEntityList);
     }
 
     public ConditionEntry toConditionEntry() {
-        ConditionPolicies policies = new ConditionPolicies(policies().stream().map(PolicyEntity::toConditionPolicy).toList());
-        return new ConditionEntry(interfaceId, policies);
+        List<ResponseIdCondition> conditionPolicies = responseIdConditions.stream()
+                .map(ResponseIdConditionEntity::toResponseIdCondition)
+                .toList();
+        return new ConditionEntry(interfaceId, conditionPolicies);
     }
 
+    public record ResponseIdConditionEntity(String responseId, PolicyEntity policy) {
+        public static ResponseIdConditionEntity from(ResponseIdCondition responseIdCondition) {
+            return new ResponseIdConditionEntity(
+                    responseIdCondition.responseId(),
+                    PolicyEntity.from(responseIdCondition.conditionPolicy()));
+        }
 
-    public record PolicyEntity(List<RuleEntity> rules, String responseId) {
+        public ResponseIdCondition toResponseIdCondition() {
+            return new ResponseIdCondition(
+                    responseId,
+                    policy.toConditionPolicy());
+        }
+    }
+
+    public record PolicyEntity(List<RuleEntity> rules) {
 
         public static PolicyEntity from(ConditionPolicy conditionPolicy) {
-            return new PolicyEntity(conditionPolicy.rules().stream().map(RuleEntity::from).toList(), conditionPolicy.responseId());
+            return new PolicyEntity(
+                    conditionPolicy.rules()
+                            .stream()
+                            .map(RuleEntity::from)
+                            .toList());
         }
 
         public ConditionPolicy toConditionPolicy() {
             return new ConditionPolicy(
-                    rules.stream().map(RuleEntity::toConditionRule).toList(),
-                    responseId);
+                    rules.stream().map(RuleEntity::toConditionRule).toList());
         }
 
     }
@@ -48,10 +65,11 @@ public record ConditionEntryEntity(@Id String interfaceId, List<PolicyEntity> po
     public record RuleEntity(RuleType type, String key, String expectedValue) {
 
         public static RuleEntity from(ConditionRule conditionRule) {
-            return switch (conditionRule){
-                case RequestHeaderConditionRule h -> new RuleEntity(RuleType.REQUEST_HEADER, h.headerName(), h.expectedValue());
-                case RequestContentConditionRule c ->  new RuleEntity(RuleType.REQUEST_CONTENT, c.key(), c.expectedValue());
-                default -> throw new IllegalStateException("Unexpected value: " + conditionRule);
+            return switch (conditionRule) {
+                case RequestHeaderConditionRule(String headerName, String expectedValue) ->
+                        new RuleEntity(RuleType.REQUEST_HEADER, headerName, expectedValue);
+                case RequestContentConditionRule(String key, String expectedValue) ->
+                        new RuleEntity(RuleType.REQUEST_CONTENT, key, expectedValue);
             };
         }
 

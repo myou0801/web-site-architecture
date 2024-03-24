@@ -18,9 +18,6 @@ class ConditionEntryEntityTest {
         ConditionEntryEntity actual = ConditionEntryEntity.from(conditionEntry);
 
         Assertions.assertThat(actual).isEqualTo(getConditionEntryEntity());
-        Assertions.assertThat(actual.toString())
-                .isEqualTo("ConditionEntryEntity[interfaceId=interfaceId1, policies=[PolicyEntity[rules=[RuleEntity[type=REQUEST_HEADER, key=header1, expectedValue=value1], RuleEntity[type=REQUEST_CONTENT, key=key1, expectedValue=value1]], responseId=responseId1]]]");
-
     }
 
 
@@ -38,8 +35,12 @@ class ConditionEntryEntityTest {
         List<ConditionEntryEntity.RuleEntity> rules = List.of(
                 new ConditionEntryEntity.RuleEntity(RuleType.REQUEST_HEADER, "header1", "value1"),
                 new ConditionEntryEntity.RuleEntity(RuleType.REQUEST_CONTENT, "key1", "value1"));
-        List<ConditionEntryEntity.PolicyEntity> policies = List.of(new ConditionEntryEntity.PolicyEntity(rules, "responseId1"));
-        return new ConditionEntryEntity("interfaceId1", policies);
+        List<ConditionEntryEntity.ResponseIdConditionEntity> responseIdConditionEntities = List.of(
+                new ConditionEntryEntity.ResponseIdConditionEntity(
+                        "responseId1",
+                        new ConditionEntryEntity.PolicyEntity(rules))
+        );
+        return new ConditionEntryEntity("interfaceId1", responseIdConditionEntities);
     }
 
 }

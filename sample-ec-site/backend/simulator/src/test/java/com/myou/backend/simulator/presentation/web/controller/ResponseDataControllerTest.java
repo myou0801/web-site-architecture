@@ -25,21 +25,22 @@ class ResponseDataControllerTest {
 
     @Test
     void createResponseData() throws Exception {
+
+        String responseId = "response123";
         ResponseDataRequest responseData = new ResponseDataRequest(
-                "response123",
+                responseId,
                 Map.of("Content-Type", List.of("application/json")),
                 "{\"key\":\"value\"}",
                 200
         );
 
-        mockMvc.perform(post("/api/responses")
+        mockMvc.perform(post("/api/responses/{responseId}", responseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(JsonMapper.builder().build().writeValueAsString(responseData)))
                 .andExpect(status().isOk())
                 .andDo(print());
 
 
-        String responseId = "response123";
         mockMvc.perform(get("/api/responses/{responseId}", responseId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
