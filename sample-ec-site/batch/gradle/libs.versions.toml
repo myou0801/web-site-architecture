@@ -1,0 +1,30 @@
+[versions]
+springDependencyManagementVersion = "1.1.7"
+springBootVersion = "3.4.5"
+springCloudVersion = "2024.0.0"
+logstashLogbackEncoderVersion = "7.4"
+lombokVersion = "1.18.30"
+
+[plugins]
+spring-boot-plugin = { id = "org.springframework.boot", version.ref = "springBootVersion" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "springDependencyManagementVersion"}
+
+[libraries]
+spring-boot-starter-batch = { module = "org.springframework.boot:spring-boot-starter-batch" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-batch-test = { module = "org.springframework.batch:spring-batch-test" }
+spring-cloud-starter-config = { module = "org.springframework.cloud:spring-cloud-starter-config" }
+
+h2 = { module = "com.h2database:h2" }
+postgresql = { module = "org.postgresql:postgresql" }
+
+logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashLogbackEncoderVersion" }
+micrometer-tracing-bridge-brave = { module = "io.micrometer:micrometer-tracing-bridge-brave" }
+zipkin-reporter-brave = { module = "io.zipkin.reporter2:zipkin-reporter-brave" }
+zipkin-sender-urlconnection = { module = "io.zipkin.reporter2:zipkin-sender-urlconnection" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombokVersion" }
+
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBootVersion" }
+spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "springCloudVersion" }

@@ -23,11 +23,26 @@ management:
 
 logging:
   level:
+    root: info
     web: info
-    sql: info 
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId},%X{spanId}]"
-  
+    sql: info
+    org.apache.hc.client5.http: debug
+
+  #  pattern:
+#    level: "%5p [${spring.application.name:},%X{traceId},%X{spanId}]"
+  file:
+    name: "./log/application-${spring.application.name}.log"
+  structured:
+    format:
+      file: ecs
+    json:
+      customizer: com.myou.ec.ecsite.custom.StructuredLoggingCustomizer
+#  logback:
+#    rollingpolicy:
+#      file-name-pattern: "./log/application-${spring.application.name}.%d{yyyy-MM-dd}.log"
+
 
 logback.access:
   enabled: true
+  tomcat:
+    request-attributes-enabled: true

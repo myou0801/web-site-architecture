@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    alias(libs.plugins.spring.boot.plugin)
+    alias(libs.plugins.spring.dependency.management)
+}
+
+group = 'com.myou.ec'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation libs.spring.boot.starter.batch
+    implementation libs.spring.boot.starter.data.jpa
+    implementation libs.spring.boot.starter.actuator
+    implementation libs.spring.cloud.starter.config
+    implementation libs.logstash.logback.encoder
+    implementation libs.micrometer.tracing.bridge.brave
+    implementation libs.zipkin.reporter.brave
+    implementation libs.zipkin.sender.urlconnection
+    runtimeOnly libs.h2
+    runtimeOnly libs.postgresql
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.spring.batch.test
+}
+
+dependencyManagement {
+    imports {
+        mavenBom libs.spring.boot.bom
+        mavenBom libs.spring.cloud.dependencies
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

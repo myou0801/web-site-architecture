@@ -16,12 +16,13 @@
             <fileNamePattern>./log/access-${appName}.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
-        <encoder class="net.logstash.logback.encoder.LogstashAccessEncoder">
-            <fieldNames>
-                <requestHeaders>request_headers</requestHeaders>
-                <responseHeaders>response_headers</responseHeaders>
-            </fieldNames>
+        <encoder>
+            <pattern>clf</pattern>
         </encoder>
+<!--        <encoder class="org.springframework.boot.logging.logback.StructuredLogEncoder">-->
+<!--            <format>${FILE_LOG_STRUCTURED_FORMAT}</format>-->
+<!--            <charset>${FILE_LOG_CHARSET}</charset>-->
+<!--        </encoder>-->
     </appender>
     <appender-ref ref="FILE" />
 </configuration>

@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.spring.boot.plugin)
-    alias(libs.plugins.spring.dependency.management)
-    alias(libs.plugins.jig.plugin)
+    alias(libs.plugins.spring.boot.plugin) apply false
+    alias(libs.plugins.spring.dependency.management) apply false
+    alias(libs.plugins.jig.plugin) apply false
 }
 
 allprojects {
@@ -16,7 +16,9 @@ subprojects {
     version = '0.0.1-SNAPSHOT'
 
     java {
-        sourceCompatibility = '21'
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
     }
 
     repositories {
@@ -31,6 +33,9 @@ subprojects {
 
     dependencies {
         annotationProcessor libs.lombok
+        implementation platform(libs.spring.boot.bom)
+        implementation(platform(libs.spring.cloud.dependencies))
+        implementation(platform(libs.spring.cloud.aws.dependencies))
     }
 
     tasks.named('test') {
@@ -43,45 +48,41 @@ project(":boot") {
     apply plugin: 'io.spring.dependency-management'
 
     dependencies {
-
-        implementation(platform(libs.spring.cloud.dependencies))
-        implementation(platform(libs.spring.cloud.aws.dependencies))
-
-        implementation 'org.springframework.boot:spring-boot-starter-actuator'
-        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-        implementation 'org.springframework.boot:spring-boot-starter-security'
-        implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-        implementation 'org.springframework.boot:spring-boot-starter-web'
-        implementation 'org.springframework.cloud:spring-cloud-starter-config'
-        implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
-        implementation 'org.springframework.session:spring-session-data-redis'
-        implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter-metrics'
-
-        implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-        implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
-        // implementation 'io.micrometer:micrometer-tracing-bridge-brave'
-        // implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
-        implementation 'io.micrometer:micrometer-registry-prometheus'
-        implementation libs.logback.access.spring
-        implementation libs.logstash.logback.encoder
-
         implementation project(':presentation')
         implementation project(':application')
         implementation project(':infrastructure')
         implementation project(':domain')
 
-        developmentOnly 'org.springframework.boot:spring-boot-devtools'
-        runtimeOnly 'com.h2database:h2'
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        testImplementation 'org.springframework.security:spring-security-test'
-        testImplementation 'org.apache.httpcomponents.client5:httpclient5'
+        implementation libs.spring.boot.starter.actuator
+        implementation libs.spring.boot.starter.data.jdbc
+        implementation libs.spring.boot.starter.data.redis
+        implementation libs.spring.boot.starter.security
+        implementation libs.spring.boot.starter.thymeleaf
+        implementation libs.spring.boot.starter.web
+        implementation libs.spring.cloud.starter.config
+        implementation libs.spring.cloud.starter.bus.amqp
+        implementation libs.spring.session.data.redis
+        implementation libs.thymeleaf.extras.springsecurity6
+        implementation libs.awspring.cloud.starter
+        implementation libs.awspring.cloud.starter.s3
+        implementation libs.awspring.cloud.starter.sqs
+        implementation libs.awspring.cloud.starter.parameter.store
+        implementation libs.awspring.cloud.starter.secrets.manager
+        implementation libs.awspring.cloud.starter.metrics
+        implementation libs.awspring.cloud.aws.testcontainers
+
+        implementation libs.micrometer.tracing.bridge.otel
+        implementation libs.opentelemetry.exporter.otlp
+
+        implementation libs.micrometer.registry.prometheus
+        implementation libs.logback.access.spring
+        implementation libs.logback.access.tomcat
+
+        developmentOnly libs.spring.boot.devtools
+        runtimeOnly libs.h2
+        testImplementation libs.spring.boot.starter.test
+        testImplementation libs.spring.security.test
+        testImplementation libs.apache.httpcomponents.client5
 
     }
 }
@@ -89,59 +90,59 @@ project(":boot") {
 project(":presentation") {
 
     dependencies {
-        implementation platform(libs.spring.boot.bom)
-        implementation(platform(libs.spring.cloud.dependencies))
-
-        implementation 'org.springframework.boot:spring-boot-starter-actuator'
-        implementation 'org.springframework.boot:spring-boot-starter-web'
-        implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-        implementation 'org.springframework.session:spring-session-data-redis'
-        implementation 'org.springframework.cloud:spring-cloud-starter-config'
-
-        implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-
         implementation project(':application')
         implementation project(':domain')
 
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        testImplementation 'org.springframework.security:spring-security-test'
-        testImplementation 'org.apache.httpcomponents.client5:httpclient5'
+        implementation libs.spring.boot.starter.actuator
+        implementation libs.spring.boot.starter.web
+        implementation libs.spring.boot.starter.thymeleaf
+        implementation libs.spring.session.data.redis
+        implementation libs.spring.cloud.starter.config
+
+        implementation libs.micrometer.tracing.bridge.otel
+
+        testImplementation libs.spring.boot.starter.test
+        testImplementation libs.spring.security.test
+        testImplementation libs.apache.httpcomponents.client5
 
     }
 }
 
 project(":application") {
+    apply plugin: 'java-library'
+
     dependencies {
-        implementation platform(libs.spring.boot.bom)
-
-        implementation "org.springframework:spring-context"
-
         implementation project(':domain')
 
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        implementation libs.spring.context
+
+        testImplementation libs.spring.boot.starter.test
 
     }
 }
 
 project(":infrastructure") {
+    apply plugin: 'java-library'
+
     dependencies {
-        implementation platform(libs.spring.boot.bom)
-        implementation(platform(libs.spring.cloud.aws.dependencies))
-        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter'
-        implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
-        implementation 'org.apache.httpcomponents.client5:httpclient5'
         implementation project(':application')
         implementation project(':domain')
 
-        runtimeOnly 'com.h2database:h2'
+        implementation libs.spring.boot.starter.data.jdbc
+        implementation libs.spring.boot.starter.data.redis
+        implementation libs.awspring.cloud.starter
+        implementation libs.awspring.cloud.starter.s3
+        implementation libs.apache.httpcomponents.client5
 
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        runtimeOnly libs.h2
+
+        testImplementation libs.spring.boot.starter.test
     }
 }
 
 project(":domain") {
+    apply plugin: 'java-library'
+
     dependencies {
 
     }
