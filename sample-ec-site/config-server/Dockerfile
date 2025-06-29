@@ -1,13 +1,11 @@
-FROM maven:3.9.3-amazoncorretto-17 AS develop
+FROM gradle:jdk21 AS develop
 WORKDIR /usr/src
-COPY pom.xml .
-COPY src  ./src
-RUN mvn clean install -DskipTests
+COPY build.gradle settings.gradle gradlew gradlew.bat ./ 
+COPY gradle ./gradle
+COPY src ./src
+RUN ./gradlew build -x test
 
-
-FROM amazoncorretto:17 AS relese
+FROM amazoncorretto:21 AS relese
 WORKDIR /usr/src
-COPY --from=develop /usr/src/target/*.jar ./app.jar
+COPY --from=develop /usr/src/build/libs/*.jar ./app.jar
 CMD ["java", "-jar", "app.jar"]
-
-

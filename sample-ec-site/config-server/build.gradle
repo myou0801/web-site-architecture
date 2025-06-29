@@ -1,0 +1,40 @@
+plugins {
+    alias(libs.plugins.spring.boot.plugin)
+    alias(libs.plugins.spring.dependency.management)
+}
+
+group = 'com.myou.ec'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    implementation platform(libs.spring.boot.bom)
+    implementation platform(libs.spring.cloud.dependencies)
+
+    implementation libs.spring.boot.starter.actuator
+    implementation libs.spring.cloud.starter.config
+    implementation libs.micrometer.tracing.bridge.otel
+    implementation libs.opentelemetry.exporter.otlp
+    implementation libs.logback.access.spring
+
+    testImplementation libs.spring.boot.starter.test
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
