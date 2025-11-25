@@ -4,26 +4,26 @@ import com.myou.ec.ecsite.application.auth.sharedservice.LoginProcessSharedServi
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import org.springframework.context.event.EventListener;
-import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AuthenticationFailureEventListener {
+public class AuthenticationSuccessEventListener {
 
     private final LoginProcessSharedService loginProcessSharedService;
 
-    public AuthenticationFailureEventListener(LoginProcessSharedService loginProcessSharedService) {
+    public AuthenticationSuccessEventListener(LoginProcessSharedService loginProcessSharedService) {
         this.loginProcessSharedService = loginProcessSharedService;
     }
 
     @EventListener
-    public void handle(AuthenticationFailureBadCredentialsEvent event) {
+    public void handle(AuthenticationSuccessEvent event) {
         Authentication authentication = event.getAuthentication();
         String loginIdStr = extractLoginId(authentication);
         LoginId loginId = new LoginId(loginIdStr);
-        loginProcessSharedService.onLoginFailure(loginId);
+        loginProcessSharedService.onLoginSuccess(loginId);
     }
 
     private String extractLoginId(Authentication authentication) {
@@ -37,4 +37,3 @@ public class AuthenticationFailureEventListener {
         throw new AuthDomainException("認証情報からログインIDを取得できません。");
     }
 }
-

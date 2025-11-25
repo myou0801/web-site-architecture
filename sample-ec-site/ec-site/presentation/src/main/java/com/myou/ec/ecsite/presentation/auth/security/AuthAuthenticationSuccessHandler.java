@@ -1,7 +1,6 @@
 package com.myou.ec.ecsite.presentation.auth.security;
 
 import com.myou.ec.ecsite.application.auth.sharedservice.LoginProcessSharedService;
-import com.myou.ec.ecsite.application.auth.sharedservice.LoginSuccessResult;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import jakarta.servlet.ServletException;
@@ -9,7 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -19,7 +18,7 @@ import java.io.IOException;
  * HTTP / URL のみを扱い、ドメイン処理は LoginProcessSharedService に委譲する。
  */
 @Component
-public class AuthAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+public class AuthAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     public static final String SESSION_ATTR_PASSWORD_CHANGE_REQUIRED = "AUTH_PASSWORD_CHANGE_REQUIRED";
 
@@ -27,7 +26,7 @@ public class AuthAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
 
     // デフォルト遷移先URL（必要に応じて設定で差し替え可能にしてもよい）
     private final String defaultMenuUrl = "/menu";
-    private final String passwordChangeUrl = "/password/change";
+    private final String passwordChangeUrl = "/.well-known/change-password";
 
     public AuthAuthenticationSuccessHandler(LoginProcessSharedService loginProcessSharedService) {
         this.loginProcessSharedService = loginProcessSharedService;
@@ -41,21 +40,16 @@ public class AuthAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
             throws IOException, ServletException {
 
         String loginIdStr = extractLoginId(authentication);
+        LoginId loginId = new LoginId(loginIdStr);
+        boolean result = loginProcessSharedService.isPasswordChangeRequired(loginId);
 
-        // application 層に委譲してドメイン処理を実行
-        LoginSuccessResult result =
-                loginProcessSharedService.onLoginSuccess(new LoginId(loginIdStr));
-
-        boolean mustChangePassword = result.passwordChangeRequired();
-        String targetUrl = mustChangePassword ? passwordChangeUrl : defaultMenuUrl;
-
-        if (mustChangePassword) {
-            request.getSession(true)
-                   .setAttribute(SESSION_ATTR_PASSWORD_CHANGE_REQUIRED, Boolean.TRUE);
+        if (result) {
+            // パスワード変更画面へリダイレクト
+            clearAuthenticationAttributes(request);
+            getRedirectStrategy().sendRedirect(request, response, passwordChangeUrl);
+        } else {
+            super.onAuthenticationSuccess(request, response, authentication);
         }
-
-        clearAuthenticationAttributes(request);
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
     private String extractLoginId(Authentication authentication) {

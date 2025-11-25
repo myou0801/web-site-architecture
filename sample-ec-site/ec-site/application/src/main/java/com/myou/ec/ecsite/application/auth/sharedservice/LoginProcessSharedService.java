@@ -12,9 +12,8 @@ public interface LoginProcessSharedService {
      * ログイン成功時の処理。
      *
      * @param loginId   ログインID（認証成功済）
-     * @return ログイン成功結果（パスワード変更強制が必要かどうか）
      */
-    LoginSuccessResult onLoginSuccess(LoginId loginId);
+    void onLoginSuccess(LoginId loginId);
 
     /**
      * ログイン失敗時の処理。
@@ -22,5 +21,15 @@ public interface LoginProcessSharedService {
      * @param loginId   ログインID（フォーム入力値。存在しない場合もある）
      */
     void onLoginFailure(LoginId loginId);
+
+
+    /**
+     * パスワード変更強制が必要かどうか判定する。
+     * - 履歴なし → 強制（安全側）
+     * - 履歴が INITIAL_REGISTER / ADMIN_RESET → 強制
+     * - 履歴が USER_CHANGE で、有効期限切れ → 強制
+     * @param loginId ログインID
+     */
+    boolean isPasswordChangeRequired(LoginId loginId);
 }
 

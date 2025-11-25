@@ -43,7 +43,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
     }
 
     @Override
-    public LoginSuccessResult onLoginSuccess(LoginId loginId) {
+    public void onLoginSuccess(LoginId loginId) {
         AuthUser user = authUserRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new AuthDomainException("ログイン成功後にユーザ情報が取得できません。"));
 
@@ -61,11 +61,6 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
                 loginId
         );
         loginHistoryRepository.save(successHistory);
-
-        // パスワード変更が必要かどうか判定
-        boolean mustChange = isPasswordChangeRequired(userId, now);
-
-        return new LoginSuccessResult(mustChange);
     }
 
     @Override
@@ -145,14 +140,11 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
     }
 
 
-    /**
-     * パスワード変更強制が必要かどうか判定する。
-     * - 履歴なし → 強制（安全側）
-     * - 履歴が INITIAL_REGISTER / ADMIN_RESET → 強制
-     * - 履歴が USER_CHANGE で、有効期限切れ → 強制
-     */
-    private boolean isPasswordChangeRequired(AuthUserId userId, LocalDateTime now) {
-        Optional<PasswordHistory> optLast = passwordHistoryRepository.findLastByUserId(userId);
+    @Override
+    public boolean isPasswordChangeRequired(LoginId loginId) {
+
+        Optional<PasswordHistory> optLast = authUserRepository.findByLoginId(loginId)
+                .flatMap(user -> passwordHistoryRepository.findLastByUserId(user.id()));
 
         if (optLast.isEmpty()) {
             return true;
@@ -162,6 +154,8 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
         if (last.isPasswordChangeRequired()) {
             return true;
         }
+
+        LocalDateTime now = LocalDateTime.now();
 
         return passwordPolicy.isExpired(last.changedAt(), now);
     }
