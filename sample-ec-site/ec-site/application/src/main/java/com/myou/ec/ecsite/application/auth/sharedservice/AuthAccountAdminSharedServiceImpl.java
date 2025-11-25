@@ -16,11 +16,13 @@ import com.myou.ec.ecsite.domain.auth.repository.AuthUserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Transactional
 public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminSharedService {
 
     private final AuthUserRepository authUserRepository;

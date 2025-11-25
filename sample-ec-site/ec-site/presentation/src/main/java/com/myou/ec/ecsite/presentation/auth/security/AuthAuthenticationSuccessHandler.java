@@ -3,6 +3,7 @@ package com.myou.ec.ecsite.presentation.auth.security;
 import com.myou.ec.ecsite.application.auth.sharedservice.LoginProcessSharedService;
 import com.myou.ec.ecsite.application.auth.sharedservice.LoginSuccessResult;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,11 +40,11 @@ public class AuthAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        String loginId = extractLoginId(authentication);
+        String loginIdStr = extractLoginId(authentication);
 
         // application 層に委譲してドメイン処理を実行
         LoginSuccessResult result =
-                loginProcessSharedService.onLoginSuccess(loginId);
+                loginProcessSharedService.onLoginSuccess(new LoginId(loginIdStr));
 
         boolean mustChangePassword = result.passwordChangeRequired();
         String targetUrl = mustChangePassword ? passwordChangeUrl : defaultMenuUrl;
@@ -68,3 +69,4 @@ public class AuthAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         throw new AuthDomainException("認証情報からログインIDを取得できません。");
     }
 }
+
