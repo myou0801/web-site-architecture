@@ -41,11 +41,9 @@ public class AuthAuthenticationFailureHandler extends SimpleUrlAuthenticationFai
 
         // フォームの name="username" としている前提。違う場合はここを調整。
         String loginId = request.getParameter("username");
-        String clientIp = request.getRemoteAddr();
-        String userAgent = request.getHeader("User-Agent");
 
         LoginFailureType type =
-                loginProcessSharedService.onLoginFailure(loginId, clientIp, userAgent);
+                loginProcessSharedService.onLoginFailure(loginId);
 
         String errorTypeStr = switch (type) {
             case LOCKED -> ERROR_TYPE_LOCKED;

@@ -16,8 +16,6 @@ public class LoginHistory {
     private final AuthUserId authUserId;
     private final LocalDateTime loginAt;
     private final LoginResult result;
-    private final String clientIp;
-    private final String userAgent;
 
     private final LocalDateTime createdAt;
     private final LoginId createdBy;
@@ -26,8 +24,6 @@ public class LoginHistory {
                         AuthUserId authUserId,
                         LocalDateTime loginAt,
                         LoginResult result,
-                        String clientIp,
-                        String userAgent,
                         LocalDateTime createdAt,
                         LoginId createdBy) {
 
@@ -35,37 +31,29 @@ public class LoginHistory {
         this.authUserId = Objects.requireNonNull(authUserId, "authUserId must not be null");
         this.loginAt = Objects.requireNonNull(loginAt, "loginAt must not be null");
         this.result = Objects.requireNonNull(result, "result must not be null");
-        this.clientIp = clientIp;
-        this.userAgent = userAgent;
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
         this.createdBy = Objects.requireNonNull(createdBy, "createdBy must not be null");
     }
 
     public static LoginHistory success(AuthUserId authUserId,
                                        LocalDateTime loginAt,
-                                       String clientIp,
-                                       String userAgent,
                                        LoginId createdBy) {
         return new LoginHistory(null, authUserId, loginAt, LoginResult.SUCCESS,
-                clientIp, userAgent, loginAt, createdBy);
+                loginAt, createdBy);
     }
 
     public static LoginHistory fail(AuthUserId authUserId,
                                     LocalDateTime loginAt,
-                                    String clientIp,
-                                    String userAgent,
                                     LoginId createdBy) {
         return new LoginHistory(null, authUserId, loginAt, LoginResult.FAIL,
-                clientIp, userAgent, loginAt, createdBy);
+                loginAt, createdBy);
     }
 
     public static LoginHistory locked(AuthUserId authUserId,
                                       LocalDateTime loginAt,
-                                      String clientIp,
-                                      String userAgent,
                                       LoginId createdBy) {
         return new LoginHistory(null, authUserId, loginAt, LoginResult.LOCKED,
-                clientIp, userAgent, loginAt, createdBy);
+                loginAt, createdBy);
     }
 
     public Long id() {
@@ -82,14 +70,6 @@ public class LoginHistory {
 
     public LoginResult result() {
         return result;
-    }
-
-    public String clientIp() {
-        return clientIp;
-    }
-
-    public String userAgent() {
-        return userAgent;
     }
 
     public LocalDateTime createdAt() {

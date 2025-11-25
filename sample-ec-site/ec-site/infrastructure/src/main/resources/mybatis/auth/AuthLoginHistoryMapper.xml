@@ -10,8 +10,6 @@
         <result column="AUTH_USER_ID" property="authUserId"/>
         <result column="LOGIN_AT" property="loginAt"/>
         <result column="RESULT" property="result"/>
-        <result column="CLIENT_IP" property="clientIp"/>
-        <result column="USER_AGENT" property="userAgent"/>
         <result column="CREATED_AT" property="createdAt"/>
         <result column="CREATED_BY" property="createdBy"/>
     </resultMap>
@@ -19,9 +17,9 @@
     <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord"
             useGeneratedKeys="true" keyProperty="authLoginHistoryId">
         INSERT INTO AUTH_LOGIN_HISTORY (
-            AUTH_USER_ID, LOGIN_AT, RESULT, CLIENT_IP, USER_AGENT, CREATED_AT, CREATED_BY
+            AUTH_USER_ID, LOGIN_AT, RESULT, CREATED_AT, CREATED_BY
         ) VALUES (
-            #{authUserId}, #{loginAt}, #{result}, #{clientIp}, #{userAgent}, #{createdAt}, #{createdBy}
+            #{authUserId}, #{loginAt}, #{result}, #{createdAt}, #{createdBy}
         )
     </insert>
 

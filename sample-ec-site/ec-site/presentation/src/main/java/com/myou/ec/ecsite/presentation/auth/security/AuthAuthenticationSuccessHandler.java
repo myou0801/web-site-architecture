@@ -40,12 +40,10 @@ public class AuthAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
             throws IOException, ServletException {
 
         String loginId = extractLoginId(authentication);
-        String clientIp = request.getRemoteAddr();
-        String userAgent = request.getHeader("User-Agent");
 
         // application 層に委譲してドメイン処理を実行
         LoginSuccessResult result =
-                loginProcessSharedService.onLoginSuccess(loginId, clientIp, userAgent);
+                loginProcessSharedService.onLoginSuccess(loginId);
 
         boolean mustChangePassword = result.passwordChangeRequired();
         String targetUrl = mustChangePassword ? passwordChangeUrl : defaultMenuUrl;

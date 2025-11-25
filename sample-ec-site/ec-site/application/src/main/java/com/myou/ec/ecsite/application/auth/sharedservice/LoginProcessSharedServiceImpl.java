@@ -41,7 +41,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
     }
 
     @Override
-    public LoginSuccessResult onLoginSuccess(String loginIdValue, String clientIp, String userAgent) {
+    public LoginSuccessResult onLoginSuccess(String loginIdValue) {
         LoginId loginId = new LoginId(loginIdValue);
         AuthUser user = authUserRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new AuthDomainException("ログイン成功後にユーザ情報が取得できません。"));
@@ -57,8 +57,6 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
         LoginHistory successHistory = LoginHistory.success(
                 userId,
                 now,
-                clientIp,
-                userAgent,
                 loginId
         );
         loginHistoryRepository.save(successHistory);
@@ -70,9 +68,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
     }
 
     @Override
-    public LoginFailureType onLoginFailure(String loginIdValue,
-                                           String clientIp,
-                                           String userAgent) {
+    public LoginFailureType onLoginFailure(String loginIdValue) {
 
         if (loginIdValue == null || loginIdValue.isBlank()) {
             // ログインID無し → ユーザ特定せず BAD_CREDENTIALS
@@ -103,8 +99,6 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
             LoginHistory lockedHistory = LoginHistory.locked(
                     userId,
                     now,
-                    clientIp,
-                    userAgent,
                     loginId
             );
             loginHistoryRepository.save(lockedHistory);
@@ -122,8 +116,6 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
         LoginHistory failHistory = LoginHistory.fail(
                 userId,
                 now,
-                clientIp,
-                userAgent,
                 loginId
         );
 

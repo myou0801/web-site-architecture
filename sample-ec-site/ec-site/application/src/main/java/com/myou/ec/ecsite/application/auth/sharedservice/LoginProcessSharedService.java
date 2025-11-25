@@ -10,19 +10,15 @@ public interface LoginProcessSharedService {
      * ログイン成功時の処理。
      *
      * @param loginId   ログインID（認証成功済）
-     * @param clientIp  クライアントIP
-     * @param userAgent User-Agent
      * @return ログイン成功結果（パスワード変更強制が必要かどうか）
      */
-    LoginSuccessResult onLoginSuccess(String loginId, String clientIp, String userAgent);
+    LoginSuccessResult onLoginSuccess(String loginId);
 
     /**
      * ログイン失敗時の処理。
      *
      * @param loginId   ログインID（フォーム入力値。存在しない場合もある）
-     * @param clientIp  クライアントIP
-     * @param userAgent User-Agent
      * @return 失敗種類（ロック or 認証エラー）
      */
-    LoginFailureType onLoginFailure(String loginId, String clientIp, String userAgent);
+    LoginFailureType onLoginFailure(String loginId);
 }

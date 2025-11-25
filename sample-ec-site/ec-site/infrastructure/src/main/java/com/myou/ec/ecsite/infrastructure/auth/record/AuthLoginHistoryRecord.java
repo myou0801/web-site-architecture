@@ -12,8 +12,6 @@ public record AuthLoginHistoryRecord(
         long authUserId,
         LocalDateTime loginAt,
         String result,
-        String clientIp,
-        String userAgent,
         LocalDateTime createdAt,
         String createdBy
 ) {
@@ -24,8 +22,6 @@ public record AuthLoginHistoryRecord(
                 new AuthUserId(authUserId),
                 loginAt,
                 LoginResult.valueOf(result),
-                clientIp,
-                userAgent,
                 createdAt,
                 new LoginId(createdBy)
         );
@@ -37,8 +33,6 @@ public record AuthLoginHistoryRecord(
                 history.authUserId().value(),
                 history.loginAt(),
                 history.result().name(),
-                history.clientIp(),
-                history.userAgent(),
                 history.createdAt(),
                 history.createdBy().value()
         );
