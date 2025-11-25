@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountLockHistoryMapper">
+
+    <resultMap id="AuthAccountLockHistoryRecordMap" type="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord">
+        <id column="AUTH_ACCOUNT_LOCK_HISTORY_ID" property="authAccountLockHistoryId"/>
+        <result column="AUTH_USER_ID" property="authUserId"/>
+        <result column="LOCKED" property="locked"/>
+        <result column="OCCURRED_AT" property="occurredAt"/>
+        <result column="REASON" property="reason"/>
+        <result column="OPERATED_BY" property="operatedBy"/>
+        <result column="CREATED_AT" property="createdAt"/>
+        <result column="CREATED_BY" property="createdBy"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord"
+            useGeneratedKeys="true" keyProperty="authAccountLockHistoryId">
+        INSERT INTO AUTH_ACCOUNT_LOCK_HISTORY (
+            AUTH_USER_ID, LOCKED, OCCURRED_AT, REASON, OPERATED_BY_LOGIN_ID, CREATED_AT, CREATED_BY
+        ) VALUES (
+            #{authUserId}, #{locked}, #{occurredAt}, #{reason}, #{operatedBy}, #{createdAt}, #{createdBy}
+        )
+    </insert>
+
+    <select id="findByUserId"
+            resultMap="AuthAccountLockHistoryRecordMap">
+        SELECT
+            AUTH_ACCOUNT_LOCK_HISTORY_ID,
+            AUTH_USER_ID,
+            LOCKED_FLG,
+            OCCURRED_AT,
+            REASON,
+            OPERATED_BY,
+            CREATED_AT,
+            CREATED_BY
+        FROM AUTH_ACCOUNT_LOCK_HISTORY
+        WHERE AUTH_USER_ID = #{authUserId}
+        ORDER BY OCCURRED_AT DESC
+    </select>
+
+</mapper>

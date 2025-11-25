@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthLoginHistoryMapper">
+
+    <resultMap id="AuthLoginHistoryRecordMap" type="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord">
+        <id column="AUTH_LOGIN_HISTORY_ID" property="authLoginHistoryId"/>
+        <result column="AUTH_USER_ID" property="authUserId"/>
+        <result column="LOGIN_AT" property="loginAt"/>
+        <result column="RESULT" property="result"/>
+        <result column="CLIENT_IP" property="clientIp"/>
+        <result column="USER_AGENT" property="userAgent"/>
+        <result column="CREATED_AT" property="createdAt"/>
+        <result column="CREATED_BY" property="createdBy"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord"
+            useGeneratedKeys="true" keyProperty="authLoginHistoryId">
+        INSERT INTO AUTH_LOGIN_HISTORY (
+            AUTH_USER_ID, LOGIN_AT, RESULT, CLIENT_IP, USER_AGENT, CREATED_AT, CREATED_BY
+        ) VALUES (
+            #{authUserId}, #{loginAt}, #{result}, #{clientIp}, #{userAgent}, #{createdAt}, #{createdBy}
+        )
+    </insert>
+
+    <select id="findRecentByUserId" resultMap="AuthLoginHistoryRecordMap">
+        SELECT * FROM AUTH_LOGIN_HISTORY
+        WHERE AUTH_USER_ID = #{authUserId}
+        ORDER BY LOGIN_AT DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findPreviousSuccessLoginAt" resultType="AuthLoginHistoryRecordMap">
+        SELECT * FROM AUTH_LOGIN_HISTORY
+        WHERE AUTH_USER_ID = #{authUserId} AND RESULT = 'SUCCESS'
+        ORDER BY LOGIN_AT DESC
+        OFFSET 1 LIMIT 1
+    </select>
+
+
+
+</mapper>

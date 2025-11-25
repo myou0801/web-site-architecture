@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthRoleMapper">
+
+    <resultMap id="AuthRoleRecordMap" type="com.myou.ec.ecsite.infrastructure.auth.record.AuthRoleRecord">
+        <id column="ROLE_CODE" property="roleCode" />
+        <result column="ROLE_NAME" property="roleName" />
+        <result column="DESCRIPTION" property="description" />
+        <result column="CREATED_AT" property="createdAt" />
+        <result column="CREATED_BY" property="createdBy" />
+        <result column="UPDATED_AT" property="updatedAt" />
+        <result column="UPDATED_BY" property="updatedBy" />
+    </resultMap>
+
+    <select id="findAll" resultMap="AuthRoleRecordMap">
+        SELECT * FROM AUTH_ROLE ORDER BY SORT_ORDER
+    </select>
+
+    <select id="findRoleCodesByUserId" resultType="string">
+        SELECT ROLE_CODE FROM AUTH_USER_ROLE WHERE AUTH_USER_ID = #{authUserId}
+    </select>
+    
+    <delete id="deleteUserRoles">
+        DELETE FROM AUTH_USER_ROLE WHERE AUTH_USER_ID = #{authUserId}
+    </delete>
+    
+    <insert id="insertUserRole">
+        INSERT INTO AUTH_USER_ROLE (AUTH_USER_ID, ROLE_CODE, CREATED_AT, CREATED_BY)
+        VALUES (#{authUserId}, #{roleCode}, CURRENT_TIMESTAMP, 'SYSTEM')
+    </insert>
+
+</mapper>
