@@ -11,5 +11,6 @@ public interface AuthAccountLockHistoryMapper {
 
     void insert(AuthAccountLockHistoryRecord record);
 
-    List<AuthAccountLockHistoryRecord> findByUserId(@Param("authUserId") long authUserId);
+    List<AuthAccountLockHistoryRecord> findByUserId(@Param("authUserId") long authUserId,
+                                                    @Param("limit") int limit);
 }

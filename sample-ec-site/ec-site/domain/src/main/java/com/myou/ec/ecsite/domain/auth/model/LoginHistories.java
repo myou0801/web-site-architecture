@@ -3,11 +3,14 @@ package com.myou.ec.ecsite.domain.auth.model;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginResult;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * LoginHistory のファーストクラスコレクション。
- *
+ * <p>
  * - リストの順序は loginAt 降順（新しいものが先頭）に正規化する。
  * - 連続失敗回数のカウント
  * - LockPolicy に基づくロックアウト判定
@@ -28,28 +31,28 @@ public class LoginHistories {
     }
 
 
-    /**
-     * 前回ログイン日時（今回を除く直近 SUCCESS）を返す。
-     * 履歴が1件以下、またはSUCCESSがない場合は empty。
-     */
-    public Optional<LocalDateTime> findPreviousSuccessLoginAt() {
-        LocalDateTime firstSuccess = null;
-        for (LoginHistory history : histories) {
-            if (history.result() == LoginResult.SUCCESS) {
-                if (firstSuccess == null) {
-                    firstSuccess = history.loginAt();
-                } else {
-                    // 2件目の SUCCESS が「前回ログイン」
-                    return Optional.of(history.loginAt());
-                }
-            }
-        }
-        return Optional.empty();
-    }
+//    /**
+//     * 前回ログイン日時（今回を除く直近 SUCCESS）を返す。
+//     * 履歴が1件以下、またはSUCCESSがない場合は empty。
+//     */
+//    public Optional<LocalDateTime> findPreviousSuccessLoginAt() {
+//        LocalDateTime firstSuccess = null;
+//        for (LoginHistory history : histories) {
+//            if (history.result() == LoginResult.SUCCESS) {
+//                if (firstSuccess == null) {
+//                    firstSuccess = history.loginAt();
+//                } else {
+//                    // 2件目の SUCCESS が「前回ログイン」
+//                    return Optional.of(history.loginAt());
+//                }
+//            }
+//        }
+//        return Optional.empty();
+//    }
 
     /**
      * 連続失敗回数をカウントする。
-     *
+     * <p>
      * - 最新の履歴から順に見ていき、FAIL が続く限りカウント
      * - SUCCESS/LOCKED/DISABLED など FAIL 以外が出た時点で打ち切り
      * - boundaryExclusive（最後の UNLOCK など）が渡された場合、
@@ -68,13 +71,15 @@ public class LoginHistories {
             }
 
             LoginResult result = history.result();
-            if (result == LoginResult.FAIL) {
-                count++;
-                continue;
+            if (result == LoginResult.SUCCESS) {
+                break; // 成功が出たらそこで連続失敗は終了
             }
 
-            // 失敗以外が出たら連続失敗はそこで途切れる
-            break;
+            if (result == LoginResult.FAIL) {
+                count++;
+            }
+
+            // LOCKED / DISABLED は countしない
         }
         return count;
     }

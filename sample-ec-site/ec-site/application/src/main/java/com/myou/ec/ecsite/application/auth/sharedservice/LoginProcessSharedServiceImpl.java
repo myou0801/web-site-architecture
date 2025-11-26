@@ -87,8 +87,14 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
 
         LocalDateTime now = LocalDateTime.now();
 
+        if (!user.canLogin()) {
+            // ★ DISABLED として履歴を残し、ロック判定はしない
+            loginHistoryRepository.save(LoginHistory.disabled(userId, now, loginId));
+            return;
+        }
+
         // ◆ ロックイベント一覧から現在のロック状態を判定
-        AccountLockEvents lockEvents = lockHistoryRepository.findByUserId(userId);
+        AccountLockEvents lockEvents = lockHistoryRepository.findByUserId(userId,20);
 
         if (lockEvents.isLocked()) {
             // すでにロック中のユーザによるログイン試行は 'LOCKED' として履歴のみ記録（連続失敗カウントには影響しない）。

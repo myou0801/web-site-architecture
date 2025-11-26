@@ -8,7 +8,7 @@ import java.util.Optional;
 
 /**
  * AccountLockEvent のファーストクラスコレクション。
- *
+ * <p>
  * - occurredAt 降順で正規化して保持
  * - 「現在のロック状態」「最後の UNLOCK 時刻」などの判定ロジックを集約
  */
@@ -42,8 +42,5 @@ public class AccountLockEvents {
                 .map(AccountLockEvent::occurredAt);
     }
 
-    public List<AccountLockEvent> asList() {
-        return values;
-    }
 
 }

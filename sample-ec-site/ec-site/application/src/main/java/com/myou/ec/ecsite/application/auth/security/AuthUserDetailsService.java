@@ -45,7 +45,7 @@ public class AuthUserDetailsService implements UserDetailsService {
         // ロック状態の判定
         boolean locked = false;
         if (userId != null) {
-            AccountLockEvents lockEvents = lockHistoryRepository.findByUserId(userId);
+            AccountLockEvents lockEvents = lockHistoryRepository.findByUserId(userId,20);
             locked = lockEvents.isLocked();
         }
 

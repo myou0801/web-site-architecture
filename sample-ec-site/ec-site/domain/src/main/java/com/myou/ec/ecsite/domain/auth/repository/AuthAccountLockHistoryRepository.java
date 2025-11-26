@@ -15,6 +15,6 @@ public interface AuthAccountLockHistoryRepository {
      * 対象ユーザのロック／解除イベント一覧を取得。
      * 時系列のソートは infrastructure / AccountLockEvents 側で正規化する前提。
      */
-    AccountLockEvents findByUserId(AuthUserId userId);
+    AccountLockEvents findByUserId(AuthUserId userId, int limit);
 
 }

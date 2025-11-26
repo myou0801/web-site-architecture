@@ -56,6 +56,13 @@ public class LoginHistory {
                 loginAt, createdBy);
     }
 
+    public static LoginHistory disabled(AuthUserId authUserId,
+                                      LocalDateTime loginAt,
+                                      LoginId createdBy) {
+        return new LoginHistory(null, authUserId, loginAt, LoginResult.DISABLED,
+                loginAt, createdBy);
+    }
+
     public Long id() {
         return id;
     }

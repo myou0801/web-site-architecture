@@ -39,6 +39,7 @@
         FROM AUTH_ACCOUNT_LOCK_HISTORY
         WHERE AUTH_USER_ID = #{authUserId}
         ORDER BY OCCURRED_AT DESC
+        LIMIT #{limit}
     </select>
 
 </mapper>

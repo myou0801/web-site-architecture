@@ -36,7 +36,8 @@ public class AuthLoginHistoryRepositoryImpl implements AuthLoginHistoryRepositor
 
     @Override
     public Optional<LoginHistory> findPreviousSuccessLoginAt(AuthUserId userId) {
-        return Optional.ofNullable(mapper.findPreviousSuccessLoginAt(userId.value()).toDomain());
+        return Optional.ofNullable(mapper.findPreviousSuccessLoginAt(userId.value()))
+                .map(AuthLoginHistoryRecord::toDomain);
     }
 
 }

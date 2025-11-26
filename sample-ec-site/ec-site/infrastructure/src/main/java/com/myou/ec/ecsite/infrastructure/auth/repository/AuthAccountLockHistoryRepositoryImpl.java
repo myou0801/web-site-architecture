@@ -26,8 +26,8 @@ public class AuthAccountLockHistoryRepositoryImpl implements AuthAccountLockHist
     }
 
     @Override
-    public AccountLockEvents findByUserId(AuthUserId userId) {
-        List<AccountLockEvent> events = mapper.findByUserId(userId.value()).stream()
+    public AccountLockEvents findByUserId(AuthUserId userId, int limit) {
+        List<AccountLockEvent> events = mapper.findByUserId(userId.value(), limit).stream()
                 .map(AuthAccountLockHistoryRecord::toDomain)
                 .toList();
         return new AccountLockEvents(events);
