@@ -118,9 +118,10 @@ class SimulatorServiceImplTest {
         List<ConditionRule> rules = List.of(
                 new RequestHeaderConditionRule("header1", "value1"),
                 new RequestContentConditionRule("/key1", "value1"));
-        ConditionPolicy conditionPolicy = new ConditionPolicy(rules, "responseId1");
-        ConditionPolicies policies = new ConditionPolicies(List.of(conditionPolicy));
-        return new ConditionEntry("interfaceId1", policies);
+        ConditionPolicy conditionPolicy = new ConditionPolicy(rules);
+        List<ResponseIdCondition> responseIdConditions = List.of(
+                new ResponseIdCondition("responseId1", conditionPolicy));
+        return new ConditionEntry("interfaceId1", responseIdConditions);
     }
 
     @NotNull
@@ -128,8 +129,9 @@ class SimulatorServiceImplTest {
         List<ConditionRule> rules = List.of(
                 new RequestHeaderConditionRule("header2", "value2"),
                 new RequestContentConditionRule("/key2", "value2"));
-        ConditionPolicy conditionPolicy = new ConditionPolicy(rules, "responseId2");
-        ConditionPolicies policies = new ConditionPolicies(List.of(conditionPolicy));
-        return new ConditionEntry("interfaceId2", policies);
+        ConditionPolicy conditionPolicy = new ConditionPolicy(rules);
+        List<ResponseIdCondition> responseIdConditions = List.of(
+                new ResponseIdCondition("responseId2", conditionPolicy));
+        return new ConditionEntry("interfaceId2", responseIdConditions);
     }
 }

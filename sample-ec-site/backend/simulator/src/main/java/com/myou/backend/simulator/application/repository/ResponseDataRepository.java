@@ -9,6 +9,8 @@ public interface ResponseDataRepository {
 
     ResponseData save(ResponseData responseData);
 
+    void saveAll(List<ResponseData> responseDataList);
+
     Optional<ResponseData> findByResponseId(String responseId);
 
     List<ResponseData> findAll();

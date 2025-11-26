@@ -25,7 +25,7 @@ class ResponseDataServiceImplTest {
         ResponseDataServiceImpl target = new ResponseDataServiceImpl(responseDataRepository);
         target.saveResponseData(responseData);
 
-        Optional<ResponseData> actual =  responseDataRepository.findByResponseId("responseId1");
+        Optional<ResponseData> actual = responseDataRepository.findByResponseId("responseId1");
 
         Assertions.assertThat(actual.isPresent()).isTrue();
         Assertions.assertThat(actual.get()).isEqualTo(responseData);
@@ -33,9 +33,14 @@ class ResponseDataServiceImplTest {
     }
 
     @Test
-    void getResponseDataById(){
+    void getResponseDataById() {
 
-        ResponseData responseData = new ResponseData("responseId1", Map.of("header1", List.of("data1")), "success", HttpStatus.ok());
+        ResponseData responseData = new ResponseData(
+                "responseId1",
+                Map.of("header1",
+                        List.of("data1")),
+                "success",
+                HttpStatus.ok());
         responseDataRepository.save(responseData);
 
         ResponseDataServiceImpl target = new ResponseDataServiceImpl(responseDataRepository);
@@ -43,5 +48,26 @@ class ResponseDataServiceImplTest {
 
         Assertions.assertThat(actual.isPresent()).isTrue();
         Assertions.assertThat(actual.get()).isEqualTo(responseData);
+    }
+
+    @Test
+    void getAllResponseData() {
+        ResponseData responseData1 = new ResponseData(
+                "responseId1",
+                Map.of("header1", List.of("data1")),
+                "success",
+                HttpStatus.ok());
+        ResponseData responseData2 = new ResponseData(
+                "responseId2",
+                null,
+                "success",
+                HttpStatus.ok());
+        List<ResponseData> responseDataList = List.of(responseData1, responseData2);
+        responseDataRepository.saveAll(responseDataList);
+
+        ResponseDataServiceImpl target = new ResponseDataServiceImpl(responseDataRepository);
+        List<ResponseData> actual = target.getAllResponseData();
+
+        Assertions.assertThat(actual).containsAll(responseDataList);
     }
 }

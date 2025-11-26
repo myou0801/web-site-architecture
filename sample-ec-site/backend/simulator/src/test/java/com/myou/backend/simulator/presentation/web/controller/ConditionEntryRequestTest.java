@@ -19,15 +19,26 @@ class ConditionEntryRequestTest {
 
     @NotNull
     private static ConditionEntryRequest getConditionEntryRequest() {
-        ConditionEntryRequest.RuleDefinitionRequest ruleDefinitionRequest1 =
-                new ConditionEntryRequest.RuleDefinitionRequest(RuleType.REQUEST_HEADER, "header1", "value1");
-        ConditionEntryRequest.RuleDefinitionRequest ruleDefinitionRequest2 =
-                new ConditionEntryRequest.RuleDefinitionRequest(RuleType.REQUEST_CONTENT, "key1", "value1");
-        List<ConditionEntryRequest.RuleDefinitionRequest> rules = List.of(ruleDefinitionRequest1, ruleDefinitionRequest2);
+        ConditionEntryRequest.RuleRequest ruleDefinitionRequest1 =
+                new ConditionEntryRequest.RuleRequest(
+                        RuleType.REQUEST_HEADER,
+                        "header1",
+                        "value1"
+                );
+        ConditionEntryRequest.RuleRequest ruleDefinitionRequest2 =
+                new ConditionEntryRequest.RuleRequest(
+                        RuleType.REQUEST_CONTENT,
+                        "key1",
+                        "value1");
+        List<ConditionEntryRequest.RuleRequest> rules = List.of(ruleDefinitionRequest1, ruleDefinitionRequest2);
 
-        ConditionEntryRequest.PolicyRequest policy = new ConditionEntryRequest.PolicyRequest(rules, "responseId1");
-        List<ConditionEntryRequest.PolicyRequest> policies = List.of(policy);
-        return new ConditionEntryRequest("interfaceId1", policies);
+        ConditionEntryRequest.PolicyRequest policy = new ConditionEntryRequest.PolicyRequest(rules);
+        ConditionEntryRequest.ResponseIdConditionRequest responseIdConditionRequest = new ConditionEntryRequest.ResponseIdConditionRequest(
+                "responseId1",
+                policy);
+        return new ConditionEntryRequest(
+                "interfaceId1",
+                List.of(responseIdConditionRequest));
     }
 
 
