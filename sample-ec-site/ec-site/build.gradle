@@ -34,8 +34,8 @@ subprojects {
     dependencies {
         annotationProcessor libs.lombok
         implementation platform(libs.spring.boot.bom)
-        implementation(platform(libs.spring.cloud.dependencies))
-        implementation(platform(libs.spring.cloud.aws.dependencies))
+        implementation platform(libs.spring.cloud.dependencies)
+        implementation platform(libs.spring.cloud.aws.dependencies)
     }
 
     tasks.named('test') {
@@ -62,6 +62,7 @@ project(":boot") {
         implementation libs.spring.cloud.starter.config
         implementation libs.spring.cloud.starter.bus.amqp
         implementation libs.spring.session.data.redis
+        implementation libs.mybatis.spring.boot.starter
         implementation libs.thymeleaf.extras.springsecurity6
         implementation libs.awspring.cloud.starter
         implementation libs.awspring.cloud.starter.s3
@@ -95,6 +96,7 @@ project(":presentation") {
 
         implementation libs.spring.boot.starter.actuator
         implementation libs.spring.boot.starter.web
+        implementation libs.spring.boot.starter.security
         implementation libs.spring.boot.starter.thymeleaf
         implementation libs.spring.session.data.redis
         implementation libs.spring.cloud.starter.config
@@ -113,8 +115,8 @@ project(":application") {
 
     dependencies {
         implementation project(':domain')
-
-        implementation libs.spring.context
+        implementation 'org.springframework:spring-tx'
+        implementation libs.spring.boot.starter.security
 
         testImplementation libs.spring.boot.starter.test
 
@@ -130,6 +132,8 @@ project(":infrastructure") {
 
         implementation libs.spring.boot.starter.data.jdbc
         implementation libs.spring.boot.starter.data.redis
+        implementation libs.mybatis.spring.boot.starter
+
         implementation libs.awspring.cloud.starter
         implementation libs.awspring.cloud.starter.s3
         implementation libs.apache.httpcomponents.client5

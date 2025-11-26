@@ -1,14 +1,15 @@
 [versions]
 springDependencyManagementVersion = "1.1.7"
-jigVerasion = "2024.2.1"
-springBootVersion = "3.4.5"
-springCloudVersion = "2024.0.0"
-springCloudAwsVersion = "3.3.0"
-logbackAccessSpringVersion = "4.5.0"
-logbackAccessTomcatVersion = "2.0.6"
-lombokVersion = "1.18.30"
-thymeleafExtrasSpringsecurity6Version = "3.1.2.RELEASE"
-apacheHttpcomponentsClient5Version = "5.2.1"
+jigVerasion = "2025.10.1"
+springBootVersion = "3.5.8"
+springCloudVersion = "2025.0.0"
+springCloudAwsVersion = "3.4.1"
+logbackAccessSpringVersion = "4.7.0"
+logbackAccessTomcatVersion = "2.0.7"
+lombokVersion = "1.18.42"
+thymeleafExtrasSpringsecurity6Version = "3.1.3.RELEASE"
+apacheHttpcomponentsClient5Version = "5.5.1"
+mybatisSpringbootStarterVersion = "3.0.5"
 
 [plugins]
 spring-boot-plugin = { id = "org.springframework.boot", version.ref = "springBootVersion" }
@@ -22,6 +23,7 @@ spring-cloud-aws-dependencies = { module = "io.awspring.cloud:spring-cloud-aws-d
 logback-access-spring = { module = "dev.akkinoc.spring.boot:logback-access-spring-boot-starter", version.ref = "logbackAccessSpringVersion" }
 logback-access-tomcat = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccessTomcatVersion" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombokVersion" }
+mybatis-spring-boot-starter = { module = "org.mybatis.spring.boot:mybatis-spring-boot-starter", version.ref = "mybatisSpringbootStarterVersion" }
 
 # Spring Boot Starters
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
@@ -37,8 +39,9 @@ spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools
 spring-cloud-starter-config = { module = "org.springframework.cloud:spring-cloud-starter-config" }
 spring-cloud-starter-bus-amqp = { module = "org.springframework.cloud:spring-cloud-starter-bus-amqp" }
 
-# Spring Session
+# Spring Framwork
 spring-session-data-redis = { module = "org.springframework.session:spring-session-data-redis" }
+spring-security-test = { module = "org.springframework.security:spring-security-test" }
 
 # Thymeleaf Extras
 thymeleaf-extras-springsecurity6 = { module = "org.thymeleaf.extras:thymeleaf-extras-springsecurity6", version.ref = "thymeleafExtrasSpringsecurity6Version" }
@@ -60,11 +63,7 @@ micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-p
 # Database Drivers
 h2 = { module = "com.h2database:h2" }
 
-# Spring Security Test
-spring-security-test = { module = "org.springframework.security:spring-security-test" }
-
 # Apache HttpComponents
 apache-httpcomponents-client5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "apacheHttpcomponentsClient5Version" }
 
-# Spring Context
-spring-context = { module = "org.springframework:spring-context" }
+

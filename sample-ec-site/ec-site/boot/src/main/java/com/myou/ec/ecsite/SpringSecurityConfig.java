@@ -31,6 +31,9 @@ class SpringSecurityConfig {
                 .successHandler(authAuthenticationSuccessHandler)
                 .permitAll()
             )
+            .passwordManagement(management -> management
+                    .changePasswordPage("/password/change")
+                )
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll())

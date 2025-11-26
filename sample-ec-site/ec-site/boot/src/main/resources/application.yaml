@@ -28,8 +28,6 @@ logging:
     sql: info
     org.apache.hc.client5.http: debug
 
-  #  pattern:
-#    level: "%5p [${spring.application.name:},%X{traceId},%X{spanId}]"
   file:
     name: "./log/application-${spring.application.name}.log"
   structured:
