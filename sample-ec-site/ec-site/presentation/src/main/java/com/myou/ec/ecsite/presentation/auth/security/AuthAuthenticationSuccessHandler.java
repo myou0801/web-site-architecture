@@ -1,6 +1,6 @@
 package com.myou.ec.ecsite.presentation.auth.security;
 
-import com.myou.ec.ecsite.application.auth.sharedservice.LoginProcessSharedService;
+import com.myou.ec.ecsite.application.auth.sharedservice.PasswordChangeSharedService;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import jakarta.servlet.ServletException;
@@ -20,17 +20,16 @@ import java.io.IOException;
 @Component
 public class AuthAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
-    public static final String SESSION_ATTR_PASSWORD_CHANGE_REQUIRED = "AUTH_PASSWORD_CHANGE_REQUIRED";
+    //public static final String SESSION_ATTR_PASSWORD_CHANGE_REQUIRED = "AUTH_PASSWORD_CHANGE_REQUIRED";
 
-    private final LoginProcessSharedService loginProcessSharedService;
+    private final PasswordChangeSharedService passwordChangeSharedService;
 
     // デフォルト遷移先URL（必要に応じて設定で差し替え可能にしてもよい）
-    private final String defaultMenuUrl = "/menu";
-    private final String passwordChangeUrl = "/.well-known/change-password";
+//    private final String defaultMenuUrl = "/menu";
+    private static final String passwordChangeUrl = "/.well-known/change-password";
 
-    public AuthAuthenticationSuccessHandler(LoginProcessSharedService loginProcessSharedService) {
-        this.loginProcessSharedService = loginProcessSharedService;
-        setDefaultTargetUrl(defaultMenuUrl);
+    public AuthAuthenticationSuccessHandler(PasswordChangeSharedService passwordChangeSharedService) {
+        this.passwordChangeSharedService = passwordChangeSharedService;
     }
 
     @Override
@@ -41,11 +40,10 @@ public class AuthAuthenticationSuccessHandler extends SavedRequestAwareAuthentic
 
         String loginIdStr = extractLoginId(authentication);
         LoginId loginId = new LoginId(loginIdStr);
-        boolean result = loginProcessSharedService.isPasswordChangeRequired(loginId);
+        boolean result = passwordChangeSharedService.isPasswordChangeRequired(loginId);
 
         if (result) {
             // パスワード変更画面へリダイレクト
-            clearAuthenticationAttributes(request);
             getRedirectStrategy().sendRedirect(request, response, passwordChangeUrl);
         } else {
             super.onAuthenticationSuccess(request, response, authentication);

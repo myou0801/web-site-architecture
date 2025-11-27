@@ -2,6 +2,7 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
+import com.myou.ec.ecsite.domain.auth.model.AccountLockEvents;
 import com.myou.ec.ecsite.domain.auth.model.AuthUser;
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
 import com.myou.ec.ecsite.domain.auth.model.policy.PasswordPolicy;
@@ -50,19 +51,14 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public AuthUser registerAccount(LoginId loginId,
-                                    String rawPassword,
+    public AuthUserId registerAccount(LoginId loginId,
                                     List<RoleCode> roleCodes,
                                     LoginId operator) {
 
-        LocalDateTime now = LocalDateTime.now();
-
-        // パスワードポリシー（構文）チェック
-        passwordPolicy.validateSyntax(rawPassword, loginId);
-
         // パスワードハッシュ化
-        EncodedPassword encodedPassword = new EncodedPassword(passwordEncoder.encode(rawPassword));
+        EncodedPassword encodedPassword = new EncodedPassword(passwordEncoder.encode(initialPassword));
 
+        LocalDateTime now = LocalDateTime.now();
         // AuthUser 作成 & 保存
         AuthUser user = AuthUser.newUser(loginId, encodedPassword, roleCodes, now, operator);
         authUserRepository.save(user);
@@ -88,7 +84,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         );
         passwordHistoryRepository.save(history);
 
-        return savedUser;
+        return userId;
     }
 
     @Override
@@ -96,17 +92,15 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         AuthUser user = authUserRepository.findById(targetUserId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
-        LocalDateTime now = LocalDateTime.now();
 
-        // 初期パスワードの構文チェック（ポリシーに沿っている前提だが、一応検証）
-        passwordPolicy.validateSyntax(initialPassword, user.loginId());
-
-        // ハッシュ化
+        // パスワードハッシュ化
         EncodedPassword encodedPassword = new EncodedPassword(passwordEncoder.encode(initialPassword));
 
         // パスワード更新
         user.changePassword(encodedPassword);
         authUserRepository.save(user);
+
+        LocalDateTime now = LocalDateTime.now();
 
         // パスワード履歴（ADMIN_RESET）
         PasswordHistory history = PasswordHistory.adminReset(
@@ -131,6 +125,13 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     public void unlockAccount(AuthUserId targetUserId, LoginId operator) {
         AuthUser user = authUserRepository.findById(targetUserId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
+
+
+        AccountLockEvents events = lockHistoryRepository.findByUserId(user.id(),20);
+        if (!events.isLocked()) {
+            // 既に未ロックなら何もしない（イベントを増やさない方針）
+            return;
+        }
 
         LocalDateTime now = LocalDateTime.now();
 

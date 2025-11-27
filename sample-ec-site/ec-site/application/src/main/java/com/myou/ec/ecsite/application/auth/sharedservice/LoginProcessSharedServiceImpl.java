@@ -4,12 +4,10 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.*;
 import com.myou.ec.ecsite.domain.auth.model.policy.LockPolicy;
-import com.myou.ec.ecsite.domain.auth.model.policy.PasswordPolicy;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthPasswordHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthUserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,22 +21,16 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
 
     private final AuthUserRepository authUserRepository;
     private final AuthLoginHistoryRepository loginHistoryRepository;
-    private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
-    private final PasswordPolicy passwordPolicy;
     private final LockPolicy lockPolicy;
 
     public LoginProcessSharedServiceImpl(AuthUserRepository authUserRepository,
                                          AuthLoginHistoryRepository loginHistoryRepository,
-                                         AuthPasswordHistoryRepository passwordHistoryRepository,
                                          AuthAccountLockHistoryRepository lockHistoryRepository,
-                                         PasswordPolicy passwordPolicy,
                                          LockPolicy lockPolicy) {
         this.authUserRepository = authUserRepository;
         this.loginHistoryRepository = loginHistoryRepository;
-        this.passwordHistoryRepository = passwordHistoryRepository;
         this.lockHistoryRepository = lockHistoryRepository;
-        this.passwordPolicy = passwordPolicy;
         this.lockPolicy = lockPolicy;
     }
 
@@ -146,23 +138,5 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
     }
 
 
-    @Override
-    public boolean isPasswordChangeRequired(LoginId loginId) {
 
-        Optional<PasswordHistory> optLast = authUserRepository.findByLoginId(loginId)
-                .flatMap(user -> passwordHistoryRepository.findLastByUserId(user.id()));
-
-        if (optLast.isEmpty()) {
-            return true;
-        }
-
-        PasswordHistory last = optLast.get();
-        if (last.isPasswordChangeRequired()) {
-            return true;
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-
-        return passwordPolicy.isExpired(last.changedAt(), now);
-    }
 }

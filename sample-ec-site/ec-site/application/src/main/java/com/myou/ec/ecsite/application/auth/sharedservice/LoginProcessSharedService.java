@@ -23,13 +23,6 @@ public interface LoginProcessSharedService {
     void onLoginFailure(LoginId loginId);
 
 
-    /**
-     * パスワード変更強制が必要かどうか判定する。
-     * - 履歴なし → 強制（安全側）
-     * - 履歴が INITIAL_REGISTER / ADMIN_RESET → 強制
-     * - 履歴が USER_CHANGE で、有効期限切れ → 強制
-     * @param loginId ログインID
-     */
-    boolean isPasswordChangeRequired(LoginId loginId);
+
 }
 

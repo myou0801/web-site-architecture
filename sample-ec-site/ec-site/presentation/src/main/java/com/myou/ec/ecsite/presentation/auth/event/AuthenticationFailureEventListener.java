@@ -4,9 +4,7 @@ import com.myou.ec.ecsite.application.auth.sharedservice.LoginProcessSharedServi
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import org.springframework.context.event.EventListener;
-import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.authentication.event.AuthenticationFailureDisabledEvent;
-import org.springframework.security.authentication.event.AuthenticationFailureLockedEvent;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
@@ -21,30 +19,12 @@ public class AuthenticationFailureEventListener {
     }
 
     @EventListener
-    public void handle(AuthenticationFailureBadCredentialsEvent event) {
+    public void handle(AbstractAuthenticationFailureEvent event) {
         Authentication authentication = event.getAuthentication();
         String loginIdStr = extractLoginId(authentication);
         LoginId loginId = new LoginId(loginIdStr);
         loginProcessSharedService.onLoginFailure(loginId);
     }
-
-    @EventListener
-    public void handle(AuthenticationFailureDisabledEvent event) {
-        Authentication authentication = event.getAuthentication();
-        String loginIdStr = extractLoginId(authentication);
-        LoginId loginId = new LoginId(loginIdStr);
-        loginProcessSharedService.onLoginFailure(loginId);
-    }
-
-
-    @EventListener
-    public void handle(AuthenticationFailureLockedEvent event) {
-        Authentication authentication = event.getAuthentication();
-        String loginIdStr = extractLoginId(authentication);
-        LoginId loginId = new LoginId(loginIdStr);
-        loginProcessSharedService.onLoginFailure(loginId);
-    }
-
 
     private String extractLoginId(Authentication authentication) {
         Object principal = authentication.getPrincipal();

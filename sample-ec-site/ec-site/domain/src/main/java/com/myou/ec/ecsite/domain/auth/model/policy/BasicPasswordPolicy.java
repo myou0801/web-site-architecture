@@ -1,8 +1,5 @@
 package com.myou.ec.ecsite.domain.auth.model.policy;
 
-import com.myou.ec.ecsite.domain.auth.exception.PasswordPolicyViolationException;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -16,7 +13,7 @@ import java.time.temporal.ChronoUnit;
  * - 有効期限（日数）
  * - 再利用禁止世代数
  */
-public class BasicPasswordPolicy implements PasswordPolicy {
+public class BasicPasswordPolicy  {
 
     // パスワードの長さ（最低）
     private static final int MIN_LENGTH = 5;
@@ -28,33 +25,33 @@ public class BasicPasswordPolicy implements PasswordPolicy {
     private static final int HSTORY_GENERATION_COUNT = 3;
 
 
-    @Override
-    public void validateSyntax(String rawPassword, LoginId loginId) {
 
-        if (rawPassword == null || rawPassword.isBlank()) {
-            throw new PasswordPolicyViolationException("パスワードが未入力です。");
-        }
+//    public void validateSyntax(String rawPassword, LoginId loginId) {
+//
+//        if (rawPassword == null || rawPassword.isBlank()) {
+//            throw new PasswordPolicyViolationException("パスワードが未入力です。");
+//        }
+//
+//        // 最小桁数
+//        if (rawPassword.length() < MIN_LENGTH) {
+//            throw new PasswordPolicyViolationException(
+//                    "パスワードは" + MIN_LENGTH + "文字以上で入力してください。");
+//        }
+//
+//        // 英数字のみ
+//        if (!rawPassword.matches("^[0-9A-Za-z]+$")) {
+//            throw new PasswordPolicyViolationException(
+//                    "パスワードは英数字のみ利用できます。");
+//        }
+//
+//        // ログインIDと完全一致禁止
+//        if (loginId != null && rawPassword.equals(loginId.value())) {
+//            throw new PasswordPolicyViolationException(
+//                    "ログインIDと同じパスワードは利用できません。");
+//        }
+//    }
 
-        // 最小桁数
-        if (rawPassword.length() < MIN_LENGTH) {
-            throw new PasswordPolicyViolationException(
-                    "パスワードは" + MIN_LENGTH + "文字以上で入力してください。");
-        }
 
-        // 英数字のみ
-        if (!rawPassword.matches("^[0-9A-Za-z]+$")) {
-            throw new PasswordPolicyViolationException(
-                    "パスワードは英数字のみ利用できます。");
-        }
-
-        // ログインIDと完全一致禁止
-        if (loginId != null && rawPassword.equals(loginId.value())) {
-            throw new PasswordPolicyViolationException(
-                    "ログインIDと同じパスワードは利用できません。");
-        }
-    }
-
-    @Override
     public boolean isExpired(LocalDateTime lastChangedAt, LocalDateTime now) {
         if (lastChangedAt == null) {
             // 安全側：不明なら期限切れ扱い
@@ -68,7 +65,7 @@ public class BasicPasswordPolicy implements PasswordPolicy {
         return days >= EXPIRE_DAYS;
     }
 
-    @Override
+
     public int historyGenerationCount() {
         return HSTORY_GENERATION_COUNT;
     }
