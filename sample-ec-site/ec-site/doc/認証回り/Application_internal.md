@@ -116,18 +116,18 @@ import java.util.Optional;
 
 public class LoginSharedUseCaseImpl implements LoginSharedUseCase {
 
-    private final AuthUserRepository authUserRepository;
+    private final AuthAccountRepository authAccountRepository;
     private final AuthPolicyDomainService authPolicyDomainService;
     private final LoginHistoryDomainService loginHistoryDomainService;
     private final PasswordHistoryDomainService passwordHistoryDomainService;
     private final Clock clock;
 
-    public LoginSharedUseCaseImpl(AuthUserRepository authUserRepository,
+    public LoginSharedUseCaseImpl(AuthAccountRepository authAccountRepository,
                                   AuthPolicyDomainService authPolicyDomainService,
                                   LoginHistoryDomainService loginHistoryDomainService,
                                   PasswordHistoryDomainService passwordHistoryDomainService,
                                   Clock clock) {
-        this.authUserRepository = authUserRepository;
+        this.authAccountRepository = authAccountRepository;
         this.authPolicyDomainService = authPolicyDomainService;
         this.loginHistoryDomainService = loginHistoryDomainService;
         this.passwordHistoryDomainService = passwordHistoryDomainService;
@@ -135,24 +135,24 @@ public class LoginSharedUseCaseImpl implements LoginSharedUseCase {
     }
 
     @Override
-    public LoginSuccessResult handleLoginSuccess(LoginId loginId) {
+    public LoginSuccessResult handleLoginSuccess(UserId userId) {
         LocalDateTime now = LocalDateTime.now(clock);
 
-        AuthUser user = authUserRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalStateException("user not found: " + loginId.value()));
+        AuthAccount user = authAccountRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("account not found: " + userId.value()));
 
-        AuthUserId authUserId = user.id();
+        AuthAccountId authAccountId = user.id();
 
         // 1. 前回ログイン日時取得
         Optional<LocalDateTime> previousLoginAtOpt =
-                loginHistoryDomainService.findPreviousSuccessLoginAt(authUserId);
+                loginHistoryDomainService.findPreviousSuccessLoginAt(authAccountId);
 
         // 2. 成功履歴登録
-        loginHistoryDomainService.recordSuccess(authUserId, now);
+        loginHistoryDomainService.recordSuccess(authAccountId, now);
 
         // 3. パスワード変更必要判定
         Optional<PasswordHistory> lastHistoryOpt =
-                passwordHistoryDomainService.findLastHistory(authUserId);
+                passwordHistoryDomainService.findLastHistory(authAccountId);
 
         boolean fromInitialOrReset = lastHistoryOpt
                 .map(PasswordHistory::changeType)
@@ -170,16 +170,15 @@ public class LoginSharedUseCaseImpl implements LoginSharedUseCase {
         boolean mustChangePassword = fromInitialOrReset || passwordExpired;
 
         return new LoginSuccessResult(
-                authUserId.value(),
-                user.loginId().value(),
+                authAccountId.value(),
+                user.userId().value(),
                 now,
                 previousLoginAtOpt.orElse(null),
                 passwordExpired,
                 mustChangePassword
         );
     }
-}
-```
+}```
 
 ---
 
@@ -216,13 +215,13 @@ public interface LockControlSharedUseCase {
      * パスワード不一致など「通常のログイン失敗」時の処理。
      * （ロック中の場合は呼ばず、onLockedUserTried を呼ぶ前提）
      */
-    LoginFailureHandleResult onLoginFailure(LoginId loginId);
+    LoginFailureHandleResult onLoginFailure(UserId userId);
 
     /**
      * ロック状態のユーザがログインを試みたときの処理。
      * 失敗カウントには含めず、LOCKED 履歴のみ記録する。
      */
-    LoginFailureHandleResult onLockedUserTried(LoginId loginId);
+    LoginFailureHandleResult onLockedUserTried(UserId userId);
 }
 ```
 
@@ -236,8 +235,8 @@ package com.myou.ec.ecsite.application.auth.sharedservice.internal;
  * FailureHandler でメッセージ切り替えなどに使える情報。
  */
 public record LoginFailureHandleResult(
-        boolean userFound,                // loginId に対応するユーザが存在したか
-        Long authUserId,                  // ユーザが存在する場合のみセット
+        boolean userFound,                // userId に対応するアカウントが存在したか
+        Long authAccountId,                  // アカウントが存在する場合のみセット
         int consecutiveFailureCount,      // 連続失敗回数（ロック中試行では 0）
         boolean lockedBefore,             // 処理前に既にロックされていたか
         boolean lockedNow                 // 今回の処理で新たにロックされたか
@@ -248,7 +247,7 @@ public record LoginFailureHandleResult(
 
 依存：
 
-* `AuthUserRepository`
+* `AuthAccountRepository`
 * `AuthPolicyDomainService`（最大失敗回数 6）
 * `LoginHistoryDomainService`
 * `AccountLockDomainService`
@@ -310,18 +309,18 @@ import java.util.Optional;
 
 public class LockControlSharedUseCaseImpl implements LockControlSharedUseCase {
 
-    private final AuthUserRepository authUserRepository;
+    private final AuthAccountRepository authAccountRepository;
     private final AuthPolicyDomainService authPolicyDomainService;
     private final LoginHistoryDomainService loginHistoryDomainService;
     private final AccountLockDomainService accountLockDomainService;
     private final Clock clock;
 
-    public LockControlSharedUseCaseImpl(AuthUserRepository authUserRepository,
+    public LockControlSharedUseCaseImpl(AuthAccountRepository authAccountRepository,
                                         AuthPolicyDomainService authPolicyDomainService,
-                                        LoginHistoryDomainService loginHistoryDomainService,
+                                                                                LoginHistoryDomainService loginHistoryDomainService,
                                         AccountLockDomainService accountLockDomainService,
                                         Clock clock) {
-        this.authUserRepository = authUserRepository;
+        this.authAccountRepository = authAccountRepository;
         this.authPolicyDomainService = authPolicyDomainService;
         this.loginHistoryDomainService = loginHistoryDomainService;
         this.accountLockDomainService = accountLockDomainService;
@@ -329,63 +328,62 @@ public class LockControlSharedUseCaseImpl implements LockControlSharedUseCase {
     }
 
     @Override
-    public LoginFailureHandleResult onLoginFailure(LoginId loginId) {
+    public LoginFailureHandleResult onLoginFailure(UserId userId) {
         LocalDateTime now = LocalDateTime.now(clock);
 
-        Optional<AuthUser> userOpt = authUserRepository.findByLoginId(loginId);
+        Optional<AuthAccount> userOpt = authAccountRepository.findByUserId(userId);
         if (userOpt.isEmpty()) {
-            // ユーザが存在しない場合は履歴もロックも行わず、汎用エラー表示で対応
+            // アカウントが存在しない場合は履歴もロックも行わず、汎用エラー表示で対応
             return new LoginFailureHandleResult(false, null, 0, false, false);
         }
 
-        AuthUser user = userOpt.get();
-        AuthUserId authUserId = user.id();
+        AuthAccount user = userOpt.get();
+        AuthAccountId authAccountId = user.id();
 
-        boolean lockedBefore = accountLockDomainService.isLocked(authUserId);
+        boolean lockedBefore = accountLockDomainService.isLocked(authAccountId);
         if (lockedBefore) {
             // 本来ここには来ない前提（LockedException の場合は onLockedUserTried を呼ぶ）が、
             // 念のため LOCKED として履歴だけ残す。
-            loginHistoryDomainService.recordLockedAttempt(authUserId, now);
-            return new LoginFailureHandleResult(true, authUserId.value(), 0, true, true);
+            loginHistoryDomainService.recordLockedAttempt(authAccountId, now);
+            return new LoginFailureHandleResult(true, authAccountId.value(), 0, true, true);
         }
 
         // 通常 FAIL
-        loginHistoryDomainService.recordFailure(authUserId, now);
+        loginHistoryDomainService.recordFailure(authAccountId, now);
 
         int failCount =
-                loginHistoryDomainService.countConsecutiveFailuresSinceLastSuccessOrUnlock(authUserId);
+                loginHistoryDomainService.countConsecutiveFailuresSinceLastSuccessOrUnlock(authAccountId);
 
         boolean lockedNow = false;
         int maxFail = authPolicyDomainService.getLoginFailMaxCount();
         if (failCount >= maxFail) {
             // 閾値到達でロック
-            accountLockDomainService.lock(authUserId, "LOGIN_FAIL_THRESHOLD", user.loginId());
+            accountLockDomainService.lock(authAccountId, "LOGIN_FAIL_THRESHOLD", user.userId());
             lockedNow = true;
         }
 
-        return new LoginFailureHandleResult(true, authUserId.value(), failCount, lockedBefore, lockedNow);
+        return new LoginFailureHandleResult(true, authAccountId.value(), failCount, lockedBefore, lockedNow);
     }
 
     @Override
-    public LoginFailureHandleResult onLockedUserTried(LoginId loginId) {
+    public LoginFailureHandleResult onLockedUserTried(UserId userId) {
         LocalDateTime now = LocalDateTime.now(clock);
 
-        Optional<AuthUser> userOpt = authUserRepository.findByLoginId(loginId);
+        Optional<AuthAccount> userOpt = authAccountRepository.findByUserId(userId);
         if (userOpt.isEmpty()) {
             return new LoginFailureHandleResult(false, null, 0, false, false);
         }
 
-        AuthUser user = userOpt.get();
-        AuthUserId authUserId = user.id();
+        AuthAccount user = userOpt.get();
+        AuthAccountId authAccountId = user.id();
 
         // LOCKED 履歴のみ記録（失敗カウントには含めない）
-        loginHistoryDomainService.recordLockedAttempt(authUserId, now);
+        loginHistoryDomainService.recordLockedAttempt(authAccountId, now);
 
         // すでにロック中であり、今回もロック状態である前提
-        return new LoginFailureHandleResult(true, authUserId.value(), 0, true, true);
+        return new LoginFailureHandleResult(true, authAccountId.value(), 0, true, true);
     }
-}
-```
+}```
 
 ---
 
@@ -403,9 +401,9 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
 
-        String loginIdValue = authentication.getName();
+        String userIdValue = authentication.getName();
         LoginSuccessResult result =
-                loginSharedUseCase.handleLoginSuccess(new LoginId(loginIdValue));
+                loginSharedUseCase.handleLoginSuccess(new UserId(userIdValue));
 
         // セッションに前回ログイン日時を保存（メニュー画面で表示用）
         request.getSession().setAttribute("previousLoginAt", result.previousLoginAt());
@@ -432,17 +430,17 @@ public class CustomAuthenticationFailureHandler extends SimpleUrlAuthenticationF
                                         AuthenticationException exception)
             throws IOException, ServletException {
 
-        String loginIdValue = request.getParameter("userId"); // usernameParameter に合わせる
+        String userIdValue = request.getParameter("userId"); // usernameParameter に合わせる
         LoginFailureHandleResult result;
 
         if (exception instanceof LockedException) {
-            result = lockControlSharedUseCase.onLockedUserTried(new LoginId(loginIdValue));
+            result = lockControlSharedUseCase.onLockedUserTried(new UserId(userIdValue));
             // メッセージ: 「ロックされています。管理者に連絡してロック解除してください」
         } else {
-            result = lockControlSharedUseCase.onLoginFailure(new LoginId(loginIdValue));
+            result = lockControlSharedUseCase.onLoginFailure(new UserId(userIdValue));
             // メッセージ: 
             //  - lockedNow == true なら「アカウントがロックされました」
-            //  - それ以外は「ユーザIDまたはパスワードが正しくありません」
+            //  - それ以外は「ユーザーIDまたはパスワードが正しくありません」
         }
 
         super.onAuthenticationFailure(request, response, exception);

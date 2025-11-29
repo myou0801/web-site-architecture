@@ -14,15 +14,15 @@
 ```text
 com.myou.ec.ecsite.domain.auth
  ├─ model              … Entity（集約ルート含む）
- │   ├─ AuthUser
+ │   ├─ AuthAccount
  │   ├─ AuthRole
  │   ├─ LoginHistory
  │   ├─ PasswordHistory
  │   └─ AccountLockEvent
  │
  ├─ model.value        … Value Object / Enum / Policy
- │   ├─ AuthUserId
- │   ├─ LoginId
+ │   ├─ AuthAccountId
+ │   ├─ UserId
  │   ├─ EncodedPassword
  │   ├─ RoleCode
  │   ├─ LoginResult
@@ -32,7 +32,7 @@ com.myou.ec.ecsite.domain.auth
  │   └─ LockPolicy
  │
  └─ repository         … Repository インタフェース
-     ├─ AuthUserRepository
+     ├─ AuthAccountRepository
      ├─ AuthRoleRepository
      ├─ AuthLoginHistoryRepository
      ├─ AuthPasswordHistoryRepository
@@ -48,14 +48,14 @@ com.myou.ec.ecsite.domain.auth
 
 ### 2.1 基本 Value Object
 
-* `LoginId`
+* `UserId`
 
-    * ログインID（ユーザID）を表す VO
+    * ユーザーIDを表す VO
     * 非null／非空チェックなど最低限のバリデーション
 
-* `AuthUserId`
+* `AuthAccountId`
 
-    * 認証ユーザID（`AUTH_USER.AUTH_USER_ID`）を表す VO
+    * 認証アカウントID（`AUTH_ACCOUNT.AUTH_ACCOUNT_ID`）を表す VO
     * 正の整数のみ
 
 * `EncodedPassword`
@@ -107,8 +107,8 @@ public record PasswordPolicy(
         int expireDays                 // 例: 90日
 ) {
 
-    public void validateSyntax(String rawPassword, LoginId loginId) {
-        // 桁数、英数字のみ、ログインID完全一致禁止 等をここでチェック
+    public void validateSyntax(String rawPassword, UserId userId) {
+        // 桁数、英数字のみ、ユーザーID完全一致禁止 等をここでチェック
         // 違反時は PasswordPolicyViolationException など Domain 例外を投げる想定
     }
 
@@ -143,15 +143,15 @@ public record LockPolicy(
 
 ## 3. Entity 一覧
 
-### 3.1 AuthUser（認証ユーザ）
+### 3.1 AuthAccount（認証アカウント）
 
 認証対象となるユーザの **認証情報のみ** を保持する Entity。
 ユーザ詳細（氏名・所属など）は業務側テーブルで管理。
 
 **主なフィールド**
 
-* `AuthUserId id`（null = 未採番）
-* `LoginId loginId`
+* `AuthAccountId id`（null = 未採番）
+* `UserId userId`
 * `EncodedPassword encodedPassword`
 * `boolean enabled`
 * `boolean deleted`
@@ -159,15 +159,15 @@ public record LockPolicy(
 * 監査情報
 
     * `LocalDateTime createdAt`
-    * `LoginId createdByLoginId`
+    * `UserId createdByUserId`
     * `LocalDateTime updatedAt`
-    * `LoginId updatedByLoginId`
+    * `UserId updatedByUserId`
     * `long versionNo`
 
 **代表的な振る舞い**
 
-* `changePassword(EncodedPassword newPassword, LocalDateTime now, LoginId operator)`
-* `changeLoginId(LoginId newLoginId, LocalDateTime now, LoginId operator)`
+* `changePassword(EncodedPassword newPassword, LocalDateTime now, UserId operator)`
+* `changeUserId(UserId newUserId, LocalDateTime now, UserId operator)`
 * `enable(...) / disable(...) / markDeleted(...)`
 * `changeRoles(List<RoleCode> newRoles, ...)`
 * （必要であれば）ログイン可否の簡易判定
@@ -175,7 +175,7 @@ public record LockPolicy(
     * `boolean canLogin(LockStatus lockStatus)` など
 
 > ※ ロック状態そのものは `AccountLockEvent` / `LockStatus` 側に任せ、
-> `AuthUser` は enabled/deleted までに留める方針でもOK。
+> `AuthAccount` は enabled/deleted までに留める方針でもOK。
 
 ---
 
@@ -203,13 +203,13 @@ public record LockPolicy(
 **主なフィールド**
 
 * `Long id`
-* `AuthUserId authUserId`
+* `AuthAccountId authAccountId`
 * `LocalDateTime loginAt`
 * `LoginResult result`
 * `String clientIp`
 * `String userAgent`
 * `LocalDateTime createdAt`
-* `LoginId createdBy`
+* `UserId createdBy`
 
 **代表的なファクトリ**
 
@@ -226,13 +226,13 @@ public record LockPolicy(
 **主なフィールド**
 
 * `Long id`
-* `AuthUserId authUserId`
+* `AuthAccountId authAccountId`
 * `EncodedPassword encodedPassword`
 * `PasswordChangeType changeType`
 * `LocalDateTime changedAt`
-* `LoginId changedBy`
+* `UserId changedBy`
 * `LocalDateTime createdAt`
-* `LoginId createdBy`
+* `UserId createdBy`
 
 **代表的なファクトリ**
 
@@ -262,14 +262,14 @@ public record LockPolicy(
 **主なフィールド**
 
 * `Long id`
-* `AuthUserId authUserId`
+* `AuthAccountId authAccountId`
 * `boolean locked`（true=ロック, false=ロック解除）
 * `LocalDateTime occurredAt`
 * `String reason`
   （例: `LOGIN_FAIL_THRESHOLD`, `ADMIN_UNLOCK`, `ADMIN_RESET_AND_UNLOCK`）
-* `LoginId operatedBy`
+* `UserId operatedBy`
 * `LocalDateTime createdAt`
-* `LoginId createdBy`
+* `UserId createdBy`
 
 **代表的なファクトリ**
 
@@ -286,18 +286,18 @@ public record LockPolicy(
 
 ## 4. Repository インタフェース
 
-### 4.1 AuthUserRepository
+### 4.1 AuthAccountRepository
 
 ```java
-public interface AuthUserRepository {
-    Optional<AuthUser> findById(AuthUserId id);
-    Optional<AuthUser> findByLoginId(LoginId loginId);
-    void save(AuthUser user);
+public interface AuthAccountRepository {
+    Optional<AuthAccount> findById(AuthAccountId id);
+    Optional<AuthAccount> findByUserId(UserId userId);
+    void save(AuthAccount user);
 }
 ```
 
-* `AUTH_USER` テーブル + `AUTH_USER_ROLE` テーブルから
-  `AuthUser` と `List<RoleCode>` を組み立てる責務は **infrastructure 層** に置く。
+* `AUTH_ACCOUNT` テーブル + `AUTH_ACCOUNT_ROLE` テーブルから
+  `AuthAccount` と `List<RoleCode>` を組み立てる責務は **infrastructure 層** に置く。
 
 ---
 
@@ -307,13 +307,13 @@ public interface AuthUserRepository {
 public interface AuthRoleRepository {
     List<AuthRole> findAll();
 
-    List<RoleCode> findRoleCodesByUserId(AuthUserId authUserId);
+    List<RoleCode> findRoleCodesByAccountId(AuthAccountId authAccountId);
 
-    void saveUserRoles(AuthUserId authUserId, List<RoleCode> roleCodes);
+    void saveAccountRoles(AuthAccountId authAccountId, List<RoleCode> roleCodes);
 }
 ```
 
-* `AUTH_ROLE` / `AUTH_USER_ROLE` を裏側で操作する窓口。
+* `AUTH_ROLE` / `AUTH_ACCOUNT_ROLE` を裏側で操作する窓口。
 * Domain からは「ユーザに紐づく RoleCode の一覧」「全ロール一覧」だけ見える。
 
 ---
@@ -325,17 +325,17 @@ public interface AuthLoginHistoryRepository {
 
     void save(LoginHistory history);
 
-    List<LoginHistory> findRecentByUserId(AuthUserId userId, int limit);
+    List<LoginHistory> findRecentByAccountId(AuthAccountId accountId, int limit);
 
     /**
      * 前回ログイン日時（今回を除く直近SUCCESS）
      */
-    Optional<LocalDateTime> findPreviousSuccessLoginAt(AuthUserId userId);
+    Optional<LocalDateTime> findPreviousSuccessLoginAtByAccountId(AuthAccountId accountId);
 
     /**
      * 最後の SUCCESS または UNLOCK 以降の連続FAIL回数。
      */
-    int countConsecutiveFailuresSinceLastSuccessOrUnlock(AuthUserId userId);
+    int countConsecutiveFailuresSinceLastSuccessOrUnlockByAccountId(AuthAccountId accountId);
 }
 ```
 
@@ -351,15 +351,15 @@ public interface AuthPasswordHistoryRepository {
 
     void save(PasswordHistory history);
 
-    List<PasswordHistory> findRecentByUserId(AuthUserId userId, int limit);
+    List<PasswordHistory> findRecentByAccountId(AuthAccountId accountId, int limit);
 
-    Optional<PasswordHistory> findLastByUserId(AuthUserId userId);
+    Optional<PasswordHistory> findLastByAccountId(AuthAccountId accountId);
 }
 ```
 
 * 3世代再利用禁止チェックは：
 
-    * `findRecentByUserId(userId, policy.historyGenerationCount())` で取得
+    * `findRecentByAccountId(accountId, policy.historyGenerationCount())` で取得
     * sharedService 側で `isReused()` ヘルパーを呼んで判定
       という流れを想定。
 
@@ -372,14 +372,14 @@ public interface AuthAccountLockHistoryRepository {
 
     void save(AccountLockEvent event);
 
-    Optional<AccountLockEvent> findLatestByUserId(AuthUserId userId);
+    Optional<AccountLockEvent> findLatestByAccountId(AuthAccountId accountId);
 
     /**
      * 最新イベントを見て LockStatus を返すユーティリティ的メソッドを
      * 置いても良い。
      */
-    default LockStatus getLockStatus(AuthUserId userId) {
-        return findLatestByUserId(userId)
+    default LockStatus getLockStatusByAccountId(AuthAccountId accountId) {
+        return findLatestByAccountId(accountId)
                 .map(e -> e.locked() ? LockStatus.LOCKED : LockStatus.UNLOCKED)
                 .orElse(LockStatus.UNLOCKED);
     }
@@ -387,7 +387,7 @@ public interface AuthAccountLockHistoryRepository {
 ```
 
 > こうしておけば、application/sharedService 側では
-> `lockHistoryRepository.getLockStatus(userId)` と呼ぶだけで済み、
+> `lockHistoryRepository.getLockStatusByAccountId(accountId)` と呼ぶだけで済み、
 > `AccountLockDomainService` は不要になる。
 
 ---
@@ -399,7 +399,7 @@ public interface AuthAccountLockHistoryRepository {
     * ルールは VO / Entity / Repository に集約
 * AP基盤の sharedService / UseCase は：
 
-    * `AuthUserRepository` など Repository
+    * `AuthAccountRepository` など Repository
     * `PasswordPolicy` / `LockPolicy` 等の VO
       を直接使ってユースケースの流れを組み立てる。
 * Domain 層は依然として **フレームワーク非依存**

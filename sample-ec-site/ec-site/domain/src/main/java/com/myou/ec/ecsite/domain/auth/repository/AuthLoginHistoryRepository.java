@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.LoginHistories;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 
 import java.util.Optional;
 
@@ -13,8 +13,8 @@ public interface AuthLoginHistoryRepository {
 
     void save(LoginHistory history);
 
-    LoginHistories findRecentByUserId(AuthUserId userId, int limit);
+    LoginHistories findRecentByAccountId(AuthAccountId accountId, int limit);
 
-    Optional<LoginHistory> findPreviousSuccessLoginAt(AuthUserId userId);
+    Optional<LoginHistory> findPreviousSuccessLoginAtByAccountId(AuthAccountId accountId);
 
 }

@@ -1,7 +1,7 @@
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 
 import java.util.List;
@@ -14,35 +14,35 @@ public interface AuthAccountAdminSharedService {
     /**
      * アカウントを新規登録する。
      *
-     * @param loginId   ログインID
+     * @param userId   ユーザーID
      * @param roleCodes 付与するロール一覧
-     * @param operator  操作ユーザ（管理者）の loginId
-     * @return 登録された ユーザID
+     * @param operator  操作ユーザ（管理者）の userId
+     * @return 登録された ユーザーID
      */
-    AuthUserId registerAccount(LoginId loginId,
+    AuthAccountId registerAccount(UserId userId,
                              List<RoleCode> roleCodes,
-                             LoginId operator);
+                             UserId operator);
 
     /**
      * 初期パスワードにリセットし、ロックも解除する。
      *
-     * @param targetUserId 対象ユーザID
-     * @param operator     操作ユーザ（管理者）の loginId
+     * @param targetAccountId 対象アカウントID
+     * @param operator     操作ユーザ（管理者）の userId
      */
-    void resetPasswordToInitial(AuthUserId targetUserId, LoginId operator);
+    void resetPasswordToInitial(AuthAccountId targetAccountId, UserId operator);
 
     /**
      * アカウントロックを解除する。
      */
-    void unlockAccount(AuthUserId targetUserId, LoginId operator);
+    void unlockAccount(AuthAccountId targetAccountId, UserId operator);
 
     /**
      * アカウントを無効化する。
      */
-    void disableAccount(AuthUserId targetUserId, LoginId operator);
+    void disableAccount(AuthAccountId targetAccountId, UserId operator);
 
     /**
      * アカウントを有効化する。
      */
-    void enableAccount(AuthUserId targetUserId, LoginId operator);
+    void enableAccount(AuthAccountId targetAccountId, UserId operator);
 }

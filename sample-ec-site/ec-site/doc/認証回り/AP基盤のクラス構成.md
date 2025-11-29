@@ -67,16 +67,16 @@ presentation   … implementation project(":application")
 
 ```text
 com.myou.ec.ecsite.domain.auth.model
- ├─ AuthUser              … 認証ユーザ（auth_user）
+ ├─ AuthAccount              … 認証アカウント（auth_account）
  ├─ AuthRole              … ロール（auth_role）
- ├─ AuthUserRole          … ユーザ–ロール関連（auth_user_role）
+ ├─ AuthAccountRole          … アカウント–ロール関連（auth_account_role）
  ├─ LoginHistory          … ログイン履歴（auth_login_history）
  ├─ AccountLockEvent      … LOCK/UNLOCK イベント（auth_account_lock_history）
  ├─ PasswordHistory       … パスワード履歴（auth_password_history）
- └─ value, policy         … LoginId, EncodedPassword, ChangeType, PasswordPolicy など
+ └─ value, policy         … UserId, EncodedPassword, ChangeType, PasswordPolicy など
 
 com.myou.ec.ecsite.domain.auth.repository
- ├─ AuthUserRepository
+ ├─ AuthAccountRepository
  ├─ AuthRoleRepository
  ├─ AuthLoginHistoryRepository
  ├─ AuthAccountLockHistoryRepository
@@ -84,7 +84,7 @@ com.myou.ec.ecsite.domain.auth.repository
 
 com.myou.ec.ecsite.domain.auth.domainservice
  ├─ AuthPolicyDomainService
- │    ├─ パスワードポリシー判定（5桁以上・英数字・loginId と同一禁止）
+ │    ├─ パスワードポリシー判定（5桁以上・英数字・userId と同一禁止）
  │    ├─ パスワード有効期限（90日）判定
  │    ├─ パスワード履歴世代数（3世代）関連のルール
  │    └─ ロック閾値（6回失敗でロック）の取得 等
@@ -117,15 +117,15 @@ com.myou.ec.ecsite.domain.auth.domainservice
 com.myou.ec.ecsite.application.auth.sharedservice
  ├─ AuthAccountAdminSharedService
  │    ├─ アカウント一覧／検索
- │    ├─ 認証系ユーザ詳細取得（AUTH_USER + ROLE）
+ │    ├─ 認証系ユーザ詳細取得（AUTH_ACCOUNT + ROLE）
  │    ├─ 新規アカウント登録（初期パスワード設定）
  │    ├─ アカウント更新（有効/無効、ロール変更）
  │    ├─ パスワード初期化 + ロック解除
  │    └─ ロック解除のみ
  │
- ├─ AuthUserContextSharedService
- │    ├─ 現在ログイン中ユーザの auth_user_id 取得
- │    ├─ 現在ログイン中ユーザの login_id 取得
+ ├─ AuthAccountContextSharedService
+ │    ├─ 現在ログイン中ユーザの auth_account_id 取得
+ │    ├─ 現在ログイン中ユーザの user_id 取得
  │    └─ 前回ログイン日時取得（LoginHistoryDomainService 経由）
  │
  ├─ PasswordChangeSharedService
@@ -133,7 +133,7 @@ com.myou.ec.ecsite.application.auth.sharedservice
  │    │    1. 現パスワードの照合
  │    │    2. パスワードポリシー（桁数・英数字・IDとの一致禁止）
  │    │    3. 3世代履歴チェック
- │    │    4. AUTH_USER 更新 + パスワード履歴登録
+ │    │    4. AUTH_ACCOUNT 更新 + パスワード履歴登録
  │    └─ （必要に応じて）管理者によるパスワード変更API
  │
  └─ internal
@@ -155,16 +155,16 @@ com.myou.ec.ecsite.application.auth.sharedservice
 
 * `PasswordChangeSharedService`
 
-    * `AuthUserRepository`
+    * `AuthAccountRepository`
     * `AuthPolicyDomainService`
     * `PasswordHistoryDomainService`
 * `AuthAccountAdminSharedService`
 
-    * `AuthUserRepository`
+    * `AuthAccountRepository`
     * `AuthRoleRepository`
     * `AccountLockDomainService`
     * `PasswordHistoryDomainService`
-* `AuthUserContextSharedService`
+* AuthAccountContextSharedService
 
     * `SecurityContextHolder` から principal を取得
     * `LoginHistoryDomainService` 経由で前回ログイン日時取得
@@ -182,14 +182,14 @@ com.myou.ec.ecsite.infrastructure.auth.config
  └─ AuthPropertyConfig                 // auth.password.*（初期パスワード / 有効期限等）読込
 
 com.myou.ec.ecsite.infrastructure.auth.repository
- ├─ MybatisAuthUserRepository              // AuthUserRepository 実装
+ ├─ MybatisAuthAccountRepository              // AuthAccountRepository 実装
  ├─ MybatisAuthRoleRepository
  ├─ MybatisAuthLoginHistoryRepository
  ├─ MybatisAuthAccountLockHistoryRepository
  └─ MybatisAuthPasswordHistoryRepository
 
 com.myou.ec.ecsite.infrastructure.auth.mapper
- ├─ AuthUserMapper.xml
+ ├─ AuthAccountMapper.xml
  ├─ AuthRoleMapper.xml
  ├─ AuthLoginHistoryMapper.xml
  ├─ AuthAccountLockHistoryMapper.xml
@@ -200,7 +200,7 @@ com.myou.ec.ecsite.infrastructure.auth.security
 ```
 
 * Domain 層の Repository インタフェースを MyBatis で実装。
-* `CustomUserDetailsService` は `AuthUserRepository` / `AuthRoleRepository` を用いて
+* `CustomUserDetailsService` は `AuthAccountRepository` / `AuthRoleRepository` を用いて
   Spring Security 用の `UserDetails` を組み立てる。
 
 ---
@@ -247,7 +247,7 @@ presentation.account.*Controller
     ↓
 application.account.service.* (業務Service)
     ↓
-application.auth.sharedservice.* (AuthAccountAdminSharedService / PasswordChangeSharedService / AuthUserContextSharedService)
+application.auth.sharedservice.* (AuthAccountAdminSharedService / PasswordChangeSharedService / AuthAccountContextSharedService)
 ```
 
 例：アカウント詳細画面の Service（業務側）
@@ -263,13 +263,13 @@ public class AccountManagementServiceImpl implements AccountManagementService {
     private final UserProfileRepository userProfileRepository;
 
     @Override
-    public AccountDetailDto findAccountDetail(long authUserId) {
+    public AccountDetailDto findAccountDetail(long authAccountId) {
         // 認証系情報（ロック状態／ロール等）は AP基盤 sharedService から取得
-        AuthUserDetailDto authDetail =
-            authAccountAdminSharedService.findById(authUserId);
+        AuthAccountDetailDto authDetail =
+            authAccountAdminSharedService.findById(authAccountId);
 
         // 業務情報（氏名／部署など）は業務のリポジトリから取得
-        UserProfile profile = userProfileRepository.findById(authUserId);
+        UserProfile profile = userProfileRepository.findById(authAccountId);
 
         // 両者をマージして画面DTOに変換
         return AccountDetailDto.from(authDetail, profile);
@@ -318,7 +318,7 @@ public class AccountManagementServiceImpl implements AccountManagementService {
 
     * `AuthPolicyDomainService`：パスワード構文／ID一致のチェック
     * `PasswordHistoryDomainService`：3世代再利用禁止チェック・履歴登録
-    * `AuthUserRepository`：パスワードハッシュ更新
+    * `AuthAccountRepository`：パスワードハッシュ更新
 
 ### 5.4 アカウント管理（業務画面）
 

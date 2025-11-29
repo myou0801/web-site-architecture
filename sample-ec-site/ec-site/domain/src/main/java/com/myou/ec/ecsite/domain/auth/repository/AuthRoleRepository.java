@@ -1,7 +1,7 @@
 package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthRole;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 
 import java.util.List;
@@ -19,10 +19,10 @@ public interface AuthRoleRepository {
     /**
      * ユーザに紐づくロールコード一覧を取得する。
      */
-    List<RoleCode> findRoleCodesByUserId(AuthUserId authUserId);
+    List<RoleCode> findRoleCodesByAccountId(AuthAccountId authAccountId);
 
     /**
      * ユーザに紐づくロールを差し替える。
      */
-    void saveUserRoles(AuthUserId authUserId, List<RoleCode> roleCodes);
+    void saveAccountRoles(AuthAccountId authAccountId, List<RoleCode> roleCodes);
 }

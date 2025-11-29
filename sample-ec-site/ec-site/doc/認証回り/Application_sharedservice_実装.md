@@ -16,24 +16,24 @@ DDD のドメインモデル（domain/auth）と Spring Security を組み合わ
 
 ```text
 com.myou.ec.ecsite.application.auth.sharedservice
- ├─ AuthUserContextSharedService
- ├─ AuthUserContextSharedServiceImpl
+ ├─ AuthAccountContextSharedService
+ ├─ AuthAccountContextSharedServiceImpl
  ├─ PasswordChangeSharedService
  ├─ PasswordChangeSharedServiceImpl
  ├─ AuthAccountAdminSharedService
  └─ AuthAccountAdminSharedServiceImpl
 ```
 
-## 役割
+<h2>役割</h2>
 
-* `AuthUserContextSharedService`
+* `AuthAccountContextSharedService`
 
-    * **現在ログイン中のユーザ情報** や **前回ログイン日時**、ロール情報を取得する。
+    * **現在ログイン中のアカウント情報** や **前回ログイン日時**、ロール情報を取得する。
     * 業務画面で「前回ログイン日時」「メニューの制御」などに利用。
 
 * `PasswordChangeSharedService`
 
-    * ログイン中ユーザのパスワード変更処理。
+    * ログイン中アカウントのパスワード変更処理。
     * パスワードポリシー（構文チェック／再利用禁止／有効期限）と履歴管理を行う。
 
 * `AuthAccountAdminSharedService`
@@ -41,30 +41,30 @@ com.myou.ec.ecsite.application.auth.sharedservice
     * 管理者によるアカウント登録・有効/無効化・ロック解除・初期パスワードリセットなどを提供。
     * アカウント管理画面から利用。
 
-## 依存
+<h2>依存</h2>
 
 * domain/auth
 
-    * `AuthUserRepository`, `AuthRoleRepository`, `AuthLoginHistoryRepository`,
+    * `AuthAccountRepository`, `AuthRoleRepository`, `AuthLoginHistoryRepository`,
       `AuthPasswordHistoryRepository`, `AuthAccountLockHistoryRepository`
     * `PasswordPolicy`, `LockPolicy` など
 * Spring Security
 
-    * `SecurityContextHolder`（現在ログイン中ユーザの loginId 取得）
+    * `SecurityContextHolder`（現在ログイン中アカウントの userId 取得）
     * `PasswordEncoder`（パスワードのハッシュ化／照合）
 
 
 
 ---
 
-## AuthUserContextSharedService
+<h2>AuthAccountContextSharedService</h2>
 
-### インタフェース
+<h3>インタフェース</h3>
 
 ```java
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
-import com.myou.ec.ecsite.domain.auth.model.AuthUser;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 
 import java.time.LocalDateTime;
@@ -72,28 +72,28 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 現在ログイン中のユーザ情報にアクセスする sharedService。
+ * 現在ログイン中のアカウント情報にアクセスする sharedService。
  */
-public interface AuthUserContextSharedService {
+public interface AuthAccountContextSharedService {
 
     /**
-     * 現在ログイン中の AuthUser を返す（存在しない場合は empty）。
+     * 現在ログイン中の AuthAccount を返す（存在しない場合は empty）。
      */
-    Optional<AuthUser> findCurrentUser();
+    Optional<AuthAccount> findCurrentUser();
 
     /**
-     * 現在ログイン中の AuthUser を返す（存在しない場合は例外）。
+     * 現在ログイン中の AuthAccount を返す（存在しない場合は例外）。
      */
-    AuthUser getCurrentUserOrThrow();
+    AuthAccount getCurrentUserOrThrow();
 
     /**
-     * 現在ログイン中ユーザの前回ログイン日時（直近 SUCCESS）の値を返す。
+     * 現在ログイン中アカウントの前回ログイン日時（直近 SUCCESS）の値を返す。
      * ログイン履歴が不足している場合は empty。
      */
     Optional<LocalDateTime> findPreviousLoginAt();
 
     /**
-     * 現在ログイン中ユーザのロール一覧（RoleCode）を返す。
+     * 現在ログイン中アカウントのロール一覧（RoleCode）を返す。
      */
     List<RoleCode> getCurrentUserRoles();
 
@@ -104,18 +104,18 @@ public interface AuthUserContextSharedService {
 }
 ````
 
-### 実装
+<h3>実装</h3>
 
 ```java
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
-import com.myou.ec.ecsite.domain.auth.model.AuthUser;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
+import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthUserRepository;
+import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -125,37 +125,38 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class AuthUserContextSharedServiceImpl implements AuthUserContextSharedService {
+public class AuthAccountContextSharedServiceImpl implements AuthAccountContextSharedService {
 
-    private final AuthUserRepository authUserRepository;
+    private final AuthAccountRepository authAccountRepository;
     private final AuthLoginHistoryRepository loginHistoryRepository;
 
-    public AuthUserContextSharedServiceImpl(AuthUserRepository authUserRepository,
+    public AuthAccountContextSharedServiceImpl(AuthAccountRepository authAccountRepository,
                                             AuthLoginHistoryRepository loginHistoryRepository) {
-        this.authUserRepository = authUserRepository;
+        this.authAccountRepository = authAccountRepository;
         this.loginHistoryRepository = loginHistoryRepository;
     }
 
     @Override
-    public Optional<AuthUser> findCurrentUser() {
-        String loginId = getCurrentLoginIdFromSecurityContext();
-        if (loginId == null) {
+    public Optional<AuthAccount> findCurrentUser() {
+        String userId = getCurrentUserIdFromSecurityContext();
+        if (userId == null) {
             return Optional.empty();
         }
-        return authUserRepository.findByLoginId(new LoginId(loginId));
+        return authAccountRepository.findByUserId(new UserId(userId));
     }
 
     @Override
-    public AuthUser getCurrentUserOrThrow() {
+    public AuthAccount getCurrentUserOrThrow() {
         return findCurrentUser()
-                .orElseThrow(() -> new AuthDomainException("ログインユーザ情報が取得できません。"));
+                .orElseThrow(() -> new AuthDomainException("ログインアカウント情報が取得できません。"));
     }
 
     @Override
     public Optional<LocalDateTime> findPreviousLoginAt() {
         return findCurrentUser()
-                .map(AuthUser::id)
-                .flatMap(userId -> loginHistoryRepository.findPreviousSuccessLoginAt(userId));
+                .map(AuthAccount::id)
+                .flatMap(accountId -> loginHistoryRepository.findPreviousSuccessLoginAtByAccountId(accountId))
+                .map(LoginHistory::loginAt);
     }
 
     @Override
@@ -171,13 +172,13 @@ public class AuthUserContextSharedServiceImpl implements AuthUserContextSharedSe
                 .anyMatch(rc -> rc.value().equals(roleCode.value()));
     }
 
-    private String getCurrentLoginIdFromSecurityContext() {
+    private String getCurrentUserIdFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
         Object principal = authentication.getPrincipal();
-        // シンプルに username=loginId として扱う方針
+        // シンプルに username=userId として扱う方針
         if (principal instanceof org.springframework.security.core.userdetails.User userDetails) {
             return userDetails.getUsername();
         }
@@ -191,20 +192,20 @@ public class AuthUserContextSharedServiceImpl implements AuthUserContextSharedSe
 
 ---
 
-## PasswordChangeSharedService
+<h2>PasswordChangeSharedService</h2>
 
-### インタフェース
+<h3>インタフェース</h3>
 
 ```java
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
 /**
- * ログイン中ユーザのパスワード変更を行う sharedService。
+ * ログイン中アカウントのパスワード変更を行う sharedService。
  */
 public interface PasswordChangeSharedService {
 
     /**
-     * ログイン中ユーザのパスワードを変更する。
+     * ログイン中アカウントのパスワードを変更する。
      *
      * @param currentRawPassword 現在のパスワード（平文）
      * @param newRawPassword     新しいパスワード（平文）
@@ -213,7 +214,7 @@ public interface PasswordChangeSharedService {
 }
 ```
 
-### 実装
+<h3>実装</h3>
 
 ```java
 package com.myou.ec.ecsite.application.auth.sharedservice;
@@ -221,14 +222,14 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.exception.PasswordPolicyViolationException;
 import com.myou.ec.ecsite.domain.auth.exception.PasswordReuseNotAllowedException;
-import com.myou.ec.ecsite.domain.auth.model.AuthUser;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
-import com.myou.ec.ecsite.domain.auth.model.value.PasswordPolicy;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.policy.PasswordPolicy;
 import com.myou.ec.ecsite.domain.auth.repository.AuthPasswordHistoryRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthUserRepository;
+import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -238,19 +239,19 @@ import java.util.List;
 @Service
 public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedService {
 
-    private final AuthUserContextSharedService userContextSharedService;
-    private final AuthUserRepository authUserRepository;
+    private final AuthAccountContextSharedService userContextSharedService;
+    private final AuthAccountRepository authAccountRepository;
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicy passwordPolicy;
 
-    public PasswordChangeSharedServiceImpl(AuthUserContextSharedService userContextSharedService,
-                                           AuthUserRepository authUserRepository,
+    public PasswordChangeSharedServiceImpl(AuthAccountContextSharedService userContextSharedService,
+                                           AuthAccountRepository authAccountRepository,
                                            AuthPasswordHistoryRepository passwordHistoryRepository,
                                            PasswordEncoder passwordEncoder,
                                            PasswordPolicy passwordPolicy) {
         this.userContextSharedService = userContextSharedService;
-        this.authUserRepository = authUserRepository;
+        this.authAccountRepository = authAccountRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicy = passwordPolicy;
@@ -258,10 +259,10 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
 
     @Override
     public void changePasswordOfCurrentUser(String currentRawPassword, String newRawPassword) {
-        AuthUser user = userContextSharedService.getCurrentUserOrThrow();
-        AuthUserId userId = user.id();
-        if (userId == null) {
-            throw new AuthDomainException("ユーザID未採番のためパスワード変更ができません。");
+        AuthAccount user = userContextSharedService.getCurrentUserOrThrow();
+        AuthAccountId accountId = user.id();
+        if (accountId == null) {
+            throw new AuthDomainException("アカウントID未採番のためパスワード変更ができません。");
         }
 
         // 現在のパスワード検証
@@ -270,11 +271,11 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
         }
 
         // パスワード構文チェック
-        passwordPolicy.validateSyntax(newRawPassword, user.loginId());
+        passwordPolicy.validateSyntax(newRawPassword, user.userId());
 
         // 履歴による再利用禁止チェック（直近 N 件）
         List<PasswordHistory> recentHistories =
-                passwordHistoryRepository.findRecentByUserId(userId, passwordPolicy.historyGenerationCount());
+                passwordHistoryRepository.findRecentByAccountId(accountId, passwordPolicy.historyGenerationCount());
 
         for (PasswordHistory history : recentHistories) {
             if (passwordEncoder.matches(newRawPassword, history.encodedPassword().value())) {
@@ -288,12 +289,12 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
 
         // ユーザのパスワード更新
         user.changePassword(encodedPassword);
-        authUserRepository.save(user);
+        authAccountRepository.save(user);
 
         // パスワード履歴登録
         LocalDateTime now = LocalDateTime.now();
-        LoginId operator = user.loginId(); // 自分自身が変更
-        PasswordHistory history = PasswordHistory.userChange(userId, encodedPassword, now, operator);
+        UserId operator = user.userId(); // 自分自身が変更
+        PasswordHistory history = PasswordHistory.userChange(accountId, encodedPassword, now, operator);
         passwordHistoryRepository.save(history);
     }
 }
@@ -301,16 +302,16 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
 
 ---
 
-## AuthAccountAdminSharedService
+<h2>AuthAccountAdminSharedService</h2>
 
-### インタフェース
+<h3>インタフェース</h3>
 
 ```java
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
-import com.myou.ec.ecsite.domain.auth.model.AuthUser;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 
 import java.util.List;
@@ -323,60 +324,60 @@ public interface AuthAccountAdminSharedService {
     /**
      * アカウントを新規登録する。
      *
-     * @param loginId   ログインID
+     * @param userId   ユーザーID
      * @param rawPassword 初期パスワード（平文）
      * @param roleCodes 付与するロール一覧
-     * @param operator  操作ユーザ（管理者）の loginId
-     * @return 登録された AuthUser
+     * @param operator  操作ユーザ（管理者）の userId
+     * @return 登録された AuthAccount
      */
-    AuthUser registerAccount(LoginId loginId,
+    AuthAccount registerAccount(UserId userId,
                              String rawPassword,
                              List<RoleCode> roleCodes,
-                             LoginId operator);
+                             UserId operator);
 
     /**
      * 初期パスワードにリセットし、ロックも解除する。
      *
-     * @param targetUserId 対象ユーザID
-     * @param operator     操作ユーザ（管理者）の loginId
+     * @param targetAccountId 対象アカウントID
+     * @param operator     操作ユーザ（管理者）の userId
      */
-    void resetPasswordToInitial(AuthUserId targetUserId, LoginId operator);
+    void resetPasswordToInitial(AuthAccountId targetAccountId, UserId operator);
 
     /**
      * アカウントロックを解除する。
      */
-    void unlockAccount(AuthUserId targetUserId, LoginId operator);
+    void unlockAccount(AuthAccountId targetAccountId, UserId operator);
 
     /**
      * アカウントを無効化する。
      */
-    void disableAccount(AuthUserId targetUserId, LoginId operator);
+    void disableAccount(AuthAccountId targetAccountId, UserId operator);
 
     /**
      * アカウントを有効化する。
      */
-    void enableAccount(AuthUserId targetUserId, LoginId operator);
+    void enableAccount(AuthAccountId targetAccountId, UserId operator);
 }
 ```
 
-### 実装
+<h3>実装</h3>
 
 ```java
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
-import com.myou.ec.ecsite.domain.auth.model.AuthUser;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
-import com.myou.ec.ecsite.domain.auth.model.value.PasswordPolicy;
+import com.myou.ec.ecsite.domain.auth.model.policy.PasswordPolicy;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthPasswordHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthRoleRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthUserRepository;
+import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -387,7 +388,7 @@ import java.util.List;
 @Service
 public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminSharedService {
 
-    private final AuthUserRepository authUserRepository;
+    private final AuthAccountRepository authAccountRepository;
     private final AuthRoleRepository authRoleRepository;
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
@@ -395,14 +396,14 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     private final PasswordPolicy passwordPolicy;
     private final String initialPassword;
 
-    public AuthAccountAdminSharedServiceImpl(AuthUserRepository authUserRepository,
+    public AuthAccountAdminSharedServiceImpl(AuthAccountRepository authAccountRepository,
                                              AuthRoleRepository authRoleRepository,
                                              AuthPasswordHistoryRepository passwordHistoryRepository,
                                              AuthAccountLockHistoryRepository lockHistoryRepository,
                                              PasswordEncoder passwordEncoder,
                                              PasswordPolicy passwordPolicy,
                                              @Value("${auth.initial-password:password123}") String initialPassword) {
-        this.authUserRepository = authUserRepository;
+        this.authAccountRepository = authAccountRepository;
         this.authRoleRepository = authRoleRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.lockHistoryRepository = lockHistoryRepository;
@@ -412,38 +413,38 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public AuthUser registerAccount(LoginId loginId,
+    public AuthAccount registerAccount(UserId userId,
                                     String rawPassword,
                                     List<RoleCode> roleCodes,
-                                    LoginId operator) {
+                                    UserId operator) {
 
         LocalDateTime now = LocalDateTime.now();
 
         // パスワードポリシー（構文）チェック
-        passwordPolicy.validateSyntax(rawPassword, loginId);
+        passwordPolicy.validateSyntax(rawPassword, userId);
 
         // パスワードハッシュ化
         EncodedPassword encodedPassword = new EncodedPassword(passwordEncoder.encode(rawPassword));
 
-        // AuthUser 作成 & 保存
-        AuthUser user = AuthUser.newUser(loginId, encodedPassword, roleCodes, now, operator);
-        authUserRepository.save(user);
+        // AuthAccount 作成 & 保存
+        AuthAccount user = AuthAccount.newAccount(userId, encodedPassword, roleCodes, now, operator);
+        authAccountRepository.save(user);
 
-        // ID 採番後のユーザを再取得（ID 必要なため）
-        AuthUser savedUser = authUserRepository.findByLoginId(loginId)
+        // ID 採番後のアカウントを再取得（ID 必要なため）
+        AuthAccount savedUser = authAccountRepository.findByUserId(userId)
                 .orElseThrow(() -> new AuthDomainException("アカウント登録後の再取得に失敗しました。"));
 
-        AuthUserId userId = savedUser.id();
-        if (userId == null) {
-            throw new AuthDomainException("採番されたユーザIDが取得できません。");
+        AuthAccountId accountId = savedUser.id();
+        if (accountId == null) {
+            throw new AuthDomainException("採番されたアカウントIDが取得できません。");
         }
 
         // ユーザロール設定
-        authRoleRepository.saveUserRoles(userId, roleCodes);
+        authRoleRepository.saveAccountRoles(accountId, roleCodes);
 
         // パスワード履歴登録（初回登録）
         PasswordHistory history = PasswordHistory.initialRegister(
-                userId,
+                accountId,
                 encodedPassword,
                 now,
                 operator
@@ -454,25 +455,25 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public void resetPasswordToInitial(AuthUserId targetUserId, LoginId operator) {
-        AuthUser user = authUserRepository.findById(targetUserId)
+    public void resetPasswordToInitial(AuthAccountId targetAccountId, UserId operator) {
+        AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         LocalDateTime now = LocalDateTime.now();
 
         // 初期パスワードの構文チェック（ポリシーに沿っている前提だが、一応検証）
-        passwordPolicy.validateSyntax(initialPassword, user.loginId());
+        passwordPolicy.validateSyntax(initialPassword, user.userId());
 
         // ハッシュ化
         EncodedPassword encodedPassword = new EncodedPassword(passwordEncoder.encode(initialPassword));
 
         // パスワード更新
         user.changePassword(encodedPassword);
-        authUserRepository.save(user);
+        authAccountRepository.save(user);
 
         // パスワード履歴（ADMIN_RESET）
         PasswordHistory history = PasswordHistory.adminReset(
-                targetUserId,
+                targetAccountId,
                 encodedPassword,
                 now,
                 operator
@@ -481,7 +482,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
         // ロック解除イベント（パスワード初期化時はロック解除も行う）
         AccountLockEvent unlockEvent = AccountLockEvent.unlock(
-                targetUserId,
+                targetAccountId,
                 now,
                 "ADMIN_RESET_AND_UNLOCK",
                 operator
@@ -490,8 +491,8 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public void unlockAccount(AuthUserId targetUserId, LoginId operator) {
-        AuthUser user = authUserRepository.findById(targetUserId)
+    public void unlockAccount(AuthAccountId targetAccountId, UserId operator) {
+        AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         LocalDateTime now = LocalDateTime.now();
@@ -506,21 +507,21 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public void disableAccount(AuthUserId targetUserId, LoginId operator) {
-        AuthUser user = authUserRepository.findById(targetUserId)
+    public void disableAccount(AuthAccountId targetAccountId, UserId operator) {
+        AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         user.disable();
-        authUserRepository.save(user);
+        authAccountRepository.save(user);
     }
 
     @Override
-    public void enableAccount(AuthUserId targetUserId, LoginId operator) {
-        AuthUser user = authUserRepository.findById(targetUserId)
+    public void enableAccount(AuthAccountId targetAccountId, UserId operator) {
+        AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         user.enable();
-        authUserRepository.save(user);
+        authAccountRepository.save(user);
     }
 }
 ```
@@ -531,7 +532,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
 * 業務Tの Service クラスからは：
 
-    * ログイン中情報 → `AuthUserContextSharedService`
+    * ログイン中情報 → `AuthAccountContextSharedService`
     * パスワード変更画面 → `PasswordChangeSharedService`
     * アカウント管理画面 → `AuthAccountAdminSharedService`
       を DI して呼び出すイメージです。

@@ -122,18 +122,25 @@ public interface AuthLoginHistoryRepository {
 
     void save(LoginHistory history);
 
-    List<LoginHistory> findRecentByUserId(AuthUserId userId, int limit);
+    /**
+     * 対象アカウントの直近のログイン履歴を loginAt 降順で取得する。
+     *
+     * @param accountId アカウントID
+     * @param limit  取得最大件数
+     */
+    List<LoginHistory> findRecentByAccountId(AuthAccountId accountId, int limit);
 
-    Optional<LocalDateTime> findPreviousSuccessLoginAt(AuthUserId userId);
-
-    int countConsecutiveFailuresSinceLastSuccessOrUnlock(AuthUserId userId);
+    /**
+     * 前回ログイン日時（今回を除く直近 SUCCESS）を返す。
+     */
+    Optional<LoginHistory> findPreviousSuccessLoginAtByAccountId(AuthAccountId accountId);
 }
 ```
 
 このうち
 
 ```java
-int countConsecutiveFailuresSinceLastSuccessOrUnlock(AuthUserId userId);
+// int countConsecutiveFailuresSinceLastSuccessOrUnlock(AuthAccountId accountId);
 ```
 
 は **ドメインロジックをインフラ側に寄せているメソッド** なので、
@@ -156,17 +163,17 @@ public interface AuthLoginHistoryRepository {
     void save(LoginHistory history);
 
     /**
-     * 対象ユーザの直近のログイン履歴を loginAt 降順で取得する。
+     * 対象アカウントの直近のログイン履歴を loginAt 降順で取得する。
      *
-     * @param userId ユーザID
+     * @param accountId アカウントID
      * @param limit  取得最大件数
      */
-    List<LoginHistory> findRecentByUserId(AuthUserId userId, int limit);
+    List<LoginHistory> findRecentByAccountId(AuthAccountId accountId, int limit);
 
     /**
      * 前回ログイン日時（今回を除く直近 SUCCESS）を返す。
      */
-    Optional<LocalDateTime> findPreviousSuccessLoginAt(AuthUserId userId);
+    Optional<LoginHistory> findPreviousSuccessLoginAtByAccountId(AuthAccountId accountId);
 }
 ```
 
@@ -184,37 +191,37 @@ public interface AuthLoginHistoryRepository {
 
 ```java
 @Override
-public LoginFailureType onLoginFailure(String loginIdValue, String clientIp, String userAgent) {
-    if (loginIdValue == null || loginIdValue.isBlank()) {
+public LoginFailureType onLoginFailure(String userIdValue, String clientIp, String userAgent) {
+    if (userIdValue == null || userIdValue.isBlank()) {
         return LoginFailureType.BAD_CREDENTIALS;
     }
 
-    LoginId loginId = new LoginId(loginIdValue);
-    Optional<AuthUser> optUser = authUserRepository.findByLoginId(loginId);
+    UserId userId = new UserId(userIdValue);
+    Optional<AuthAccount> optUser = authAccountRepository.findByUserId(userId);
 
     if (optUser.isEmpty()) {
-        // ユーザが存在しない場合は履歴を残さない（情報漏洩防止）
+        // アカウントが存在しない場合は履歴を残さない（情報漏洩防止）
         return LoginFailureType.BAD_CREDENTIALS;
     }
 
-    AuthUser user = optUser.get();
-    AuthUserId userId = user.id();
-    if (userId == null) {
+    AuthAccount user = optUser.get();
+    AuthAccountId accountId = user.id();
+    if (accountId == null) {
         return LoginFailureType.BAD_CREDENTIALS;
     }
 
     LocalDateTime now = LocalDateTime.now();
 
     // 現在ロック中か確認
-    LockStatus status = lockHistoryRepository.getLockStatus(userId);
+    LockStatus status = lockHistoryRepository.getLockStatusByAccountId(accountId);
     if (status.isLocked()) {
         // ロック中のログインは LOCKED で履歴のみ（失敗カウントには含めない）
         LoginHistory lockedHistory = LoginHistory.locked(
-                userId,
+                accountId,
                 now,
                 clientIp,
                 userAgent,
-                loginId
+                userId
         );
         loginHistoryRepository.save(lockedHistory);
         return LoginFailureType.LOCKED;
@@ -223,15 +230,15 @@ public LoginFailureType onLoginFailure(String loginIdValue, String clientIp, Str
     // ロックされていない場合 → FAIL として履歴を追加する前に
     // 直近の履歴を取得し、今回の FAIL を含めた LoginHistories を組み立てる
     int limit = lockPolicy.failThreshold() * 2; // 十分な件数を取っておけばOK
-    var recentHistories = loginHistoryRepository.findRecentByUserId(userId, limit);
+    var recentHistories = loginHistoryRepository.findRecentByAccountId(accountId, limit);
 
     // 今回の FAIL を先頭に付けたリストを作成
     LoginHistory failHistory = LoginHistory.fail(
-            userId,
+            accountId,
             now,
             clientIp,
             userAgent,
-            loginId
+            userId
     );
 
     var allHistories = new java.util.ArrayList<LoginHistory>(recentHistories.size() + 1);
@@ -241,7 +248,7 @@ public LoginFailureType onLoginFailure(String loginIdValue, String clientIp, Str
     LoginHistories loginHistories = LoginHistories.of(allHistories);
 
     // 最後の UNLOCK 時刻（なければ null）
-    LocalDateTime lastUnlockAt = lockHistoryRepository.findLatestByUserId(userId)
+    LocalDateTime lastUnlockAt = lockHistoryRepository.findLatestByAccountId(accountId)
             .filter(ev -> !ev.locked())              // locked=false のイベントが UNLOCK
             .map(AccountLockEvent::occurredAt)
             .orElse(null);
@@ -254,10 +261,10 @@ public LoginFailureType onLoginFailure(String loginIdValue, String clientIp, Str
     if (shouldLockout) {
         // 閾値超え → ロックイベント登録
         AccountLockEvent lockEvent = AccountLockEvent.lock(
-                userId,
+                accountId,
                 now,
                 "LOGIN_FAIL_THRESHOLD",
-                loginId
+                userId
         );
         lockHistoryRepository.save(lockEvent);
         return LoginFailureType.LOCKED;

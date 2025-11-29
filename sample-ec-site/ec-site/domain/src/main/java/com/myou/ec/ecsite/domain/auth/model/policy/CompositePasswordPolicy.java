@@ -1,7 +1,7 @@
 package com.myou.ec.ecsite.domain.auth.model.policy;
 
 import com.myou.ec.ecsite.domain.auth.exception.PasswordPolicyViolationException;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +17,10 @@ public class CompositePasswordPolicy implements PasswordPolicy {
     }
 
     @Override
-    public void validatePassword(String newRawPassword, LoginId loginId) throws PasswordPolicyViolationException {
+    public void validatePassword(String newRawPassword, UserId userId) throws PasswordPolicyViolationException {
         var violations = new ArrayList<PasswordViolation>();
         for (PasswordRule rule : rules) {
-            rule.validate(newRawPassword, loginId).ifPresent(violations::add);
+            rule.validate(newRawPassword, userId).ifPresent(violations::add);
         }
         if (!violations.isEmpty()) {
             throw new PasswordPolicyViolationException(violations);

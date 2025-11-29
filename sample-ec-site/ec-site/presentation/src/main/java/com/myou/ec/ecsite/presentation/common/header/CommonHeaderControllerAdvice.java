@@ -1,6 +1,6 @@
 package com.myou.ec.ecsite.presentation.common.header;
 
-import com.myou.ec.ecsite.application.auth.security.AuthUserDetails;
+import com.myou.ec.ecsite.application.auth.security.AuthAccountDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -21,7 +21,7 @@ public class CommonHeaderControllerAdvice {
             return null;
         }
 
-        if (!(auth.getPrincipal() instanceof AuthUserDetails userDetails)) {
+        if (!(auth.getPrincipal() instanceof AuthAccountDetails userDetails)) {
             return null;
         }
 

@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.presentation.auth.security;
 
 import com.myou.ec.ecsite.application.auth.sharedservice.PasswordChangeSharedService;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,7 +39,7 @@ public class AuthAuthenticationSuccessHandler extends SavedRequestAwareAuthentic
             throws IOException, ServletException {
 
         String loginIdStr = extractLoginId(authentication);
-        LoginId loginId = new LoginId(loginIdStr);
+        UserId loginId = new UserId(loginIdStr);
         boolean result = passwordChangeSharedService.isPasswordChangeRequired(loginId);
 
         if (result) {

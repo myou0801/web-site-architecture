@@ -19,17 +19,17 @@
         SELECT * FROM AUTH_ROLE ORDER BY SORT_ORDER
     </select>
 
-    <select id="findRoleCodesByUserId" resultType="string">
-        SELECT ROLE_CODE FROM AUTH_USER_ROLE WHERE AUTH_USER_ID = #{authUserId}
+    <select id="findRoleCodesByAccountId" resultType="string">
+        SELECT ROLE_CODE FROM AUTH_ACCOUNT_ROLE WHERE AUTH_ACCOUNT_ID = #{authAccountId}
     </select>
     
     <delete id="deleteUserRoles">
-        DELETE FROM AUTH_USER_ROLE WHERE AUTH_USER_ID = #{authUserId}
+        DELETE FROM AUTH_ACCOUNT_ROLE WHERE AUTH_ACCOUNT_ID = #{authAccountId}
     </delete>
     
     <insert id="insertUserRole">
-        INSERT INTO AUTH_USER_ROLE (AUTH_USER_ID, ROLE_CODE, CREATED_AT, CREATED_BY)
-        VALUES (#{authUserId}, #{roleCode}, CURRENT_TIMESTAMP, 'SYSTEM')
+        INSERT INTO AUTH_ACCOUNT_ROLE (AUTH_ACCOUNT_ID, ROLE_CODE, CREATED_AT, CREATED_BY)
+        VALUES (#{authAccountId}, #{roleCode}, CURRENT_TIMESTAMP, 'SYSTEM')
     </insert>
 
 </mapper>

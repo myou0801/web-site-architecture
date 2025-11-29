@@ -48,8 +48,8 @@ public enum PasswordChangeReason {
  * 認証成功後のフロー判定結果。
  */
 public record LoginSuccessResult(
-        long authUserId,
-        String loginId,
+        long authAccountId,
+        String userId,
         LocalDateTime loginAt,
         LocalDateTime previousLoginAt,   // null = 前回なし
         boolean passwordExpired,
@@ -90,7 +90,7 @@ package com.myou.ec.ecsite.presentation.auth.security;
 import com.myou.ec.ecsite.application.auth.sharedservice.internal.LoginSharedUseCase;
 import com.myou.ec.ecsite.application.auth.sharedservice.internal.LoginSuccessResult;
 import com.myou.ec.ecsite.application.auth.sharedservice.internal.PasswordChangeReason;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -135,9 +135,9 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        String loginIdValue = authentication.getName();   // usernameParameter と一致
+        String userIdValue = authentication.getName();   // usernameParameter と一致
         LoginSuccessResult result =
-                loginSharedUseCase.handleLoginSuccess(new LoginId(loginIdValue));
+                loginSharedUseCase.handleLoginSuccess(new UserId(userIdValue));
 
         HttpSession session = request.getSession(true);
         session.setAttribute(SESSION_KEY_PREVIOUS_LOGIN_AT, result.previousLoginAt());
@@ -209,7 +209,7 @@ package com.myou.ec.ecsite.presentation.auth.security;
 
 import com.myou.ec.ecsite.application.auth.sharedservice.internal.LockControlSharedUseCase;
 import com.myou.ec.ecsite.application.auth.sharedservice.internal.LoginFailureHandleResult;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -249,14 +249,14 @@ public class CustomAuthenticationFailureHandler extends SimpleUrlAuthenticationF
                                         AuthenticationException exception)
             throws IOException, ServletException {
 
-        String loginIdValue = request.getParameter(usernameParameter);
+        String userIdValue = request.getParameter(usernameParameter);
         LoginFailureHandleResult result;
 
         if (exception instanceof LockedException) {
             // Spring Security が既にロックだと判断したケース
-            result = lockControlSharedUseCase.onLockedUserTried(new LoginId(loginIdValue));
+            result = lockControlSharedUseCase.onLockedUserTried(new UserId(userIdValue));
         } else {
-            result = lockControlSharedUseCase.onLoginFailure(new LoginId(loginIdValue));
+            result = lockControlSharedUseCase.onLoginFailure(new UserId(userIdValue));
         }
 
         // メッセージ決定
@@ -266,7 +266,7 @@ public class CustomAuthenticationFailureHandler extends SimpleUrlAuthenticationF
             message = "ロックされています。管理者に連絡してロック解除してください。";
         } else {
             // ロックしていない通常の失敗
-            message = "ユーザIDまたはパスワードが正しくありません。";
+            message = "ユーザーIDまたはパスワードが正しくありません。";
         }
 
         // リクエスト属性にセット（リダイレクト後にも使いたければセッションに載せる）
@@ -275,8 +275,7 @@ public class CustomAuthenticationFailureHandler extends SimpleUrlAuthenticationF
         // 親クラスに任せて /login?error へリダイレクト
         super.onAuthenticationFailure(request, response, exception);
     }
-}
-```
+}```
 
 ### 4.4 ログイン画面側での利用
 

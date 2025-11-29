@@ -1,14 +1,14 @@
 package com.myou.ec.ecsite.infrastructure.auth.record;
 
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.time.LocalDateTime;
 
 public record AuthAccountLockHistoryRecord(
         Long authAccountLockHistoryId,
-        long authUserId,
+        long authAccountId,
         boolean locked,
         LocalDateTime occurredAt,
         String reason,
@@ -20,20 +20,20 @@ public record AuthAccountLockHistoryRecord(
     public AccountLockEvent toDomain() {
         return new AccountLockEvent(
                 authAccountLockHistoryId,
-                new AuthUserId(authUserId),
+                new AuthAccountId(authAccountId),
                 locked,
                 occurredAt,
                 reason,
-                new LoginId(operatedBy),
+                new UserId(operatedBy),
                 createdAt,
-                new LoginId(createdBy)
+                new UserId(createdBy)
         );
     }
 
     public static AuthAccountLockHistoryRecord fromDomain(AccountLockEvent event) {
         return new AuthAccountLockHistoryRecord(
                 event.id(),
-                event.authUserId().value(),
+                event.authAccountId().value(),
                 event.locked(),
                 event.occurredAt(),
                 event.reason(),

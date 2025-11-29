@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.presentation.auth.event;
 
 import com.myou.ec.ecsite.application.auth.sharedservice.LoginProcessSharedService;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.core.Authentication;
@@ -22,7 +22,7 @@ public class AuthenticationFailureEventListener {
     public void handle(AbstractAuthenticationFailureEvent event) {
         Authentication authentication = event.getAuthentication();
         String loginIdStr = extractLoginId(authentication);
-        LoginId loginId = new LoginId(loginIdStr);
+        UserId loginId = new UserId(loginIdStr);
         loginProcessSharedService.onLoginFailure(loginId);
     }
 

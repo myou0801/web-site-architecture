@@ -1,7 +1,7 @@
 package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthRole;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.repository.AuthRoleRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthRoleMapper;
@@ -28,16 +28,16 @@ public class AuthRoleRepositoryImpl implements AuthRoleRepository {
     }
 
     @Override
-    public List<RoleCode> findRoleCodesByUserId(AuthUserId authUserId) {
-        return mapper.findRoleCodesByUserId(authUserId.value()).stream()
+    public List<RoleCode> findRoleCodesByAccountId(AuthAccountId authAccountId) {
+        return mapper.findRoleCodesByAccountId(authAccountId.value()).stream()
                 .map(RoleCode::new)
                 .toList();
     }
 
     @Override
     @Transactional
-    public void saveUserRoles(AuthUserId authUserId, List<RoleCode> roleCodes) {
-        long id = authUserId.value();
+    public void saveAccountRoles(AuthAccountId authAccountId, List<RoleCode> roleCodes) {
+        long id = authAccountId.value();
         mapper.deleteUserRoles(id);
         if (roleCodes != null && !roleCodes.isEmpty()) {
             for (RoleCode roleCode : roleCodes) {

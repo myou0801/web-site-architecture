@@ -91,7 +91,7 @@ public LockStatus toLockStatus() {
 package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 
 import java.util.List;
 
@@ -103,7 +103,7 @@ public interface AuthAccountLockHistoryRepository {
      * 対象ユーザのロック／解除イベント一覧を取得。
      * 時系列のソートは infrastructure / AccountLockEvents 側で正規化する前提。
      */
-    List<AccountLockEvent> findByUserId(AuthUserId userId);
+    List<AccountLockEvent> findByAccountId(AuthAccountId accountId);
 }
 ```
 
@@ -127,7 +127,7 @@ public interface AuthAccountLockHistoryMapper {
 
     void insert(AuthAccountLockHistoryRecord record);
 
-    List<AuthAccountLockHistoryRecord> findByUserId(@Param("authUserId") long authUserId);
+    List<AuthAccountLockHistoryRecord> findByAccountId(@Param("authAccountId") long authAccountId);
 }
 ```
 
@@ -137,7 +137,7 @@ public interface AuthAccountLockHistoryMapper {
 package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountLockHistoryMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord;
@@ -161,8 +161,8 @@ public class AuthAccountLockHistoryRepositoryImpl implements AuthAccountLockHist
     }
 
     @Override
-    public List<AccountLockEvent> findByUserId(AuthUserId userId) {
-        return mapper.findByUserId(userId.value()).stream()
+    public List<AccountLockEvent> findByAccountId(AuthAccountId accountId) {
+        return mapper.findByAccountId(accountId.value()).stream()
                 .map(AuthAccountLockHistoryRecord::toDomain)
                 .toList();
     }
@@ -178,7 +178,7 @@ public class AuthAccountLockHistoryRepositoryImpl implements AuthAccountLockHist
                type="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord">
 
         <id     column="AUTH_ACCOUNT_LOCK_HISTORY_ID" property="authAccountLockHistoryId"/>
-        <result column="AUTH_USER_ID"                 property="authUserId"/>
+        <result column="AUTH_ACCOUNT_ID"                 property="authAccountId"/>
         <result column="LOCKED_FLG"                   property="locked"/>
         <result column="OCCURRED_AT"                  property="occurredAt"/>
         <result column="REASON"                       property="reason"/>
@@ -192,7 +192,7 @@ public class AuthAccountLockHistoryRepositoryImpl implements AuthAccountLockHist
             useGeneratedKeys="true"
             keyProperty="authAccountLockHistoryId">
         INSERT INTO AUTH_ACCOUNT_LOCK_HISTORY (
-          AUTH_USER_ID,
+          AUTH_ACCOUNT_ID,
           LOCKED_FLG,
           OCCURRED_AT,
           REASON,
@@ -200,7 +200,7 @@ public class AuthAccountLockHistoryRepositoryImpl implements AuthAccountLockHist
           CREATED_AT,
           CREATED_BY
         ) VALUES (
-          #{authUserId},
+          #{authAccountId},
           #{locked},
           #{occurredAt},
           #{reason},
@@ -210,11 +210,11 @@ public class AuthAccountLockHistoryRepositoryImpl implements AuthAccountLockHist
         )
     </insert>
 
-    <select id="findByUserId"
+    <select id="findByAccountId"
             resultMap="AuthAccountLockHistoryRecordMap">
         SELECT
           AUTH_ACCOUNT_LOCK_HISTORY_ID,
-          AUTH_USER_ID,
+          AUTH_ACCOUNT_ID,
           LOCKED_FLG,
           OCCURRED_AT,
           REASON,
@@ -222,7 +222,7 @@ public class AuthAccountLockHistoryRepositoryImpl implements AuthAccountLockHist
           CREATED_AT,
           CREATED_BY
         FROM AUTH_ACCOUNT_LOCK_HISTORY
-        WHERE AUTH_USER_ID = #{authUserId}
+        WHERE AUTH_ACCOUNT_ID = #{authAccountId}
         ORDER BY OCCURRED_AT DESC
     </select>
 
@@ -244,27 +244,27 @@ import com.myou.ec.ecsite.domain.auth.model.value.LockStatus;
 ```
 
 ```java
-AuthUser user = optUser.get();
-AuthUserId userId = user.id();
-if (userId == null) {
+AuthAccount user = optUser.get();
+AuthAccountId accountId = user.id();
+if (accountId == null) {
     return LoginFailureType.BAD_CREDENTIALS;
 }
 
 LocalDateTime now = LocalDateTime.now();
 
 // ◆ ロックイベント一覧を取得して、現在ステータスを判定
-var events = lockHistoryRepository.findByUserId(userId);
+var events = lockHistoryRepository.findByAccountId(accountId);
 AccountLockEvents lockEvents = AccountLockEvents.of(events);
 LockStatus status = lockEvents.currentStatus();
 
 if (status.isLocked()) {
     // ロック中のログインは LOCKED で履歴のみ（失敗カウントには含めない）
     LoginHistory lockedHistory = LoginHistory.locked(
-            userId,
+            accountId,
             now,
             clientIp,
             userAgent,
-            loginId
+            userId
     );
     loginHistoryRepository.save(lockedHistory);
     return LoginFailureType.LOCKED;
@@ -278,15 +278,15 @@ if (status.isLocked()) {
 ```java
 // 直近の履歴を取得
 int limit = 20; // 6回しきい値ならこの程度で十分
-var recentHistories = loginHistoryRepository.findRecentByUserId(userId, limit);
+var recentHistories = loginHistoryRepository.findRecentByAccountId(accountId, limit);
 
 // 今回の FAIL を先頭に付ける
 LoginHistory failHistory = LoginHistory.fail(
-        userId,
+        accountId,
         now,
         clientIp,
         userAgent,
-        loginId
+        userId
 );
 var allHistories = new java.util.ArrayList<LoginHistory>(recentHistories.size() + 1);
 allHistories.add(failHistory);
@@ -305,10 +305,10 @@ loginHistoryRepository.save(failHistory);
 
 if (shouldLockout) {
     AccountLockEvent lockEvent = AccountLockEvent.lock(
-            userId,
+            accountId,
             now,
             "LOGIN_FAIL_THRESHOLD",
-            loginId
+            userId
     );
     lockHistoryRepository.save(lockEvent);
     return LoginFailureType.LOCKED;
@@ -319,7 +319,7 @@ if (shouldLockout) {
 
 ---
 
-## 5. Application: `AuthUserDetailsService` の修正
+## 5. Application: `AuthAccountDetailsService` の修正
 
 `UserDetailsService` で `getLockStatus` を呼んでいた部分も、
 `AccountLockEvents` に置き換えます。
@@ -331,10 +331,10 @@ import com.myou.ec.ecsite.domain.auth.model.value.LockStatus;
 ```
 
 ```java
-AuthUserId userId = user.id();
+AuthAccountId accountId = user.id();
 boolean locked = false;
-if (userId != null) {
-    var events = lockHistoryRepository.findByUserId(userId);
+if (accountId != null) {
+    var events = lockHistoryRepository.findByAccountId(accountId);
     AccountLockEvents lockEvents = AccountLockEvents.of(events);
     locked = lockEvents.currentStatus() == LockStatus.LOCKED;
 }
@@ -357,7 +357,7 @@ if (userId != null) {
 * **AuthAccountLockHistoryRepository**
 
     * ただイベント一覧を返すだけ（ロジックは持たない）
-* **LoginProcessSharedServiceImpl / AuthUserDetailsService**
+* **LoginProcessSharedServiceImpl / AuthAccountDetailsService**
 
     * Repository からイベントを取得 → AccountLockEvents に渡して判定
 

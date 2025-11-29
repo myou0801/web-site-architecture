@@ -1,6 +1,6 @@
 package com.myou.ec.ecsite.application.auth.security;
 
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -8,15 +8,15 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 
 /**
- * 認証済みユーザ情報。
- * Spring Security の User に、ドメインの情報（userId 等）と前回ログイン日時を追加。
+ * 認証済みアカウント情報。
+ * Spring Security の User に、ドメインの情報（accountId 等）と前回ログイン日時を追加。
  */
-public class AuthUserDetails extends User {
+public class AuthAccountDetails extends User {
 
-    private final AuthUserId authUserId;
+    private final AuthAccountId authAccountId;
     private final LocalDateTime previousLoginAt;
 
-    public AuthUserDetails(AuthUserId authUserId,
+    public AuthAccountDetails(AuthAccountId authAccountId,
                            String username,
                            String password,
                            boolean enabled,
@@ -26,12 +26,12 @@ public class AuthUserDetails extends User {
                            Collection<? extends GrantedAuthority> authorities,
                            LocalDateTime previousLoginAt) {
         super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
-        this.authUserId = authUserId;
+        this.authAccountId = authAccountId;
         this.previousLoginAt = previousLoginAt;
     }
 
-    public AuthUserId authUserId() {
-        return authUserId;
+    public AuthAccountId authAccountId() {
+        return authAccountId;
     }
 
     public LocalDateTime previousLoginAt() {

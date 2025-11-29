@@ -1,7 +1,7 @@
 package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +13,7 @@ public interface AuthPasswordHistoryRepository {
 
     void save(PasswordHistory history);
 
-    List<PasswordHistory> findRecentByUserId(AuthUserId userId, int limit);
+    List<PasswordHistory> findRecentByAccountId(AuthAccountId accountId, int limit);
 
-    Optional<PasswordHistory> findLastByUserId(AuthUserId userId);
+    Optional<PasswordHistory> findLastByAccountId(AuthAccountId accountId);
 }

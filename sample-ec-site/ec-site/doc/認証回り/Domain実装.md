@@ -26,15 +26,15 @@ com.myou.ec.ecsite.domain.auth
  ├─ AccountLockedException             … ロック中アカウントのログインなど
  │
  ├─ model
- │   ├─ AuthUser                       … 認証ユーザ Entity（認証情報のみ）
+ │   ├─ AuthAccount                       … 認証ユーザ Entity（認証情報のみ）
  │   ├─ AuthRole                       … ロールマスタ Entity
  │   ├─ LoginHistory                   … ログイン履歴 Entity
  │   ├─ PasswordHistory                … パスワード履歴 Entity
  │   └─ AccountLockEvent               … ロック／解除イベント Entity
  │
  ├─ model.value
- │   ├─ AuthUserId                     … 認証ユーザID VO
- │   ├─ LoginId                        … ログインID VO
+ │   ├─ AuthAccountId                     … 認証ユーザID VO
+ │   ├─ UserId                        … ログインID VO
  │   ├─ EncodedPassword                … ハッシュ済みパスワード VO
  │   ├─ RoleCode                       … ロールコード VO
  │   ├─ LoginResult                    … ログイン結果種別
@@ -44,7 +44,7 @@ com.myou.ec.ecsite.domain.auth
  │   └─ LockPolicy                     … ロックポリシー（失敗閾値）
  │
  └─ repository
-     ├─ AuthUserRepository             … 認証ユーザ永続化 I/F
+     ├─ AuthAccountRepository             … 認証ユーザ永続化 I/F
      ├─ AuthRoleRepository             … ロールマスタ & ユーザロール I/F
      ├─ AuthLoginHistoryRepository     … ログイン履歴 I/F（連続失敗数などの集計も担当）
      ├─ AuthPasswordHistoryRepository  … パスワード履歴 I/F
@@ -60,7 +60,7 @@ com.myou.ec.ecsite.domain.auth
     * 実際の値の更新は infrastructure 層（Record + Mapper + RepositoryImpl）で行う方針
 * ロック状態やパスワード有効期限などのポリシーは `PasswordPolicy` / `LockPolicy` VO に閉じ込め、
   AP 基盤の sharedService / UseCase でこれらを利用して判定する。
-* `AuthUser` は「認証に必要な最小限の情報（ID／ログインID／ハッシュパスワード／enabled／deleted／roles）」のみを持ち、
+* `AuthAccount` は「認証に必要な最小限の情報（ID／ログインID／ハッシュパスワード／enabled／deleted／roles）」のみを持ち、
   氏名・所属などの業務属性は別ドメイン（業務T）で管理する。
 
 ````
@@ -141,7 +141,7 @@ public class AccountLockedException extends AuthDomainException {
 
 ## Value Object / Enum / Policy
 
-### LoginId.java
+### UserId.java
 
 ```java
 package com.myou.ec.ecsite.domain.auth.model.value;
@@ -149,11 +149,11 @@ package com.myou.ec.ecsite.domain.auth.model.value;
 /**
  * ログインID（ユーザID）を表す値オブジェクト。
  */
-public record LoginId(String value) {
+public record UserId(String value) {
 
-    public LoginId {
+    public UserId {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("loginId must not be blank.");
+            throw new IllegalArgumentException("userId must not be blank.");
         }
     }
 
@@ -164,7 +164,7 @@ public record LoginId(String value) {
 }
 ```
 
-### AuthUserId.java
+### AuthAccountId.java
 
 ```java
 package com.myou.ec.ecsite.domain.auth.model.value;
@@ -172,11 +172,11 @@ package com.myou.ec.ecsite.domain.auth.model.value;
 /**
  * 認証ユーザIDを表す値オブジェクト。
  */
-public record AuthUserId(long value) {
+public record AuthAccountId(long value) {
 
-    public AuthUserId {
+    public AuthAccountId {
         if (value <= 0) {
-            throw new IllegalArgumentException("authUserId must be positive.");
+            throw new IllegalArgumentException("authAccountId must be positive.");
         }
     }
 
@@ -318,7 +318,7 @@ public record PasswordPolicy(
      *
      * 違反時は PasswordPolicyViolationException を送出する。
      */
-    public void validateSyntax(String rawPassword, LoginId loginId) {
+    public void validateSyntax(String rawPassword, UserId userId) {
         if (rawPassword == null || rawPassword.length() < minLength) {
             throw new PasswordPolicyViolationException(
                     "パスワードは " + minLength + " 文字以上で入力してください。"
@@ -333,7 +333,7 @@ public record PasswordPolicy(
         }
 
         // ログインIDと同一禁止
-        if (loginId != null && rawPassword.equals(loginId.value())) {
+        if (userId != null && rawPassword.equals(userId.value())) {
             throw new PasswordPolicyViolationException(
                     "ログインIDと同じパスワードは利用できません。"
             );
@@ -383,14 +383,14 @@ public record LockPolicy(
 
 ## Entity
 
-### AuthUser.java
+### AuthAccount.java
 
 ```java
 package com.myou.ec.ecsite.domain.auth.model;
 
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 
 import java.time.LocalDateTime;
@@ -404,13 +404,13 @@ import java.util.Objects;
  * ユーザの氏名・所属などの業務的な属性は、別ドメイン（業務T側）の
  * アカウント詳細テーブルで管理する前提。
  */
-public class AuthUser {
+public class AuthAccount {
 
-    /** AUTH_USER_ID。null の場合は未採番。 */
-    private final AuthUserId id;
+    /** AUTH_ACCOUNT_ID。null の場合は未採番。 */
+    private final AuthAccountId id;
 
     /** ログインID。 */
-    private LoginId loginId;
+    private UserId userId;
 
     /** ハッシュ済みパスワード。 */
     private EncodedPassword encodedPassword;
@@ -426,38 +426,38 @@ public class AuthUser {
 
     // 監査情報
     private final LocalDateTime createdAt;
-    private final LoginId createdByLoginId;
+    private final UserId createdByUserId;
     private final LocalDateTime updatedAt;
-    private final LoginId updatedByLoginId;
+    private final UserId updatedByUserId;
     private final long versionNo;
 
     /**
      * 永続化層からの再構築などに使うコンストラクタ。
-     * newUser(...) などのファクトリを通して生成するのが基本。
+     * newAccount(...) などのファクトリを通して生成するのが基本。
      */
-    public AuthUser(AuthUserId id,
-                    LoginId loginId,
+    public AuthAccount(AuthAccountId id,
+                    UserId userId,
                     EncodedPassword encodedPassword,
                     boolean enabled,
                     boolean deleted,
                     List<RoleCode> roleCodes,
                     LocalDateTime createdAt,
-                    LoginId createdByLoginId,
+                    UserId createdByUserId,
                     LocalDateTime updatedAt,
-                    LoginId updatedByLoginId,
+                    UserId updatedByUserId,
                     long versionNo) {
 
         this.id = id;
-        this.loginId = Objects.requireNonNull(loginId, "loginId must not be null");
+        this.userId = Objects.requireNonNull(userId, "userId must not be null");
         this.encodedPassword = Objects.requireNonNull(encodedPassword, "encodedPassword must not be null");
         this.enabled = enabled;
         this.deleted = deleted;
         this.roleCodes = roleCodes == null ? List.of() : List.copyOf(roleCodes);
 
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
-        this.createdByLoginId = Objects.requireNonNull(createdByLoginId, "createdByLoginId must not be null");
+        this.createdByUserId = Objects.requireNonNull(createdByUserId, "createdByUserId must not be null");
         this.updatedAt = updatedAt != null ? updatedAt : createdAt;
-        this.updatedByLoginId = updatedByLoginId != null ? updatedByLoginId : createdByLoginId;
+        this.updatedByUserId = updatedByUserId != null ? updatedByUserId : createdByUserId;
         this.versionNo = versionNo;
     }
 
@@ -465,20 +465,20 @@ public class AuthUser {
      * 新規ユーザ作成用のファクトリメソッド。
      * まだ ID は採番されていない（id == null）状態で生成する。
      */
-    public static AuthUser newUser(LoginId loginId,
+    public static AuthAccount newAccount(UserId userId,
                                    EncodedPassword encodedPassword,
                                    List<RoleCode> roleCodes,
                                    LocalDateTime now,
-                                   LoginId operator) {
+                                   UserId operator) {
 
-        Objects.requireNonNull(loginId, "loginId must not be null");
+        Objects.requireNonNull(userId, "userId must not be null");
         Objects.requireNonNull(encodedPassword, "encodedPassword must not be null");
         Objects.requireNonNull(now, "now must not be null");
         Objects.requireNonNull(operator, "operator must not be null");
 
-        return new AuthUser(
+        return new AuthAccount(
                 null,                     // id (未採番)
-                loginId,
+                userId,
                 encodedPassword,
                 true,                     // enabled デフォルト true
                 false,                    // deleted デフォルト false
@@ -504,8 +504,8 @@ public class AuthUser {
     /**
      * ログインIDを変更する。
      */
-    public void changeLoginId(LoginId newLoginId) {
-        this.loginId = Objects.requireNonNull(newLoginId, "newLoginId must not be null");
+    public void changeUserId(UserId newUserId) {
+        this.userId = Objects.requireNonNull(newUserId, "newUserId must not be null");
     }
 
     /**
@@ -565,12 +565,12 @@ public class AuthUser {
 
     // ===== getter =====
 
-    public AuthUserId id() {
+    public AuthAccountId id() {
         return id;
     }
 
-    public LoginId loginId() {
-        return loginId;
+    public UserId userId() {
+        return userId;
     }
 
     public EncodedPassword encodedPassword() {
@@ -593,16 +593,16 @@ public class AuthUser {
         return createdAt;
     }
 
-    public LoginId createdByLoginId() {
-        return createdByLoginId;
+    public UserId createdByUserId() {
+        return createdByUserId;
     }
 
     public LocalDateTime updatedAt() {
         return updatedAt;
     }
 
-    public LoginId updatedByLoginId() {
-        return updatedByLoginId;
+    public UserId updatedByUserId() {
+        return updatedByUserId;
     }
 
     public long versionNo() {
@@ -614,9 +614,9 @@ public class AuthUser {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AuthUser authUser)) return false;
+        if (!(o instanceof AuthAccount authAccount)) return false;
         // 永続化後は ID で等価判定。未採番同士はインスタンス等価のみ。
-        return id != null && id.equals(authUser.id);
+        return id != null && id.equals(authAccount.id);
     }
 
     @Override
@@ -626,9 +626,9 @@ public class AuthUser {
 
     @Override
     public String toString() {
-        return "AuthUser{" +
+        return "AuthAccount{" +
                "id=" + id +
-               ", loginId=" + loginId +
+               ", userId=" + userId +
                ", enabled=" + enabled +
                ", deleted=" + deleted +
                ", roleCodes=" + roleCodes +
@@ -682,8 +682,8 @@ public class AuthRole {
 ```java
 package com.myou.ec.ecsite.domain.auth.model;
 
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginResult;
 
 import java.time.LocalDateTime;
@@ -695,26 +695,26 @@ import java.util.Objects;
 public class LoginHistory {
 
     private final Long id;
-    private final AuthUserId authUserId;
+    private final AuthAccountId authAccountId;
     private final LocalDateTime loginAt;
     private final LoginResult result;
     private final String clientIp;
     private final String userAgent;
 
     private final LocalDateTime createdAt;
-    private final LoginId createdBy;
+    private final UserId createdBy;
 
     public LoginHistory(Long id,
-                        AuthUserId authUserId,
+                        AuthAccountId authAccountId,
                         LocalDateTime loginAt,
                         LoginResult result,
                         String clientIp,
                         String userAgent,
                         LocalDateTime createdAt,
-                        LoginId createdBy) {
+                        UserId createdBy) {
 
         this.id = id;
-        this.authUserId = Objects.requireNonNull(authUserId, "authUserId must not be null");
+        this.authAccountId = Objects.requireNonNull(authAccountId, "authAccountId must not be null");
         this.loginAt = Objects.requireNonNull(loginAt, "loginAt must not be null");
         this.result = Objects.requireNonNull(result, "result must not be null");
         this.clientIp = clientIp;
@@ -723,30 +723,30 @@ public class LoginHistory {
         this.createdBy = Objects.requireNonNull(createdBy, "createdBy must not be null");
     }
 
-    public static LoginHistory success(AuthUserId authUserId,
+    public static LoginHistory success(AuthAccountId authAccountId,
                                        LocalDateTime loginAt,
                                        String clientIp,
                                        String userAgent,
-                                       LoginId createdBy) {
-        return new LoginHistory(null, authUserId, loginAt, LoginResult.SUCCESS,
+                                       UserId createdBy) {
+        return new LoginHistory(null, authAccountId, loginAt, LoginResult.SUCCESS,
                 clientIp, userAgent, loginAt, createdBy);
     }
 
-    public static LoginHistory fail(AuthUserId authUserId,
+    public static LoginHistory fail(AuthAccountId authAccountId,
                                     LocalDateTime loginAt,
                                     String clientIp,
                                     String userAgent,
-                                    LoginId createdBy) {
-        return new LoginHistory(null, authUserId, loginAt, LoginResult.FAIL,
+                                    UserId createdBy) {
+        return new LoginHistory(null, authAccountId, loginAt, LoginResult.FAIL,
                 clientIp, userAgent, loginAt, createdBy);
     }
 
-    public static LoginHistory locked(AuthUserId authUserId,
+    public static LoginHistory locked(AuthAccountId authAccountId,
                                       LocalDateTime loginAt,
                                       String clientIp,
                                       String userAgent,
-                                      LoginId createdBy) {
-        return new LoginHistory(null, authUserId, loginAt, LoginResult.LOCKED,
+                                      UserId createdBy) {
+        return new LoginHistory(null, authAccountId, loginAt, LoginResult.LOCKED,
                 clientIp, userAgent, loginAt, createdBy);
     }
 
@@ -754,8 +754,8 @@ public class LoginHistory {
         return id;
     }
 
-    public AuthUserId authUserId() {
-        return authUserId;
+    public AuthAccountId authAccountId() {
+        return authAccountId;
     }
 
     public LocalDateTime loginAt() {
@@ -778,7 +778,7 @@ public class LoginHistory {
         return createdAt;
     }
 
-    public LoginId createdBy() {
+    public UserId createdBy() {
         return createdBy;
     }
 }
@@ -789,9 +789,9 @@ public class LoginHistory {
 ```java
 package com.myou.ec.ecsite.domain.auth.model;
 
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordChangeType;
 
 import java.time.LocalDateTime;
@@ -803,25 +803,25 @@ import java.util.Objects;
 public class PasswordHistory {
 
     private final Long id;
-    private final AuthUserId authUserId;
+    private final AuthAccountId authAccountId;
     private final EncodedPassword encodedPassword;
     private final PasswordChangeType changeType;
     private final LocalDateTime changedAt;
-    private final LoginId changedBy;
+    private final UserId changedBy;
     private final LocalDateTime createdAt;
-    private final LoginId createdBy;
+    private final UserId createdBy;
 
     public PasswordHistory(Long id,
-                           AuthUserId authUserId,
+                           AuthAccountId authAccountId,
                            EncodedPassword encodedPassword,
                            PasswordChangeType changeType,
                            LocalDateTime changedAt,
-                           LoginId changedBy,
+                           UserId changedBy,
                            LocalDateTime createdAt,
-                           LoginId createdBy) {
+                           UserId createdBy) {
 
         this.id = id;
-        this.authUserId = Objects.requireNonNull(authUserId, "authUserId must not be null");
+        this.authAccountId = Objects.requireNonNull(authAccountId, "authAccountId must not be null");
         this.encodedPassword = Objects.requireNonNull(encodedPassword, "encodedPassword must not be null");
         this.changeType = Objects.requireNonNull(changeType, "changeType must not be null");
         this.changedAt = Objects.requireNonNull(changedAt, "changedAt must not be null");
@@ -830,27 +830,27 @@ public class PasswordHistory {
         this.createdBy = Objects.requireNonNull(createdBy, "createdBy must not be null");
     }
 
-    public static PasswordHistory initialRegister(AuthUserId authUserId,
+    public static PasswordHistory initialRegister(AuthAccountId authAccountId,
                                                   EncodedPassword password,
                                                   LocalDateTime now,
-                                                  LoginId operator) {
-        return new PasswordHistory(null, authUserId, password,
+                                                  UserId operator) {
+        return new PasswordHistory(null, authAccountId, password,
                 PasswordChangeType.INITIAL_REGISTER, now, operator, now, operator);
     }
 
-    public static PasswordHistory adminReset(AuthUserId authUserId,
+    public static PasswordHistory adminReset(AuthAccountId authAccountId,
                                              EncodedPassword password,
                                              LocalDateTime now,
-                                             LoginId operator) {
-        return new PasswordHistory(null, authUserId, password,
+                                             UserId operator) {
+        return new PasswordHistory(null, authAccountId, password,
                 PasswordChangeType.ADMIN_RESET, now, operator, now, operator);
     }
 
-    public static PasswordHistory userChange(AuthUserId authUserId,
+    public static PasswordHistory userChange(AuthAccountId authAccountId,
                                              EncodedPassword password,
                                              LocalDateTime now,
-                                             LoginId operator) {
-        return new PasswordHistory(null, authUserId, password,
+                                             UserId operator) {
+        return new PasswordHistory(null, authAccountId, password,
                 PasswordChangeType.USER_CHANGE, now, operator, now, operator);
     }
 
@@ -858,8 +858,8 @@ public class PasswordHistory {
         return id;
     }
 
-    public AuthUserId authUserId() {
-        return authUserId;
+    public AuthAccountId authAccountId() {
+        return authAccountId;
     }
 
     public EncodedPassword encodedPassword() {
@@ -874,7 +874,7 @@ public class PasswordHistory {
         return changedAt;
     }
 
-    public LoginId changedBy() {
+    public UserId changedBy() {
         return changedBy;
     }
 
@@ -882,7 +882,7 @@ public class PasswordHistory {
         return createdAt;
     }
 
-    public LoginId createdBy() {
+    public UserId createdBy() {
         return createdBy;
     }
 }
@@ -893,8 +893,8 @@ public class PasswordHistory {
 ```java
 package com.myou.ec.ecsite.domain.auth.model;
 
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -905,25 +905,25 @@ import java.util.Objects;
 public class AccountLockEvent {
 
     private final Long id;
-    private final AuthUserId authUserId;
+    private final AuthAccountId authAccountId;
     private final boolean locked;          // true=ロック / false=ロック解除
     private final LocalDateTime occurredAt;
     private final String reason;           // 例: LOGIN_FAIL_THRESHOLD, ADMIN_UNLOCK 等
-    private final LoginId operatedBy;
+    private final UserId operatedBy;
     private final LocalDateTime createdAt;
-    private final LoginId createdBy;
+    private final UserId createdBy;
 
     public AccountLockEvent(Long id,
-                            AuthUserId authUserId,
+                            AuthAccountId authAccountId,
                             boolean locked,
                             LocalDateTime occurredAt,
                             String reason,
-                            LoginId operatedBy,
+                            UserId operatedBy,
                             LocalDateTime createdAt,
-                            LoginId createdBy) {
+                            UserId createdBy) {
 
         this.id = id;
-        this.authUserId = Objects.requireNonNull(authUserId, "authUserId must not be null");
+        this.authAccountId = Objects.requireNonNull(authAccountId, "authAccountId must not be null");
         this.locked = locked;
         this.occurredAt = Objects.requireNonNull(occurredAt, "occurredAt must not be null");
         this.reason = reason;
@@ -932,26 +932,26 @@ public class AccountLockEvent {
         this.createdBy = Objects.requireNonNull(createdBy, "createdBy must not be null");
     }
 
-    public static AccountLockEvent lock(AuthUserId authUserId,
+    public static AccountLockEvent lock(AuthAccountId authAccountId,
                                         LocalDateTime now,
                                         String reason,
-                                        LoginId operatedBy) {
-        return new AccountLockEvent(null, authUserId, true, now, reason, operatedBy, now, operatedBy);
+                                        UserId operatedBy) {
+        return new AccountLockEvent(null, authAccountId, true, now, reason, operatedBy, now, operatedBy);
     }
 
-    public static AccountLockEvent unlock(AuthUserId authUserId,
+    public static AccountLockEvent unlock(AuthAccountId authAccountId,
                                           LocalDateTime now,
                                           String reason,
-                                          LoginId operatedBy) {
-        return new AccountLockEvent(null, authUserId, false, now, reason, operatedBy, now, operatedBy);
+                                          UserId operatedBy) {
+        return new AccountLockEvent(null, authAccountId, false, now, reason, operatedBy, now, operatedBy);
     }
 
     public Long id() {
         return id;
     }
 
-    public AuthUserId authUserId() {
-        return authUserId;
+    public AuthAccountId authAccountId() {
+        return authAccountId;
     }
 
     public boolean locked() {
@@ -966,7 +966,7 @@ public class AccountLockEvent {
         return reason;
     }
 
-    public LoginId operatedBy() {
+    public UserId operatedBy() {
         return operatedBy;
     }
 
@@ -974,7 +974,7 @@ public class AccountLockEvent {
         return createdAt;
     }
 
-    public LoginId createdBy() {
+    public UserId createdBy() {
         return createdBy;
     }
 }
@@ -984,27 +984,27 @@ public class AccountLockEvent {
 
 ## Repository インタフェース
 
-### AuthUserRepository.java
+### AuthAccountRepository.java
 
 ```java
 package com.myou.ec.ecsite.domain.auth.repository;
 
-import com.myou.ec.ecsite.domain.auth.model.AuthUser;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.util.Optional;
 
 /**
  * 認証ユーザの永続化インタフェース。
  */
-public interface AuthUserRepository {
+public interface AuthAccountRepository {
 
-    Optional<AuthUser> findById(AuthUserId id);
+    Optional<AuthAccount> findById(AuthAccountId id);
 
-    Optional<AuthUser> findByLoginId(LoginId loginId);
+    Optional<AuthAccount> findByUserId(UserId userId);
 
-    void save(AuthUser user);
+    void save(AuthAccount user);
 }
 ```
 
@@ -1014,7 +1014,7 @@ public interface AuthUserRepository {
 package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthRole;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 
 import java.util.List;
@@ -1032,12 +1032,12 @@ public interface AuthRoleRepository {
     /**
      * ユーザに紐づくロールコード一覧を取得する。
      */
-    List<RoleCode> findRoleCodesByUserId(AuthUserId authUserId);
+    List<RoleCode> findRoleCodesByAccountId(AuthAccountId authAccountId);
 
     /**
      * ユーザに紐づくロールを差し替える。
      */
-    void saveUserRoles(AuthUserId authUserId, List<RoleCode> roleCodes);
+    void saveAccountRoles(AuthAccountId authAccountId, List<RoleCode> roleCodes);
 }
 ```
 
@@ -1047,7 +1047,7 @@ public interface AuthRoleRepository {
 package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -1060,17 +1060,17 @@ public interface AuthLoginHistoryRepository {
 
     void save(LoginHistory history);
 
-    List<LoginHistory> findRecentByUserId(AuthUserId userId, int limit);
+    List<LoginHistory> findRecentByAccountId(AuthAccountId accountId, int limit);
 
     /**
      * 前回ログイン日時（今回を除く直近 SUCCESS）を返す。
      */
-    Optional<LocalDateTime> findPreviousSuccessLoginAt(AuthUserId userId);
+    Optional<LocalDateTime> findPreviousSuccessLoginAtByAccountId(AuthAccountId accountId);
 
     /**
      * 最後の SUCCESS または UNLOCK 以降の連続 FAIL 回数。
      */
-    int countConsecutiveFailuresSinceLastSuccessOrUnlock(AuthUserId userId);
+    int countConsecutiveFailuresSinceLastSuccessOrUnlockByAccountId(AuthAccountId accountId);
 }
 ```
 
@@ -1080,7 +1080,7 @@ public interface AuthLoginHistoryRepository {
 package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 
 import java.util.List;
 import java.util.Optional;
@@ -1092,9 +1092,9 @@ public interface AuthPasswordHistoryRepository {
 
     void save(PasswordHistory history);
 
-    List<PasswordHistory> findRecentByUserId(AuthUserId userId, int limit);
+    List<PasswordHistory> findRecentByAccountId(AuthAccountId accountId, int limit);
 
-    Optional<PasswordHistory> findLastByUserId(AuthUserId userId);
+    Optional<PasswordHistory> findLastByAccountId(AuthAccountId accountId);
 }
 ```
 
@@ -1104,7 +1104,7 @@ public interface AuthPasswordHistoryRepository {
 package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.LockStatus;
 
 import java.util.Optional;
@@ -1116,14 +1116,14 @@ public interface AuthAccountLockHistoryRepository {
 
     void save(AccountLockEvent event);
 
-    Optional<AccountLockEvent> findLatestByUserId(AuthUserId userId);
+    Optional<AccountLockEvent> findLatestByAccountId(AuthAccountId accountId);
 
     /**
      * 最新のロックイベントからロック状態を返すユーティリティメソッド。
      * レコードが存在しない場合は UNLOCKED とみなす。
      */
-    default LockStatus getLockStatus(AuthUserId userId) {
-        return findLatestByUserId(userId)
+    default LockStatus getLockStatusByAccountId(AuthAccountId accountId) {
+        return findLatestByAccountId(accountId)
                 .map(e -> e.locked() ? LockStatus.LOCKED : LockStatus.UNLOCKED)
                 .orElse(LockStatus.UNLOCKED);
     }

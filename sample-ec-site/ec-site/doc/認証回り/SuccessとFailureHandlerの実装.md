@@ -49,22 +49,22 @@ public interface LoginProcessSharedService {
     /**
      * ログイン成功時の処理。
      *
-     * @param loginId   ログインID（認証成功済）
+     * @param userIdValue   ユーザーID（認証成功済）
      * @param clientIp  クライアントIP
      * @param userAgent User-Agent
      * @return ログイン成功結果（パスワード変更強制が必要かどうか）
      */
-    LoginSuccessResult onLoginSuccess(String loginId, String clientIp, String userAgent);
+    LoginSuccessResult onLoginSuccess(String userIdValue, String clientIp, String userAgent);
 
     /**
      * ログイン失敗時の処理。
      *
-     * @param loginId   ログインID（フォーム入力値。存在しない場合もある）
+     * @param userIdValue   ユーザーID（フォーム入力値。存在しない場合もある）
      * @param clientIp  クライアントIP
      * @param userAgent User-Agent
      * @return 失敗種類（ロック or 認証エラー）
      */
-    LoginFailureType onLoginFailure(String loginId, String clientIp, String userAgent);
+    LoginFailureType onLoginFailure(String userIdValue, String clientIp, String userAgent);
 }
 ```
 
@@ -75,7 +75,7 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 
 import com.myou.ec.ecsite.domain.auth.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
-import com.myou.ec.ecsite.domain.auth.model.AuthUser;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.*;
@@ -90,20 +90,20 @@ import java.util.Optional;
 @Service
 public class LoginProcessSharedServiceImpl implements LoginProcessSharedService {
 
-    private final AuthUserRepository authUserRepository;
+    private final AuthAccountRepository authAccountRepository;
     private final AuthLoginHistoryRepository loginHistoryRepository;
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
     private final PasswordPolicy passwordPolicy;
     private final LockPolicy lockPolicy;
 
-    public LoginProcessSharedServiceImpl(AuthUserRepository authUserRepository,
+    public LoginProcessSharedServiceImpl(AuthAccountRepository authAccountRepository,
                                          AuthLoginHistoryRepository loginHistoryRepository,
                                          AuthPasswordHistoryRepository passwordHistoryRepository,
                                          AuthAccountLockHistoryRepository lockHistoryRepository,
                                          PasswordPolicy passwordPolicy,
                                          LockPolicy lockPolicy) {
-        this.authUserRepository = authUserRepository;
+        this.authAccountRepository = authAccountRepository;
         this.loginHistoryRepository = loginHistoryRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.lockHistoryRepository = lockHistoryRepository;
@@ -112,66 +112,66 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
     }
 
     @Override
-    public LoginSuccessResult onLoginSuccess(String loginIdValue, String clientIp, String userAgent) {
-        LoginId loginId = new LoginId(loginIdValue);
-        AuthUser user = authUserRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new AuthDomainException("ログイン成功後にユーザ情報が取得できません。"));
+    public LoginSuccessResult onLoginSuccess(String userIdValue, String clientIp, String userAgent) {
+        UserId userId = new UserId(userIdValue);
+        AuthAccount user = authAccountRepository.findByUserId(userId)
+                .orElseThrow(() -> new AuthDomainException("ログイン成功後にアカウント情報が取得できません。"));
 
-        AuthUserId userId = user.id();
-        if (userId == null) {
-            throw new AuthDomainException("ユーザID未採番のためログイン履歴を記録できません。");
+        AuthAccountId accountId = user.id();
+        if (accountId == null) {
+            throw new AuthDomainException("アカウントID未採番のためログイン履歴を記録できません。");
         }
 
         LocalDateTime now = LocalDateTime.now();
 
         // ログイン成功履歴を登録
         LoginHistory successHistory = LoginHistory.success(
-                userId,
+                accountId,
                 now,
                 clientIp,
                 userAgent,
-                loginId
+                userId
         );
         loginHistoryRepository.save(successHistory);
 
         // パスワード変更が必要かどうか判定
-        boolean mustChange = isPasswordChangeRequired(userId, now);
+        boolean mustChange = isPasswordChangeRequired(accountId, now);
 
         return new LoginSuccessResult(mustChange);
     }
 
     @Override
-    public LoginFailureType onLoginFailure(String loginIdValue, String clientIp, String userAgent) {
-        if (loginIdValue == null || loginIdValue.isBlank()) {
+    public LoginFailureType onLoginFailure(String userIdValue, String clientIp, String userAgent) {
+        if (userIdValue == null || userIdValue.isBlank()) {
             return LoginFailureType.BAD_CREDENTIALS;
         }
 
-        LoginId loginId = new LoginId(loginIdValue);
-        Optional<AuthUser> optUser = authUserRepository.findByLoginId(loginId);
+        UserId userId = new UserId(userIdValue);
+        Optional<AuthAccount> optUser = authAccountRepository.findByUserId(userId);
 
         if (optUser.isEmpty()) {
-            // ユーザが存在しない場合は履歴を残さない（情報漏洩防止）
+            // アカウントが存在しない場合は履歴を残さない（情報漏洩防止）
             return LoginFailureType.BAD_CREDENTIALS;
         }
 
-        AuthUser user = optUser.get();
-        AuthUserId userId = user.id();
-        if (userId == null) {
+        AuthAccount user = optUser.get();
+        AuthAccountId accountId = user.id();
+        if (accountId == null) {
             return LoginFailureType.BAD_CREDENTIALS;
         }
 
         LocalDateTime now = LocalDateTime.now();
 
         // 現在ロック中か確認
-        LockStatus status = lockHistoryRepository.getLockStatus(userId);
+        LockStatus status = lockHistoryRepository.getLockStatusByAccountId(accountId);
         if (status.isLocked()) {
             // ロック中のログインは LOCKED で履歴のみ（失敗カウントには含めない）
             LoginHistory lockedHistory = LoginHistory.locked(
-                    userId,
+                    accountId,
                     now,
                     clientIp,
                     userAgent,
-                    loginId
+                    userId
             );
             loginHistoryRepository.save(lockedHistory);
             return LoginFailureType.LOCKED;
@@ -179,24 +179,24 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
 
         // ロックされていない場合 → FAIL として履歴を追加
         LoginHistory failHistory = LoginHistory.fail(
-                userId,
+                accountId,
                 now,
                 clientIp,
                 userAgent,
-                loginId
+                userId
         );
         loginHistoryRepository.save(failHistory);
 
         // 連続失敗回数をカウント（最後の SUCCESS or UNLOCK 以降）
-        int consecutiveFails = loginHistoryRepository.countConsecutiveFailuresSinceLastSuccessOrUnlock(userId);
+        int consecutiveFails = loginHistoryRepository.countConsecutiveFailuresSinceLastSuccessOrUnlockByAccountId(accountId);
 
         if (lockPolicy.isOverThreshold(consecutiveFails)) {
             // 閾値超え → ロックイベント登録
             AccountLockEvent lockEvent = AccountLockEvent.lock(
-                    userId,
+                    accountId,
                     now,
-                    "LOGIN_FAIL_THRESHOLD",
-                    loginId
+                    "LOGIN_FAIL_THRESHOLD", // ロック理由
+                    userId
             );
             lockHistoryRepository.save(lockEvent);
             return LoginFailureType.LOCKED;
@@ -211,8 +211,8 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
      * - 履歴が INITIAL_REGISTER / ADMIN_RESET → 強制
      * - 履歴が USER_CHANGE で、有効期限切れ → 強制
      */
-    private boolean isPasswordChangeRequired(AuthUserId userId, LocalDateTime now) {
-        Optional<PasswordHistory> optLast = passwordHistoryRepository.findLastByUserId(userId);
+    private boolean isPasswordChangeRequired(AuthAccountId accountId, LocalDateTime now) {
+        Optional<PasswordHistory> optLast = passwordHistoryRepository.findLastByAccountId(accountId);
 
         if (optLast.isEmpty()) {
             return true;
@@ -226,8 +226,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
 
         return passwordPolicy.isExpired(last.changedAt(), now);
     }
-}
-```
+}```
 
 ---
 
@@ -286,13 +285,13 @@ public class AuthAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        String loginId = extractLoginId(authentication);
+        String userId = extractUserId(authentication);
         String clientIp = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
 
         // application 層に委譲してドメイン処理を実行
         LoginSuccessResult result =
-                loginProcessSharedService.onLoginSuccess(loginId, clientIp, userAgent);
+                loginProcessSharedService.onLoginSuccess(userId, clientIp, userAgent);
 
         boolean mustChangePassword = result.passwordChangeRequired();
         String targetUrl = mustChangePassword ? passwordChangeUrl : defaultMenuUrl;
@@ -306,7 +305,7 @@ public class AuthAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    private String extractLoginId(Authentication authentication) {
+    private String extractUserId(Authentication authentication) {
         Object principal = authentication.getPrincipal();
         if (principal instanceof User userDetails) {
             return userDetails.getUsername();
@@ -314,7 +313,7 @@ public class AuthAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         if (principal instanceof String s) {
             return s;
         }
-        throw new AuthDomainException("認証情報からログインIDを取得できません。");
+        throw new AuthDomainException("認証情報からユーザーIDを取得できません。");
     }
 }
 ```
@@ -364,12 +363,12 @@ public class AuthAuthenticationFailureHandler extends SimpleUrlAuthenticationFai
             throws IOException, ServletException {
 
         // フォームの name="username" としている前提。違う場合はここを調整。
-        String loginId = request.getParameter("username");
+        String userId = request.getParameter("username");
         String clientIp = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
 
         LoginFailureType type =
-                loginProcessSharedService.onLoginFailure(loginId, clientIp, userAgent);
+                loginProcessSharedService.onLoginFailure(userId, clientIp, userAgent);
 
         String errorTypeStr = switch (type) {
             case LOCKED -> ERROR_TYPE_LOCKED;

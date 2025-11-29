@@ -11,8 +11,8 @@ public interface AuthPasswordHistoryMapper {
 
     void insert(AuthPasswordHistoryRecord record);
 
-    List<AuthPasswordHistoryRecord> findRecentByUserId(@Param("authUserId") long authUserId,
+    List<AuthPasswordHistoryRecord> findRecentByAccountId(@Param("authAccountId") long authAccountId,
                                                        @Param("limit") int limit);
 
-    AuthPasswordHistoryRecord findLastByUserId(@Param("authUserId") long authUserId);
+    AuthPasswordHistoryRecord findLastByAccountId(@Param("authAccountId") long authAccountId);
 }

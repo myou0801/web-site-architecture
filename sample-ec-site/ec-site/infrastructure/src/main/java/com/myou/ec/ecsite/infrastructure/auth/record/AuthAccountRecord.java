@@ -1,20 +1,20 @@
 package com.myou.ec.ecsite.infrastructure.auth.record;
 
-import com.myou.ec.ecsite.domain.auth.model.AuthUser;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * AUTH_USER テーブルの1行を表す Record。
+ * AUTH_ACCOUNT テーブルの1行を表す Record。
  */
-public record AuthUserRecord(
-        Long authUserId,
-        String loginId,
+public record AuthAccountRecord(
+        Long authAccountId,
+        String userId,
         String loginPassword,
         boolean enabled,
         boolean deleted,
@@ -25,34 +25,34 @@ public record AuthUserRecord(
         long versionNo
 ) {
 
-    public AuthUser toDomain(List<RoleCode> roleCodes) {
-        return new AuthUser(
-                authUserId != null ? new AuthUserId(authUserId) : null,
-                new LoginId(loginId),
+    public AuthAccount toDomain(List<RoleCode> roleCodes) {
+        return new AuthAccount(
+                authAccountId != null ? new AuthAccountId(authAccountId) : null,
+                new UserId(userId),
                 new EncodedPassword(loginPassword),
                 enabled,
                 deleted,
                 roleCodes,
                 createdAt,
-                new LoginId(createdBy),
+                new UserId(createdBy),
                 updatedAt,
-                new LoginId(updatedBy),
+                new UserId(updatedBy),
                 versionNo
         );
     }
 
-    public static AuthUserRecord fromDomain(AuthUser user) {
+    public static AuthAccountRecord fromDomain(AuthAccount user) {
         Long id = user.id() != null ? user.id().value() : null;
-        return new AuthUserRecord(
+        return new AuthAccountRecord(
                 id,
-                user.loginId().value(),
+                user.userId().value(),
                 user.encodedPassword().value(),
                 user.enabled(),
                 user.deleted(),
                 user.createdAt(),
-                user.createdByLoginId().value(),
+                user.createdByUserId().value(),
                 user.updatedAt(),
-                user.updatedByLoginId().value(),
+                user.updatedByUserId().value(),
                 user.versionNo()
         );
     }

@@ -7,7 +7,7 @@
 
     <resultMap id="AuthLoginHistoryRecordMap" type="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord">
         <id column="AUTH_LOGIN_HISTORY_ID" property="authLoginHistoryId"/>
-        <result column="AUTH_USER_ID" property="authUserId"/>
+        <result column="AUTH_ACCOUNT_ID" property="authAccountId"/>
         <result column="LOGIN_AT" property="loginAt"/>
         <result column="RESULT" property="result"/>
         <result column="CREATED_AT" property="createdAt"/>
@@ -17,22 +17,22 @@
     <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord"
             useGeneratedKeys="true" keyProperty="authLoginHistoryId">
         INSERT INTO AUTH_LOGIN_HISTORY (
-            AUTH_USER_ID, LOGIN_AT, RESULT, CREATED_AT, CREATED_BY
+            AUTH_ACCOUNT_ID, LOGIN_AT, RESULT, CREATED_AT, CREATED_BY
         ) VALUES (
-            #{authUserId}, #{loginAt}, #{result}, #{createdAt}, #{createdBy}
+            #{authAccountId}, #{loginAt}, #{result}, #{createdAt}, #{createdBy}
         )
     </insert>
 
-    <select id="findRecentByUserId" resultMap="AuthLoginHistoryRecordMap">
+    <select id="findRecentByAccountId" resultMap="AuthLoginHistoryRecordMap">
         SELECT * FROM AUTH_LOGIN_HISTORY
-        WHERE AUTH_USER_ID = #{authUserId}
+        WHERE AUTH_ACCOUNT_ID = #{authAccountId}
         ORDER BY LOGIN_AT DESC
         LIMIT #{limit}
     </select>
 
-    <select id="findPreviousSuccessLoginAt" resultType="AuthLoginHistoryRecordMap">
+    <select id="findPreviousSuccessLoginAtByAccountId" resultType="AuthLoginHistoryRecordMap">
         SELECT * FROM AUTH_LOGIN_HISTORY
-        WHERE AUTH_USER_ID = #{authUserId} AND RESULT = 'SUCCESS'
+        WHERE AUTH_ACCOUNT_ID = #{authAccountId} AND RESULT = 'SUCCESS'
         ORDER BY LOGIN_AT DESC
         OFFSET 1 LIMIT 1
     </select>

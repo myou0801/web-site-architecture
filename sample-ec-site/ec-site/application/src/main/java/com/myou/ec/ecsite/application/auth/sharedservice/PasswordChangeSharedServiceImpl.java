@@ -2,15 +2,15 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.exception.PasswordReuseNotAllowedException;
-import com.myou.ec.ecsite.domain.auth.model.AuthUser;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
 import com.myou.ec.ecsite.domain.auth.model.policy.ExpiredPasswordPolicy;
 import com.myou.ec.ecsite.domain.auth.model.policy.PasswordPolicy;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthPasswordHistoryRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthUserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,19 +22,19 @@ import java.util.Optional;
 @Service
 public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedService {
 
-    private final AuthUserContextSharedService userContextSharedService;
-    private final AuthUserRepository authUserRepository;
+    private final AuthAccountContextSharedService userContextSharedService;
+    private final AuthAccountRepository authAccountRepository;
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicy passwordPolicy;
 
-    public PasswordChangeSharedServiceImpl(AuthUserContextSharedService userContextSharedService,
-                                           AuthUserRepository authUserRepository,
+    public PasswordChangeSharedServiceImpl(AuthAccountContextSharedService userContextSharedService,
+                                           AuthAccountRepository authAccountRepository,
                                            AuthPasswordHistoryRepository passwordHistoryRepository,
                                            PasswordEncoder passwordEncoder,
                                            PasswordPolicy passwordPolicy) {
         this.userContextSharedService = userContextSharedService;
-        this.authUserRepository = authUserRepository;
+        this.authAccountRepository = authAccountRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicy = passwordPolicy;
@@ -44,10 +44,10 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
 
     @Override
     @Transactional(readOnly = true)
-    public PasswordChangeRequirementType requirementOf(LoginId loginId) {
+    public PasswordChangeRequirementType requirementOf(UserId userId) {
 
-        Optional<PasswordHistory> optLast = authUserRepository.findByLoginId(loginId)
-                .flatMap(user -> passwordHistoryRepository.findLastByUserId(user.id()));
+        Optional<PasswordHistory> optLast = authAccountRepository.findByUserId(userId)
+                .flatMap(user -> passwordHistoryRepository.findLastByAccountId(user.id()));
 
         if (optLast.isEmpty()) {
             return PasswordChangeRequirementType.INITIAL_REGISTER;
@@ -71,10 +71,10 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
 
     @Override
     @Transactional
-    public void changePassword(AuthUserId userId, String currentRawPassword, String newRawPassword) {
+    public void changePassword(AuthAccountId accountId, String currentRawPassword, String newRawPassword) {
 
-        AuthUser user = authUserRepository.findById(userId)
-                .orElseThrow(() -> new AuthDomainException("ユーザID未採番のためパスワード変更ができません。"));
+        AuthAccount user = authAccountRepository.findById(accountId)
+                .orElseThrow(() -> new AuthDomainException("アカウントID未採番のためパスワード変更ができません。"));
 
         // 現在のパスワード検証
         if (!passwordEncoder.matches(currentRawPassword, user.encodedPassword().value())) {
@@ -82,11 +82,11 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
         }
 
         // パスワード構文チェック
-        passwordPolicy.validatePassword(newRawPassword, user.loginId());
+        passwordPolicy.validatePassword(newRawPassword, user.userId());
 
         // 履歴による再利用禁止チェック（直近 N 件）
         List<PasswordHistory> recentHistories =
-                passwordHistoryRepository.findRecentByUserId(userId, 3);
+                passwordHistoryRepository.findRecentByAccountId(accountId, 3);
 
         for (PasswordHistory history : recentHistories) {
             if (passwordEncoder.matches(newRawPassword, history.encodedPassword().value())) {
@@ -100,12 +100,12 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
 
         // ユーザのパスワード更新
         user.changePassword(encodedPassword);
-        authUserRepository.save(user);
+        authAccountRepository.save(user);
 
         // パスワード履歴登録
         LocalDateTime now = LocalDateTime.now();
-        LoginId operator = user.loginId(); // 自分自身が変更
-        PasswordHistory history = PasswordHistory.userChange(userId, encodedPassword, now, operator);
+        UserId operator = user.userId(); // 自分自身が変更
+        PasswordHistory history = PasswordHistory.userChange(accountId, encodedPassword, now, operator);
         passwordHistoryRepository.save(history);
     }
 

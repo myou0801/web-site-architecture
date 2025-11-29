@@ -1,7 +1,7 @@
 package com.myou.ec.ecsite.domain.auth.model;
 
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginResult;
 
 import java.time.LocalDateTime;
@@ -13,53 +13,53 @@ import java.util.Objects;
 public class LoginHistory {
 
     private final Long id;
-    private final AuthUserId authUserId;
+    private final AuthAccountId authAccountId;
     private final LocalDateTime loginAt;
     private final LoginResult result;
 
     private final LocalDateTime createdAt;
-    private final LoginId createdBy;
+    private final UserId createdBy;
 
     public LoginHistory(Long id,
-                        AuthUserId authUserId,
+                        AuthAccountId authAccountId,
                         LocalDateTime loginAt,
                         LoginResult result,
                         LocalDateTime createdAt,
-                        LoginId createdBy) {
+                        UserId createdBy) {
 
         this.id = id;
-        this.authUserId = Objects.requireNonNull(authUserId, "authUserId must not be null");
+        this.authAccountId = Objects.requireNonNull(authAccountId, "authAccountId must not be null");
         this.loginAt = Objects.requireNonNull(loginAt, "loginAt must not be null");
         this.result = Objects.requireNonNull(result, "result must not be null");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
         this.createdBy = Objects.requireNonNull(createdBy, "createdBy must not be null");
     }
 
-    public static LoginHistory success(AuthUserId authUserId,
+    public static LoginHistory success(AuthAccountId authAccountId,
                                        LocalDateTime loginAt,
-                                       LoginId createdBy) {
-        return new LoginHistory(null, authUserId, loginAt, LoginResult.SUCCESS,
+                                       UserId createdBy) {
+        return new LoginHistory(null, authAccountId, loginAt, LoginResult.SUCCESS,
                 loginAt, createdBy);
     }
 
-    public static LoginHistory fail(AuthUserId authUserId,
+    public static LoginHistory fail(AuthAccountId authAccountId,
                                     LocalDateTime loginAt,
-                                    LoginId createdBy) {
-        return new LoginHistory(null, authUserId, loginAt, LoginResult.FAIL,
+                                    UserId createdBy) {
+        return new LoginHistory(null, authAccountId, loginAt, LoginResult.FAIL,
                 loginAt, createdBy);
     }
 
-    public static LoginHistory locked(AuthUserId authUserId,
+    public static LoginHistory locked(AuthAccountId authAccountId,
                                       LocalDateTime loginAt,
-                                      LoginId createdBy) {
-        return new LoginHistory(null, authUserId, loginAt, LoginResult.LOCKED,
+                                      UserId createdBy) {
+        return new LoginHistory(null, authAccountId, loginAt, LoginResult.LOCKED,
                 loginAt, createdBy);
     }
 
-    public static LoginHistory disabled(AuthUserId authUserId,
+    public static LoginHistory disabled(AuthAccountId authAccountId,
                                       LocalDateTime loginAt,
-                                      LoginId createdBy) {
-        return new LoginHistory(null, authUserId, loginAt, LoginResult.DISABLED,
+                                      UserId createdBy) {
+        return new LoginHistory(null, authAccountId, loginAt, LoginResult.DISABLED,
                 loginAt, createdBy);
     }
 
@@ -67,8 +67,8 @@ public class LoginHistory {
         return id;
     }
 
-    public AuthUserId authUserId() {
-        return authUserId;
+    public AuthAccountId authAccountId() {
+        return authAccountId;
     }
 
     public LocalDateTime loginAt() {
@@ -83,7 +83,7 @@ public class LoginHistory {
         return createdAt;
     }
 
-    public LoginId createdBy() {
+    public UserId createdBy() {
         return createdBy;
     }
 }

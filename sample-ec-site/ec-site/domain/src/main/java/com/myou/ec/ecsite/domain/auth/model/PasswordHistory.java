@@ -1,8 +1,8 @@
 package com.myou.ec.ecsite.domain.auth.model;
 
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordChangeType;
 
 import java.time.LocalDateTime;
@@ -14,25 +14,25 @@ import java.util.Objects;
 public class PasswordHistory {
 
     private final Long id;
-    private final AuthUserId authUserId;
+    private final AuthAccountId authAccountId;
     private final EncodedPassword encodedPassword;
     private final PasswordChangeType changeType;
     private final LocalDateTime changedAt;
-    private final LoginId changedBy;
+    private final UserId changedBy;
     private final LocalDateTime createdAt;
-    private final LoginId createdBy;
+    private final UserId createdBy;
 
     public PasswordHistory(Long id,
-                           AuthUserId authUserId,
+                           AuthAccountId authAccountId,
                            EncodedPassword encodedPassword,
                            PasswordChangeType changeType,
                            LocalDateTime changedAt,
-                           LoginId changedBy,
+                           UserId changedBy,
                            LocalDateTime createdAt,
-                           LoginId createdBy) {
+                           UserId createdBy) {
 
         this.id = id;
-        this.authUserId = Objects.requireNonNull(authUserId, "authUserId must not be null");
+        this.authAccountId = Objects.requireNonNull(authAccountId, "authAccountId must not be null");
         this.encodedPassword = Objects.requireNonNull(encodedPassword, "encodedPassword must not be null");
         this.changeType = Objects.requireNonNull(changeType, "changeType must not be null");
         this.changedAt = Objects.requireNonNull(changedAt, "changedAt must not be null");
@@ -41,27 +41,27 @@ public class PasswordHistory {
         this.createdBy = Objects.requireNonNull(createdBy, "createdBy must not be null");
     }
 
-    public static PasswordHistory initialRegister(AuthUserId authUserId,
+    public static PasswordHistory initialRegister(AuthAccountId authAccountId,
                                                   EncodedPassword password,
                                                   LocalDateTime now,
-                                                  LoginId operator) {
-        return new PasswordHistory(null, authUserId, password,
+                                                  UserId operator) {
+        return new PasswordHistory(null, authAccountId, password,
                 PasswordChangeType.INITIAL_REGISTER, now, operator, now, operator);
     }
 
-    public static PasswordHistory adminReset(AuthUserId authUserId,
+    public static PasswordHistory adminReset(AuthAccountId authAccountId,
                                              EncodedPassword password,
                                              LocalDateTime now,
-                                             LoginId operator) {
-        return new PasswordHistory(null, authUserId, password,
+                                             UserId operator) {
+        return new PasswordHistory(null, authAccountId, password,
                 PasswordChangeType.ADMIN_RESET, now, operator, now, operator);
     }
 
-    public static PasswordHistory userChange(AuthUserId authUserId,
+    public static PasswordHistory userChange(AuthAccountId authAccountId,
                                              EncodedPassword password,
                                              LocalDateTime now,
-                                             LoginId operator) {
-        return new PasswordHistory(null, authUserId, password,
+                                             UserId operator) {
+        return new PasswordHistory(null, authAccountId, password,
                 PasswordChangeType.USER_CHANGE, now, operator, now, operator);
     }
 
@@ -78,8 +78,8 @@ public class PasswordHistory {
         return id;
     }
 
-    public AuthUserId authUserId() {
-        return authUserId;
+    public AuthAccountId authAccountId() {
+        return authAccountId;
     }
 
     public EncodedPassword encodedPassword() {
@@ -94,7 +94,7 @@ public class PasswordHistory {
         return changedAt;
     }
 
-    public LoginId changedBy() {
+    public UserId changedBy() {
         return changedBy;
     }
 
@@ -102,7 +102,7 @@ public class PasswordHistory {
         return createdAt;
     }
 
-    public LoginId createdBy() {
+    public UserId createdBy() {
         return createdBy;
     }
 }

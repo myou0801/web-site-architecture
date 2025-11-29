@@ -1,16 +1,16 @@
 package com.myou.ec.ecsite.infrastructure.auth.record;
 
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordChangeType;
 
 import java.time.LocalDateTime;
 
 public record AuthPasswordHistoryRecord(
         Long authPasswordHistoryId,
-        long authUserId,
+        long authAccountId,
         String loginPassword,
         String changeType,
         LocalDateTime changedAt,
@@ -22,20 +22,20 @@ public record AuthPasswordHistoryRecord(
     public PasswordHistory toDomain() {
         return new PasswordHistory(
                 authPasswordHistoryId,
-                new AuthUserId(authUserId),
+                new AuthAccountId(authAccountId),
                 new EncodedPassword(loginPassword),
                 PasswordChangeType.valueOf(changeType),
                 changedAt,
-                new LoginId(changedBy),
+                new UserId(changedBy),
                 createdAt,
-                new LoginId(createdBy)
+                new UserId(createdBy)
         );
     }
 
     public static AuthPasswordHistoryRecord fromDomain(PasswordHistory history) {
         return new AuthPasswordHistoryRecord(
                 history.id(),
-                history.authUserId().value(),
+                history.authAccountId().value(),
                 history.encodedPassword().value(),
                 history.changeType().name(),
                 history.changedAt(),

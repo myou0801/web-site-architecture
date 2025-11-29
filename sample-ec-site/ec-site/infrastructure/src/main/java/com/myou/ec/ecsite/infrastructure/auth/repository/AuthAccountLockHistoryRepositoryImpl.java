@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvents;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthUserId;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountLockHistoryMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord;
@@ -26,8 +26,8 @@ public class AuthAccountLockHistoryRepositoryImpl implements AuthAccountLockHist
     }
 
     @Override
-    public AccountLockEvents findByUserId(AuthUserId userId, int limit) {
-        List<AccountLockEvent> events = mapper.findByUserId(userId.value(), limit).stream()
+    public AccountLockEvents findByAccountId(AuthAccountId accountId, int limit) {
+        List<AccountLockEvent> events = mapper.findByAccountId(accountId.value(), limit).stream()
                 .map(AuthAccountLockHistoryRecord::toDomain)
                 .toList();
         return new AccountLockEvents(events);

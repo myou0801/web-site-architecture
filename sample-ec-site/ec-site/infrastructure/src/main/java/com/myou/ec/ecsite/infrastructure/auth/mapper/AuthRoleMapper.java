@@ -11,10 +11,10 @@ public interface AuthRoleMapper {
 
     List<AuthRoleRecord> findAll();
 
-    List<String> findRoleCodesByUserId(@Param("authUserId") long authUserId);
+    List<String> findRoleCodesByAccountId(@Param("authAccountId") long authAccountId);
 
-    void deleteUserRoles(@Param("authUserId") long authUserId);
+    void deleteUserRoles(@Param("authAccountId") long authAccountId);
 
-    void insertUserRole(@Param("authUserId") long authUserId,
+    void insertUserRole(@Param("authAccountId") long authAccountId,
                         @Param("roleCode") String roleCode);
 }

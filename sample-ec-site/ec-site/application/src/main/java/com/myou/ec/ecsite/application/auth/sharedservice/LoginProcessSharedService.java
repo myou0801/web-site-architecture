@@ -1,6 +1,6 @@
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 /**
  * ログイン成功/失敗時のドメイン処理（履歴記録・ロック制御など）を扱う sharedService。
@@ -11,16 +11,16 @@ public interface LoginProcessSharedService {
     /**
      * ログイン成功時の処理。
      *
-     * @param loginId   ログインID（認証成功済）
+     * @param userId   ユーザID（認証成功済）
      */
-    void onLoginSuccess(LoginId loginId);
+    void onLoginSuccess(UserId userId);
 
     /**
      * ログイン失敗時の処理。
      *
-     * @param loginId   ログインID（フォーム入力値。存在しない場合もある）
+     * @param userId   ユーザID（フォーム入力値。存在しない場合もある）
      */
-    void onLoginFailure(LoginId loginId);
+    void onLoginFailure(UserId userId);
 
 
 

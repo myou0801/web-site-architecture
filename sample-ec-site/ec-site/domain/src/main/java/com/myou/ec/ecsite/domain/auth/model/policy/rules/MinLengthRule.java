@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.domain.auth.model.policy.rules;
 
 import com.myou.ec.ecsite.domain.auth.model.policy.PasswordRule;
 import com.myou.ec.ecsite.domain.auth.model.policy.PasswordViolation;
-import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.util.Optional;
 
@@ -17,7 +17,7 @@ public class MinLengthRule implements PasswordRule {
     }
 
     @Override
-    public Optional<PasswordViolation> validate(String newRawPassword, LoginId loginId) {
+    public Optional<PasswordViolation> validate(String newRawPassword, UserId userId) {
         if (newRawPassword == null) return Optional.empty(); // RequiredRuleで拾う
         String t = newRawPassword.trim();
         if (t.length() < minLength) {
