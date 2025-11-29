@@ -2,8 +2,8 @@ package com.myou.ec.ecsite.domain.auth.model;
 
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.Objects;
 
 /**
  * 認証アカウント Entity（認証に必要な情報のみを保持）。
- *
+ * <p>
  * ユーザの氏名・所属などの業務的な属性は、別ドメイン（業務T側）の
  * アカウント詳細テーブルで管理する前提。
  */
@@ -22,19 +22,19 @@ public class AuthAccount {
     private final AuthAccountId id;
 
     /** ユーザーID。 */
-    private UserId userId;
+    private final UserId userId;
 
     /** ハッシュ済みパスワード。 */
-    private EncodedPassword encodedPassword;
+    private final EncodedPassword encodedPassword;
 
     /** 有効フラグ。false の場合はログイン不可。 */
-    private boolean enabled;
+    private final boolean enabled;
 
     /** 論理削除フラグ。true の場合は無効ユーザ扱い。 */
-    private boolean deleted;
+    private final boolean deleted;
 
     /** 付与されているロール一覧。 */
-    private List<RoleCode> roleCodes;
+    private final List<RoleCode> roleCodes;
 
     // 監査情報
     private final LocalDateTime createdAt;
@@ -109,63 +109,185 @@ public class AuthAccount {
      * パスワードを変更する。
      * 監査カラム（updatedAt/updatedBy/version）はインフラ層で更新する想定。
      */
-    public void changePassword(EncodedPassword newPassword) {
-        this.encodedPassword = Objects.requireNonNull(newPassword, "newPassword must not be null");
+    public AuthAccount changePassword(EncodedPassword newPassword, LocalDateTime now, UserId operator) {
+        Objects.requireNonNull(newPassword, "newPassword must not be null");
+        Objects.requireNonNull(now, "now must not be null");
+        Objects.requireNonNull(operator, "operator must not be null");
+
+        return new AuthAccount(
+                this.id,
+                this.userId,
+                newPassword,
+                this.enabled,
+                this.deleted,
+                this.roleCodes,
+                this.createdAt,
+                this.createdByUserId,
+                now,
+                operator,
+                this.versionNo + 1
+        );
     }
 
     /**
      * ユーザーIDを変更する。
      */
-    public void changeUserId(UserId newUserId) {
-        this.userId = Objects.requireNonNull(newUserId, "newUserId must not be null");
+    public AuthAccount changeUserId(UserId newUserId, LocalDateTime now, UserId operator) {
+        Objects.requireNonNull(newUserId, "newUserId must not be null");
+        Objects.requireNonNull(now, "now must not be null");
+        Objects.requireNonNull(operator, "operator must not be null");
+
+        return new AuthAccount(
+                this.id,
+                newUserId,
+                this.encodedPassword,
+                this.enabled,
+                this.deleted,
+                this.roleCodes,
+                this.createdAt,
+                this.createdByUserId,
+                now,
+                operator,
+                this.versionNo + 1
+        );
     }
 
     /**
      * アカウントを有効にする。
      */
-    public void enable() {
-        this.enabled = true;
+    public AuthAccount enable(LocalDateTime now, UserId operator) {
+        Objects.requireNonNull(now, "now must not be null");
+        Objects.requireNonNull(operator, "operator must not be null");
+
+        return new AuthAccount(
+                this.id,
+                this.userId,
+                this.encodedPassword,
+                true,
+                this.deleted,
+                this.roleCodes,
+                this.createdAt,
+                this.createdByUserId,
+                now,
+                operator,
+                this.versionNo + 1
+        );
     }
 
     /**
      * アカウントを無効にする。
      */
-    public void disable() {
-        this.enabled = false;
+    public AuthAccount disable(LocalDateTime now, UserId operator) {
+        Objects.requireNonNull(now, "now must not be null");
+        Objects.requireNonNull(operator, "operator must not be null");
+
+        return new AuthAccount(
+                this.id,
+                this.userId,
+                this.encodedPassword,
+                false,
+                this.deleted,
+                this.roleCodes,
+                this.createdAt,
+                this.createdByUserId,
+                now,
+                operator,
+                this.versionNo + 1
+        );
     }
 
     /**
      * アカウントを論理削除状態にする。
      */
-    public void markDeleted() {
-        this.deleted = true;
+    public AuthAccount markDeleted(LocalDateTime now, UserId operator) {
+        Objects.requireNonNull(now, "now must not be null");
+        Objects.requireNonNull(operator, "operator must not be null");
+
+        return new AuthAccount(
+                this.id,
+                this.userId,
+                this.encodedPassword,
+                this.enabled,
+                true,
+                this.roleCodes,
+                this.createdAt,
+                this.createdByUserId,
+                now,
+                operator,
+                this.versionNo + 1
+        );
     }
 
     /**
      * ロールを差し替える。
      */
-    public void changeRoles(List<RoleCode> newRoles) {
-        this.roleCodes = newRoles == null ? List.of() : List.copyOf(newRoles);
+    public AuthAccount changeRoles(List<RoleCode> newRoles, LocalDateTime now, UserId operator) {
+        Objects.requireNonNull(now, "now must not be null");
+        Objects.requireNonNull(operator, "operator must not be null");
+
+        return new AuthAccount(
+                this.id,
+                this.userId,
+                this.encodedPassword,
+                this.enabled,
+                this.deleted,
+                newRoles == null ? List.of() : List.copyOf(newRoles),
+                this.createdAt,
+                this.createdByUserId,
+                now,
+                operator,
+                this.versionNo + 1
+        );
     }
 
     /**
      * ロールを1つ追加する（重複チェックは呼び出し側で必要に応じて行う）。
      */
-    public void addRole(RoleCode roleCode) {
+    public AuthAccount addRole(RoleCode roleCode, LocalDateTime now, UserId operator) {
         Objects.requireNonNull(roleCode, "roleCode must not be null");
-        List<RoleCode> copy = new ArrayList<>(roleCodes);
-        copy.add(roleCode);
-        this.roleCodes = List.copyOf(copy);
+        Objects.requireNonNull(now, "now must not be null");
+        Objects.requireNonNull(operator, "operator must not be null");
+        List<RoleCode> newRoleCodes = new ArrayList<>(this.roleCodes);
+        newRoleCodes.add(roleCode);
+
+        return new AuthAccount(
+                this.id,
+                this.userId,
+                this.encodedPassword,
+                this.enabled,
+                this.deleted,
+                List.copyOf(newRoleCodes),
+                this.createdAt,
+                this.createdByUserId,
+                now,
+                operator,
+                this.versionNo + 1
+        );
     }
 
     /**
      * ロールを1つ削除する。
      */
-    public void removeRole(RoleCode roleCode) {
+    public AuthAccount removeRole(RoleCode roleCode, LocalDateTime now, UserId operator) {
         Objects.requireNonNull(roleCode, "roleCode must not be null");
-        List<RoleCode> copy = new ArrayList<>(roleCodes);
-        copy.remove(roleCode);
-        this.roleCodes = List.copyOf(copy);
+        Objects.requireNonNull(now, "now must not be null");
+        Objects.requireNonNull(operator, "operator must not be null");
+        List<RoleCode> newRoleCodes = new ArrayList<>(this.roleCodes);
+        newRoleCodes.remove(roleCode);
+
+        return new AuthAccount(
+                this.id,
+                this.userId,
+                this.encodedPassword,
+                this.enabled,
+                this.deleted,
+                List.copyOf(newRoleCodes),
+                this.createdAt,
+                this.createdByUserId,
+                now,
+                operator,
+                this.versionNo + 1
+        );
     }
 
     /**

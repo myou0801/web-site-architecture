@@ -30,7 +30,7 @@
         LIMIT #{limit}
     </select>
 
-    <select id="findPreviousSuccessLoginAtByAccountId" resultType="AuthLoginHistoryRecordMap">
+    <select id="findPreviousSuccessLoginAtByAccountId" resultMap="AuthLoginHistoryRecordMap">
         SELECT * FROM AUTH_LOGIN_HISTORY
         WHERE AUTH_ACCOUNT_ID = #{authAccountId} AND RESULT = 'SUCCESS'
         ORDER BY LOGIN_AT DESC

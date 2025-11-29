@@ -47,7 +47,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public AuthAccountId registerAccount(UserId userId,
+    public AuthAccountId registerAccount(UserId newUserId,
                                     List<RoleCode> roleCodes,
                                     UserId operator) {
 
@@ -56,11 +56,11 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
         LocalDateTime now = LocalDateTime.now();
         // AuthAccount 作成 & 保存
-        AuthAccount user = AuthAccount.newAccount(userId, encodedPassword, roleCodes, now, operator);
+        AuthAccount user = AuthAccount.newAccount(newUserId, encodedPassword, roleCodes, now, operator);
         authAccountRepository.save(user);
 
         // ID 採番後のアカウントを再取得（ID 必要なため）
-        AuthAccount savedUser = authAccountRepository.findByUserId(userId)
+        AuthAccount savedUser = authAccountRepository.findByUserId(newUserId)
                 .orElseThrow(() -> new AuthDomainException("アカウント登録後の再取得に失敗しました。"));
 
         AuthAccountId accountId = savedUser.id();
@@ -84,7 +84,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public void resetPasswordToInitial(AuthAccountId targetAccountId, UserId operator) {
+    public void resetPassword(AuthAccountId targetAccountId, UserId operator) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
@@ -92,11 +92,10 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         // パスワードハッシュ化
         EncodedPassword encodedPassword = new EncodedPassword(passwordEncoder.encode(initialPassword));
 
-        // パスワード更新
-        user.changePassword(encodedPassword);
-        authAccountRepository.save(user);
-
         LocalDateTime now = LocalDateTime.now();
+
+        // パスワード更新
+        authAccountRepository.save(user.changePassword(encodedPassword, now, operator));
 
         // パスワード履歴（ADMIN_RESET）
         PasswordHistory history = PasswordHistory.adminReset(
@@ -144,17 +143,30 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     public void disableAccount(AuthAccountId targetAccountId, UserId operator) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
-
-        user.disable();
-        authAccountRepository.save(user);
+        LocalDateTime now = LocalDateTime.now();
+        authAccountRepository.save(user.disable(now, operator));
     }
 
     @Override
     public void enableAccount(AuthAccountId targetAccountId, UserId operator) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
+        LocalDateTime now = LocalDateTime.now();
+        authAccountRepository.save(user.enable(now, operator));
+    }
 
-        user.enable();
-        authAccountRepository.save(user);
+    @Override
+    public void addRole(AuthAccountId targetAccountId, RoleCode role, UserId operator) {
+
+    }
+
+    @Override
+    public void removeRole(AuthAccountId targetAccountId, RoleCode role, UserId operator) {
+
+    }
+
+    @Override
+    public void deleteAccount(AuthAccountId targetAccountId, UserId operator) {
+
     }
 }

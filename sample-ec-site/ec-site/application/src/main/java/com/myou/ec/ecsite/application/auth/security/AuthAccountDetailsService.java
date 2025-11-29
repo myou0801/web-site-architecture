@@ -25,8 +25,8 @@ public class AuthAccountDetailsService implements UserDetailsService {
     private final AuthLoginHistoryRepository loginHistoryRepository;
 
     public AuthAccountDetailsService(AuthAccountRepository authAccountRepository,
-                                  AuthAccountLockHistoryRepository lockHistoryRepository,
-                                  AuthLoginHistoryRepository loginHistoryRepository) {
+                                     AuthAccountLockHistoryRepository lockHistoryRepository,
+                                     AuthLoginHistoryRepository loginHistoryRepository) {
         this.authAccountRepository = authAccountRepository;
         this.lockHistoryRepository = lockHistoryRepository;
         this.loginHistoryRepository = loginHistoryRepository;
@@ -45,7 +45,7 @@ public class AuthAccountDetailsService implements UserDetailsService {
         // ロック状態の判定
         boolean locked = false;
         if (accountId != null) {
-            AccountLockEvents lockEvents = lockHistoryRepository.findByAccountId(accountId,20);
+            AccountLockEvents lockEvents = lockHistoryRepository.findByAccountId(accountId, 20);
             locked = lockEvents.isLocked();
         }
 

@@ -22,18 +22,15 @@ import java.util.Optional;
 @Service
 public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedService {
 
-    private final AuthAccountContextSharedService userContextSharedService;
     private final AuthAccountRepository authAccountRepository;
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicy passwordPolicy;
 
-    public PasswordChangeSharedServiceImpl(AuthAccountContextSharedService userContextSharedService,
-                                           AuthAccountRepository authAccountRepository,
+    public PasswordChangeSharedServiceImpl(AuthAccountRepository authAccountRepository,
                                            AuthPasswordHistoryRepository passwordHistoryRepository,
                                            PasswordEncoder passwordEncoder,
                                            PasswordPolicy passwordPolicy) {
-        this.userContextSharedService = userContextSharedService;
         this.authAccountRepository = authAccountRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.passwordEncoder = passwordEncoder;
@@ -98,13 +95,15 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
         String encoded = passwordEncoder.encode(newRawPassword);
         EncodedPassword encodedPassword = new EncodedPassword(encoded);
 
+        UserId operator = user.userId(); // 自分自身が変更
+        LocalDateTime now = LocalDateTime.now();
+
         // ユーザのパスワード更新
-        user.changePassword(encodedPassword);
-        authAccountRepository.save(user);
+        authAccountRepository.save(user.changePassword(encodedPassword, now, operator));
 
         // パスワード履歴登録
-        LocalDateTime now = LocalDateTime.now();
-        UserId operator = user.userId(); // 自分自身が変更
+
+
         PasswordHistory history = PasswordHistory.userChange(accountId, encodedPassword, now, operator);
         passwordHistoryRepository.save(history);
     }
