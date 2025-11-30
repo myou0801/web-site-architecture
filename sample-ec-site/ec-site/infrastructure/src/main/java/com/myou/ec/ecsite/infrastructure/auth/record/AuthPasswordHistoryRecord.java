@@ -26,7 +26,7 @@ public record AuthPasswordHistoryRecord(
                 new PasswordHash(passwordHash),
                 PasswordChangeType.valueOf(changeType),
                 changedAt,
-                new UserId(operatedBy),
+                operatedBy != null ? new UserId(operatedBy) : null,
                 createdAt,
                 new UserId(createdBy)
         );
@@ -39,7 +39,7 @@ public record AuthPasswordHistoryRecord(
                 history.passwordHash().value(),
                 history.changeType().name(),
                 history.changedAt(),
-                history.operatedBy().value(),
+                history.operatedBy() != null?  history.operatedBy().value() : null,
                 history.createdAt(),
                 history.createdBy().value()
         );

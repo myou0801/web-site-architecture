@@ -3,17 +3,17 @@ package com.myou.ec.ecsite.infrastructure.auth.record;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
-import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * AUTH_ACCOUNT テーブルの1行を表す Record。
  */
 public record AuthAccountRecord(
-        Long authAccountId,
+        @Nullable Long authAccountId,
         String userId,
         String passwordHash,
         boolean enabled,
@@ -22,25 +22,24 @@ public record AuthAccountRecord(
         String createdBy,
         LocalDateTime updatedAt,
         String updatedBy,
-        LocalDateTime deletedAt,
-        String deletedBy
+        @Nullable LocalDateTime deletedAt,
+        @Nullable String deletedBy
 
 ) {
 
-    public AuthAccount toDomain(List<RoleCode> roleCodes) {
+    public AuthAccount toDomain() {
         return new AuthAccount(
                 authAccountId != null ? new AuthAccountId(authAccountId) : null,
                 new UserId(userId),
                 new PasswordHash(passwordHash),
                 enabled,
                 deleted,
-                roleCodes,
                 createdAt,
                 new UserId(createdBy),
                 updatedAt,
                 new UserId(updatedBy),
                 deletedAt,
-                new UserId(deletedBy)
+                deletedBy != null ? new UserId(deletedBy) : null
         );
     }
 
@@ -57,7 +56,7 @@ public record AuthAccountRecord(
                 user.updatedAt(),
                 user.updatedBy().value(),
                 user.deletedAt(),
-                user.deletedBy().value()
+                Optional.ofNullable(user.deletedBy()).map(UserId::value).orElse(null)
         );
     }
 }

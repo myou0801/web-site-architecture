@@ -11,35 +11,35 @@ import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
+import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRoleRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthPasswordHistoryRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthRoleRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
 public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminSharedService {
 
     private final AuthAccountRepository authAccountRepository;
-    private final AuthRoleRepository authRoleRepository;
+    private final AuthAccountRoleRepository authAccountRoleRepository;
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final String initialPassword;
 
-    public AuthAccountAdminSharedServiceImpl(AuthAccountRepository authAccountRepository,
-                                             AuthRoleRepository authRoleRepository,
+    public AuthAccountAdminSharedServiceImpl(AuthAccountRepository authAccountRepository, AuthAccountRoleRepository authAccountRoleRepository,
+
                                              AuthPasswordHistoryRepository passwordHistoryRepository,
                                              AuthAccountLockHistoryRepository lockHistoryRepository,
                                              PasswordEncoder passwordEncoder,
                                              @Value("${auth.initial-password:password123}") String initialPassword) {
         this.authAccountRepository = authAccountRepository;
-        this.authRoleRepository = authRoleRepository;
+        this.authAccountRoleRepository = authAccountRoleRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.lockHistoryRepository = lockHistoryRepository;
         this.passwordEncoder = passwordEncoder;
@@ -48,15 +48,15 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
     @Override
     public AuthAccountId registerAccount(UserId newUserId,
-                                    List<RoleCode> roleCodes,
-                                    UserId operator) {
+                                         Set<RoleCode> roleCodes,
+                                         UserId operator) {
 
         // パスワードハッシュ化
         PasswordHash passwordHash = new PasswordHash(passwordEncoder.encode(initialPassword));
 
         LocalDateTime now = LocalDateTime.now();
         // AuthAccount 作成 & 保存
-        AuthAccount user = AuthAccount.newAccount(newUserId, passwordHash, roleCodes, now, operator);
+        AuthAccount user = AuthAccount.newAccount(newUserId, passwordHash, now, operator);
         authAccountRepository.save(user);
 
         // ID 採番後のアカウントを再取得（ID 必要なため）
@@ -69,8 +69,8 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         }
 
         // ユーザロール設定
-        authRoleRepository.saveAccountRoles(accountId, roleCodes);
-
+        roleCodes.forEach(roleCode -> authAccountRoleRepository.addRole(accountId, roleCode, now, operator));
+        
         // パスワード履歴登録（初回登録）
         PasswordHistory history = PasswordHistory.initialRegister(
                 accountId,
@@ -122,7 +122,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
 
-        AccountLockEvents events = lockHistoryRepository.findByAccountId(user.id(),20);
+        AccountLockEvents events = lockHistoryRepository.findByAccountId(user.id(), 20);
         if (!events.isLocked()) {
             // 既に未ロックなら何もしない（イベントを増やさない方針）
             return;

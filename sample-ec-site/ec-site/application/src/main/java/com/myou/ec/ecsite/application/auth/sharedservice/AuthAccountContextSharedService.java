@@ -1,10 +1,8 @@
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
-import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,13 +26,5 @@ public interface AuthAccountContextSharedService {
      */
     Optional<LocalDateTime> findPreviousLoginAt();
 
-    /**
-     * 現在ログイン中アカウントのロール一覧（RoleCode）を返す。
-     */
-    List<RoleCode> getCurrentUserRoles();
 
-    /**
-     * 指定ロールを保持しているか（Spring Security の権限ではなく、DB上のロール）。
-     */
-    boolean hasRole(RoleCode roleCode);
 }

@@ -27,14 +27,14 @@ public class AuthPasswordHistoryRepositoryImpl implements AuthPasswordHistoryRep
 
     @Override
     public List<PasswordHistory> findRecentByAccountId(AuthAccountId accountId, int limit) {
-        return mapper.findRecentByAccountId(accountId.value(), limit).stream()
+        return mapper.selectRecentByAccountId(accountId.value(), limit).stream()
                 .map(AuthPasswordHistoryRecord::toDomain)
                 .toList();
     }
 
     @Override
     public Optional<PasswordHistory> findLastByAccountId(AuthAccountId accountId) {
-        AuthPasswordHistoryRecord record = mapper.findLastByAccountId(accountId.value());
+        AuthPasswordHistoryRecord record = mapper.selectLatestByAccountId(accountId.value());
         return Optional.ofNullable(record).map(AuthPasswordHistoryRecord::toDomain);
     }
 }

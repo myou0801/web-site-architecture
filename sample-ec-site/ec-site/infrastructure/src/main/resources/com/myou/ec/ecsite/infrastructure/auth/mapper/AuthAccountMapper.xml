@@ -40,9 +40,7 @@
     </select>
 
     <insert id="insert"
-            parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord"
-            useGeneratedKeys="true"
-            keyProperty="authAccountId">
+            parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
         INSERT INTO auth_account (user_id, password_hash,
                                   enabled, deleted,
                                   created_at, created_by,
@@ -57,7 +55,7 @@
             parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
         UPDATE AUTH_ACCOUNT
         SET user_id       = #{userId},
-            password_hash = #{loginPassword},
+            password_hash = #{passwordHash},
             enabled       = #{enabled},
             deleted       = #{deleted},
             created_at    = #{createdAt},

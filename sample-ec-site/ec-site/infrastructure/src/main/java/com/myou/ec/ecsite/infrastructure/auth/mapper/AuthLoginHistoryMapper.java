@@ -11,9 +11,9 @@ public interface AuthLoginHistoryMapper {
 
     void insert(AuthLoginHistoryRecord record);
 
-    List<AuthLoginHistoryRecord> findRecentByAccountId(@Param("authAccountId") long authAccountId,
-                                                    @Param("limit") int limit);
+    List<AuthLoginHistoryRecord> selectRecentByAccountId(@Param("authAccountId") long authAccountId,
+                                                         @Param("limit") int limit);
 
-    AuthLoginHistoryRecord findPreviousSuccessLoginAtByAccountId(@Param("authAccountId") long authAccountId);
+    AuthLoginHistoryRecord selectLatestSuccessByAccountId(@Param("authAccountId") long authAccountId);
 
 }

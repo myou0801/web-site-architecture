@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountRoleMapper">
+
+    <select id="selectRoleCodesByAccountId" resultType="string">
+        SELECT ar.role_code
+        FROM AUTH_ACCOUNT_ROLE ar
+        JOIN AUTH_ROLE r ON r.role_code = ar.role_code
+        WHERE ar.auth_account_id = #{authAccountId}
+          AND r.enabled = TRUE
+    </select>
+
+    <insert id="insert">
+        INSERT INTO AUTH_ACCOUNT_ROLE (
+            auth_account_id,
+            role_code,
+            created_at,
+            created_by
+        ) VALUES (
+            #{authAccountId},
+            #{roleCode},
+            #{createdAt},
+            #{createdBy}
+        )
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM AUTH_ACCOUNT_ROLE
+        WHERE auth_account_id = #{authAccountId}
+          AND role_code = #{roleCode}
+    </delete>
+
+</mapper>

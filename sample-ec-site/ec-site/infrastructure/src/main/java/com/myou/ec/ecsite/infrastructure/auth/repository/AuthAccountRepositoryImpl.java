@@ -2,27 +2,21 @@ package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthRoleRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class AuthAccountRepositoryImpl implements AuthAccountRepository {
 
     private final AuthAccountMapper userMapper;
-    private final AuthRoleRepository authRoleRepository;
 
-    public AuthAccountRepositoryImpl(AuthAccountMapper userMapper,
-                                  AuthRoleRepository authRoleRepository) {
+    public AuthAccountRepositoryImpl(AuthAccountMapper userMapper) {
         this.userMapper = userMapper;
-        this.authRoleRepository = authRoleRepository;
     }
 
     @Override
@@ -31,8 +25,7 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
         if (record == null) {
             return Optional.empty();
         }
-        List<RoleCode> roles = authRoleRepository.findRoleCodesByAccountId(id);
-        return Optional.of(record.toDomain(roles));
+        return Optional.of(record.toDomain());
     }
 
     @Override
@@ -41,9 +34,7 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
         if (record == null) {
             return Optional.empty();
         }
-        AuthAccountId accountId = new AuthAccountId(record.authAccountId());
-        List<RoleCode> roles = authRoleRepository.findRoleCodesByAccountId(accountId);
-        return Optional.of(record.toDomain(roles));
+        return Optional.of(record.toDomain());
     }
 
     @Override

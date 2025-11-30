@@ -24,7 +24,7 @@ public record AuthAccountLockHistoryRecord(
                 locked,
                 reason,
                 occurredAt,
-                new UserId(operatedBy),
+                operatedBy != null ? new UserId(operatedBy) : null,
                 createdAt,
                 new UserId(createdBy)
         );
@@ -37,7 +37,7 @@ public record AuthAccountLockHistoryRecord(
                 event.locked(),
                 event.reason(),
                 event.occurredAt(),
-                event.operatedBy().value(),
+                event.operatedBy() != null ? event.operatedBy().value() : null,
                 event.createdAt(),
                 event.createdBy().value()
         );

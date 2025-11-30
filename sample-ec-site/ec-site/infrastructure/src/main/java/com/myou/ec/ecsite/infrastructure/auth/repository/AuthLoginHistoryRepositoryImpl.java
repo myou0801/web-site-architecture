@@ -28,7 +28,7 @@ public class AuthLoginHistoryRepositoryImpl implements AuthLoginHistoryRepositor
 
     @Override
     public LoginHistories findRecentByAccountId(AuthAccountId accountId, int limit) {
-        List<LoginHistory> histories =  mapper.findRecentByAccountId(accountId.value(), limit).stream()
+        List<LoginHistory> histories =  mapper.selectRecentByAccountId(accountId.value(), limit).stream()
                 .map(AuthLoginHistoryRecord::toDomain)
                 .toList();
         return new LoginHistories(histories);
@@ -36,7 +36,7 @@ public class AuthLoginHistoryRepositoryImpl implements AuthLoginHistoryRepositor
 
     @Override
     public Optional<LoginHistory> findLatestSuccessByAccountId(AuthAccountId accountId) {
-        return Optional.ofNullable(mapper.findPreviousSuccessLoginAtByAccountId(accountId.value()))
+        return Optional.ofNullable(mapper.selectLatestSuccessByAccountId(accountId.value()))
                 .map(AuthLoginHistoryRecord::toDomain);
     }
 

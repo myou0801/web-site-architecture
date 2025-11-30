@@ -2,12 +2,9 @@ package com.myou.ec.ecsite.domain.auth.model;
 
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
-import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -33,8 +30,6 @@ public class AuthAccount {
     /** 論理削除フラグ。true の場合は無効ユーザ扱い。 */
     private final boolean deleted;
 
-    /** 付与されているロール一覧。 */
-    private final List<RoleCode> roleCodes;
 
     // 監査情報
     private final LocalDateTime createdAt;
@@ -54,7 +49,6 @@ public class AuthAccount {
                        PasswordHash passwordHash,
                        boolean enabled,
                        boolean deleted,
-                       List<RoleCode> roleCodes,
                        LocalDateTime createdAt,
                        UserId createdBy,
                        LocalDateTime updatedAt,
@@ -67,8 +61,6 @@ public class AuthAccount {
         this.passwordHash = Objects.requireNonNull(passwordHash, "encodedPassword must not be null");
         this.enabled = enabled;
         this.deleted = deleted;
-        this.roleCodes = roleCodes == null ? List.of() : List.copyOf(roleCodes);
-
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
         this.createdBy = Objects.requireNonNull(createdBy, "createdByUserId must not be null");
         this.deletedAt = deletedAt;
@@ -83,7 +75,6 @@ public class AuthAccount {
      */
     public static AuthAccount newAccount(UserId userId,
                                    PasswordHash passwordHash,
-                                   List<RoleCode> roleCodes,
                                    LocalDateTime now,
                                    UserId operator) {
 
@@ -98,7 +89,6 @@ public class AuthAccount {
                 passwordHash,
                 true,                     // enabled デフォルト true
                 false,                    // deleted デフォルト false
-                roleCodes,
                 now,
                 operator,
                 now,
@@ -125,7 +115,6 @@ public class AuthAccount {
                 newPassword,
                 this.enabled,
                 this.deleted,
-                this.roleCodes,
                 this.createdAt,
                 this.createdBy,
                 now,
@@ -149,7 +138,6 @@ public class AuthAccount {
                 this.passwordHash,
                 this.enabled,
                 this.deleted,
-                this.roleCodes,
                 this.createdAt,
                 this.createdBy,
                 now,
@@ -172,7 +160,6 @@ public class AuthAccount {
                 this.passwordHash,
                 true,
                 this.deleted,
-                this.roleCodes,
                 this.createdAt,
                 this.createdBy,
                 now,
@@ -195,7 +182,6 @@ public class AuthAccount {
                 this.passwordHash,
                 false,
                 this.deleted,
-                this.roleCodes,
                 this.createdAt,
                 this.createdBy,
                 now,
@@ -218,7 +204,6 @@ public class AuthAccount {
                 this.passwordHash,
                 this.enabled,
                 true,
-                this.roleCodes,
                 this.createdAt,
                 this.createdBy,
                 now,
@@ -228,80 +213,6 @@ public class AuthAccount {
         );
     }
 
-    /**
-     * ロールを差し替える。
-     */
-    public AuthAccount changeRoles(List<RoleCode> newRoles, LocalDateTime now, UserId operator) {
-        Objects.requireNonNull(now, "now must not be null");
-        Objects.requireNonNull(operator, "operator must not be null");
-
-        return new AuthAccount(
-                this.id,
-                this.userId,
-                this.passwordHash,
-                this.enabled,
-                this.deleted,
-                newRoles == null ? List.of() : List.copyOf(newRoles),
-                this.createdAt,
-                this.createdBy,
-                now,
-                operator,
-                this.deletedAt,
-                this.deletedBy
-        );
-    }
-
-    /**
-     * ロールを1つ追加する（重複チェックは呼び出し側で必要に応じて行う）。
-     */
-    public AuthAccount addRole(RoleCode roleCode, LocalDateTime now, UserId operator) {
-        Objects.requireNonNull(roleCode, "roleCode must not be null");
-        Objects.requireNonNull(now, "now must not be null");
-        Objects.requireNonNull(operator, "operator must not be null");
-        List<RoleCode> newRoleCodes = new ArrayList<>(this.roleCodes);
-        newRoleCodes.add(roleCode);
-
-        return new AuthAccount(
-                this.id,
-                this.userId,
-                this.passwordHash,
-                this.enabled,
-                this.deleted,
-                List.copyOf(newRoleCodes),
-                this.createdAt,
-                this.createdBy,
-                now,
-                operator,
-                this.deletedAt,
-                this.deletedBy
-        );
-    }
-
-    /**
-     * ロールを1つ削除する。
-     */
-    public AuthAccount removeRole(RoleCode roleCode, LocalDateTime now, UserId operator) {
-        Objects.requireNonNull(roleCode, "roleCode must not be null");
-        Objects.requireNonNull(now, "now must not be null");
-        Objects.requireNonNull(operator, "operator must not be null");
-        List<RoleCode> newRoleCodes = new ArrayList<>(this.roleCodes);
-        newRoleCodes.remove(roleCode);
-
-        return new AuthAccount(
-                this.id,
-                this.userId,
-                this.passwordHash,
-                this.enabled,
-                this.deleted,
-                List.copyOf(newRoleCodes),
-                this.createdAt,
-                this.createdBy,
-                now,
-                operator,
-                this.deletedAt,
-                this.deletedBy
-        );
-    }
 
     /**
      * ログイン可能かどうかの簡易判定（ロック状態は別途 LockStatus で判定）。
@@ -332,9 +243,6 @@ public class AuthAccount {
         return deleted;
     }
 
-    public List<RoleCode> roleCodes() {
-        return roleCodes;
-    }
 
     public LocalDateTime createdAt() {
         return createdAt;
@@ -383,7 +291,6 @@ public class AuthAccount {
                ", userId=" + userId +
                ", enabled=" + enabled +
                ", deleted=" + deleted +
-               ", roleCodes=" + roleCodes +
                '}';
     }
 }

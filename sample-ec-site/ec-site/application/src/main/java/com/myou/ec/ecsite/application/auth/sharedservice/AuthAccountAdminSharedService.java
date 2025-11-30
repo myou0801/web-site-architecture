@@ -4,7 +4,7 @@ import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * 管理者によるアカウント管理の sharedService。
@@ -20,7 +20,7 @@ public interface AuthAccountAdminSharedService {
      * @return 登録された ユーザーID
      */
     AuthAccountId registerAccount(UserId newUserId,
-                                  List<RoleCode> roleCodes,
+                                  Set<RoleCode> roleCodes,
                                   UserId operator);
 
     /**

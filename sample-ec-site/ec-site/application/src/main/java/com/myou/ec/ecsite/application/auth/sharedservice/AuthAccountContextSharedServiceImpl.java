@@ -3,7 +3,6 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
@@ -12,7 +11,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -50,18 +48,7 @@ public class AuthAccountContextSharedServiceImpl implements AuthAccountContextSh
                 .map(LoginHistory::loginAt);
     }
 
-    @Override
-    public List<RoleCode> getCurrentUserRoles() {
-        return getCurrentUserOrThrow().roleCodes();
-    }
 
-    @Override
-    public boolean hasRole(RoleCode roleCode) {
-        return getCurrentUserOrThrow()
-                .roleCodes()
-                .stream()
-                .anyMatch(rc -> rc.value().equals(roleCode.value()));
-    }
 
     private String getCurrentUserIdFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

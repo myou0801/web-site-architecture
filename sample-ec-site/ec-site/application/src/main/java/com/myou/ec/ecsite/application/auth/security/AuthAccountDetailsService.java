@@ -7,6 +7,7 @@ import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
+import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRoleRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,13 +22,16 @@ import java.util.List;
 public class AuthAccountDetailsService implements UserDetailsService {
 
     private final AuthAccountRepository authAccountRepository;
+    private final AuthAccountRoleRepository authAccountRoleRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
     private final AuthLoginHistoryRepository loginHistoryRepository;
 
     public AuthAccountDetailsService(AuthAccountRepository authAccountRepository,
+                                     AuthAccountRoleRepository authAccountRoleRepository,
                                      AuthAccountLockHistoryRepository lockHistoryRepository,
                                      AuthLoginHistoryRepository loginHistoryRepository) {
         this.authAccountRepository = authAccountRepository;
+        this.authAccountRoleRepository = authAccountRoleRepository;
         this.lockHistoryRepository = lockHistoryRepository;
         this.loginHistoryRepository = loginHistoryRepository;
     }
@@ -58,8 +62,8 @@ public class AuthAccountDetailsService implements UserDetailsService {
                     .orElse(null);
         }
 
-        List<SimpleGrantedAuthority> authorities = user.roleCodes().stream()
-                .map(rc -> new SimpleGrantedAuthority(rc.value()))
+        List<SimpleGrantedAuthority> authorities = authAccountRoleRepository.findRolesByAccountId(accountId).stream()
+                .map(rc -> new SimpleGrantedAuthority("ROLE_" + rc.value()))
                 .toList();
 
         boolean enabled = user.canLogin();     // 無効フラグ等を見ている想定

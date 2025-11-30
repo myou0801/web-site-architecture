@@ -1,45 +1,42 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountLockHistoryMapper">
 
-    <resultMap id="AuthAccountLockHistoryRecordMap" type="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord">
-        <id column="AUTH_ACCOUNT_LOCK_HISTORY_ID" property="authAccountLockHistoryId"/>
-        <result column="AUTH_ACCOUNT_ID" property="authAccountId"/>
-        <result column="LOCKED" property="locked"/>
-        <result column="OCCURRED_AT" property="occurredAt"/>
-        <result column="REASON" property="reason"/>
-        <result column="OPERATED_BY" property="operatedBy"/>
-        <result column="CREATED_AT" property="createdAt"/>
-        <result column="CREATED_BY" property="createdBy"/>
-    </resultMap>
-
     <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord"
             useGeneratedKeys="true" keyProperty="authAccountLockHistoryId">
-        INSERT INTO AUTH_ACCOUNT_LOCK_HISTORY (
-            AUTH_ACCOUNT_ID, LOCKED, OCCURRED_AT, REASON, OPERATED_BY_LOGIN_ID, CREATED_AT, CREATED_BY
-        ) VALUES (
-            #{authAccountId}, #{locked}, #{occurredAt}, #{reason}, #{operatedBy}, #{createdAt}, #{createdBy}
-        )
+        INSERT INTO AUTH_ACCOUNT_LOCK_HISTORY (auth_account_id,
+                                               locked,
+                                               reason,
+                                               occurred_at,
+                                               operated_by,
+                                               created_at,
+                                               created_by)
+        VALUES (#{authAccountId},
+                #{locked},
+                #{reason},
+                #{occurredAt},
+                #{operatedBy},
+                #{createdAt},
+                #{createdBy})
     </insert>
 
-    <select id="findByAccountId"
-            resultMap="AuthAccountLockHistoryRecordMap">
-        SELECT
-            AUTH_ACCOUNT_LOCK_HISTORY_ID,
-            AUTH_ACCOUNT_ID,
-            LOCKED_FLG,
-            OCCURRED_AT,
-            REASON,
-            OPERATED_BY,
-            CREATED_AT,
-            CREATED_BY
+    <select id="selectRecentByAccountId"
+            resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord">
+        SELECT auth_account_lock_history_id AS authAccountLockHistoryId,
+               auth_account_id              AS authAccountId,
+               locked,
+               reason,
+               occurred_at                  AS occurredAt,
+               operated_by                  AS operatedBy,
+               created_at                   AS createdAt,
+               created_by                   AS createdBy
         FROM AUTH_ACCOUNT_LOCK_HISTORY
-        WHERE AUTH_ACCOUNT_ID = #{authAccountId}
-        ORDER BY OCCURRED_AT DESC
-        LIMIT #{limit}
+        WHERE auth_account_id = #{authAccountId}
+        ORDER BY occurred_at DESC
+            LIMIT #{limit}
     </select>
 
 </mapper>
