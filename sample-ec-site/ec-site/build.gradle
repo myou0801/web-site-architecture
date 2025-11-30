@@ -141,6 +141,9 @@ project(":infrastructure") {
         runtimeOnly libs.h2
 
         testImplementation libs.spring.boot.starter.test
+        testImplementation libs.mybatis.spring.boot.starter.test
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
     }
 }
 

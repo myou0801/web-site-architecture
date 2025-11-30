@@ -10,7 +10,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 @Setter
 @Getter
-@Table(name = "USER")
+@Table(name = "APP_USER")
 public class UserEntity {
 
     @Id

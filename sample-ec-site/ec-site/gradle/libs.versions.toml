@@ -24,6 +24,7 @@ logback-access-spring = { module = "dev.akkinoc.spring.boot:logback-access-sprin
 logback-access-tomcat = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccessTomcatVersion" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombokVersion" }
 mybatis-spring-boot-starter = { module = "org.mybatis.spring.boot:mybatis-spring-boot-starter", version.ref = "mybatisSpringbootStarterVersion" }
+mybatis-spring-boot-starter-test = { module = "org.mybatis.spring.boot:mybatis-spring-boot-starter-test", version.ref = "mybatisSpringbootStarterVersion" }
 
 # Spring Boot Starters
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }

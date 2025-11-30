@@ -5,6 +5,8 @@ spring:
     init:
       schema-locations:
         - classpath:schema.sql
+      data-locations:
+        - classpath:test-data.sql
 logging:
   level:
     ["org.springframework.jdb"]: DEBUG
