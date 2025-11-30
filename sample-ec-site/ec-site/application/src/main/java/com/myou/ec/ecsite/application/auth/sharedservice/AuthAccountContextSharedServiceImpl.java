@@ -3,10 +3,10 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
-import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
+import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -46,7 +46,7 @@ public class AuthAccountContextSharedServiceImpl implements AuthAccountContextSh
     public Optional<LocalDateTime> findPreviousLoginAt() {
         return findCurrentUser()
                 .map(AuthAccount::id)
-                .flatMap(loginHistoryRepository::findPreviousSuccessLoginAtByAccountId)
+                .flatMap(loginHistoryRepository::findLatestSuccessByAccountId)
                 .map(LoginHistory::loginAt);
     }
 

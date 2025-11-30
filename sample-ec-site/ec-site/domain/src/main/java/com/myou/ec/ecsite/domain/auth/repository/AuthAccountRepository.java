@@ -16,4 +16,5 @@ public interface AuthAccountRepository {
     Optional<AuthAccount> findByUserId(UserId userId);
 
     void save(AuthAccount user);
+
 }

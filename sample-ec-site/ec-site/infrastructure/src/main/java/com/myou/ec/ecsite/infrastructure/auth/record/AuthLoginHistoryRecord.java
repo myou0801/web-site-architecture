@@ -2,16 +2,16 @@ package com.myou.ec.ecsite.infrastructure.auth.record;
 
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginResult;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.time.LocalDateTime;
 
 public record AuthLoginHistoryRecord(
         Long authLoginHistoryId,
         long authAccountId,
-        LocalDateTime loginAt,
         String result,
+        LocalDateTime loginAt,
         LocalDateTime createdAt,
         String createdBy
 ) {
@@ -20,8 +20,8 @@ public record AuthLoginHistoryRecord(
         return new LoginHistory(
                 authLoginHistoryId,
                 new AuthAccountId(authAccountId),
-                loginAt,
                 LoginResult.valueOf(result),
+                loginAt,
                 createdAt,
                 new UserId(createdBy)
         );
@@ -31,8 +31,8 @@ public record AuthLoginHistoryRecord(
         return new AuthLoginHistoryRecord(
                 history.id(),
                 history.authAccountId().value(),
-                history.loginAt(),
                 history.result().name(),
+                history.loginAt(),
                 history.createdAt(),
                 history.createdBy().value()
         );

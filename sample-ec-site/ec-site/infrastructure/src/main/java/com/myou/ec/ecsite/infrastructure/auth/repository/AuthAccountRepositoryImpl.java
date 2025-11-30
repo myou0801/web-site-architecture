@@ -2,10 +2,10 @@ package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
-import com.myou.ec.ecsite.domain.auth.repository.AuthRoleRepository;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
+import com.myou.ec.ecsite.domain.auth.repository.AuthRoleRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord;
 import org.springframework.stereotype.Repository;
@@ -27,7 +27,7 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
 
     @Override
     public Optional<AuthAccount> findById(AuthAccountId id) {
-        AuthAccountRecord record = userMapper.findById(id.value());
+        AuthAccountRecord record = userMapper.selectByAccountId(id.value());
         if (record == null) {
             return Optional.empty();
         }
@@ -37,7 +37,7 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
 
     @Override
     public Optional<AuthAccount> findByUserId(UserId userId) {
-        AuthAccountRecord record = userMapper.findByUserId(userId.value());
+        AuthAccountRecord record = userMapper.selectByUserId(userId.value());
         if (record == null) {
             return Optional.empty();
         }
@@ -55,4 +55,5 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
             userMapper.update(record);
         }
     }
+
 }

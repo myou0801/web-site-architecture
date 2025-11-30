@@ -15,6 +15,6 @@ public interface AuthLoginHistoryRepository {
 
     LoginHistories findRecentByAccountId(AuthAccountId accountId, int limit);
 
-    Optional<LoginHistory> findPreviousSuccessLoginAtByAccountId(AuthAccountId accountId);
+    Optional<LoginHistory> findLatestSuccessByAccountId(AuthAccountId accountId);
 
 }

@@ -6,7 +6,7 @@ import com.myou.ec.ecsite.domain.auth.model.AccountLockEvents;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
+import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
@@ -52,11 +52,11 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                                     UserId operator) {
 
         // パスワードハッシュ化
-        EncodedPassword encodedPassword = new EncodedPassword(passwordEncoder.encode(initialPassword));
+        PasswordHash passwordHash = new PasswordHash(passwordEncoder.encode(initialPassword));
 
         LocalDateTime now = LocalDateTime.now();
         // AuthAccount 作成 & 保存
-        AuthAccount user = AuthAccount.newAccount(newUserId, encodedPassword, roleCodes, now, operator);
+        AuthAccount user = AuthAccount.newAccount(newUserId, passwordHash, roleCodes, now, operator);
         authAccountRepository.save(user);
 
         // ID 採番後のアカウントを再取得（ID 必要なため）
@@ -74,7 +74,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         // パスワード履歴登録（初回登録）
         PasswordHistory history = PasswordHistory.initialRegister(
                 accountId,
-                encodedPassword,
+                passwordHash,
                 now,
                 operator
         );
@@ -90,17 +90,17 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
 
         // パスワードハッシュ化
-        EncodedPassword encodedPassword = new EncodedPassword(passwordEncoder.encode(initialPassword));
+        PasswordHash passwordHash = new PasswordHash(passwordEncoder.encode(initialPassword));
 
         LocalDateTime now = LocalDateTime.now();
 
         // パスワード更新
-        authAccountRepository.save(user.changePassword(encodedPassword, now, operator));
+        authAccountRepository.save(user.changePassword(passwordHash, now, operator));
 
         // パスワード履歴（ADMIN_RESET）
         PasswordHistory history = PasswordHistory.adminReset(
                 targetAccountId,
-                encodedPassword,
+                passwordHash,
                 now,
                 operator
         );

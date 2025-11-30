@@ -1,6 +1,6 @@
 package com.myou.ec.ecsite.domain.auth.exception;
 
-import com.myou.ec.ecsite.domain.auth.model.policy.PasswordViolation;
+import com.myou.ec.ecsite.domain.auth.policy.PasswordViolation;
 
 import java.util.ArrayList;
 import java.util.List;

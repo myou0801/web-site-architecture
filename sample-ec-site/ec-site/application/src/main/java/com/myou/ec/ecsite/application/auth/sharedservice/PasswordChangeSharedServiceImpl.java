@@ -4,11 +4,11 @@ import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.exception.PasswordReuseNotAllowedException;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
-import com.myou.ec.ecsite.domain.auth.model.policy.ExpiredPasswordPolicy;
-import com.myou.ec.ecsite.domain.auth.model.policy.PasswordPolicy;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
+import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.policy.ExpiredPasswordPolicy;
+import com.myou.ec.ecsite.domain.auth.policy.PasswordPolicy;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthPasswordHistoryRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -74,7 +74,7 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
                 .orElseThrow(() -> new AuthDomainException("アカウントID未採番のためパスワード変更ができません。"));
 
         // 現在のパスワード検証
-        if (!passwordEncoder.matches(currentRawPassword, user.encodedPassword().value())) {
+        if (!passwordEncoder.matches(currentRawPassword, user.passwordHash().value())) {
             throw new AuthDomainException("現在のパスワードが正しくありません。");
         }
 
@@ -86,25 +86,25 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
                 passwordHistoryRepository.findRecentByAccountId(accountId, 3);
 
         for (PasswordHistory history : recentHistories) {
-            if (passwordEncoder.matches(newRawPassword, history.encodedPassword().value())) {
+            if (passwordEncoder.matches(newRawPassword, history.passwordHash().value())) {
                 throw new PasswordReuseNotAllowedException();
             }
         }
 
         // 新しいパスワードをハッシュ化
         String encoded = passwordEncoder.encode(newRawPassword);
-        EncodedPassword encodedPassword = new EncodedPassword(encoded);
+        PasswordHash passwordHash = new PasswordHash(encoded);
 
         UserId operator = user.userId(); // 自分自身が変更
         LocalDateTime now = LocalDateTime.now();
 
         // ユーザのパスワード更新
-        authAccountRepository.save(user.changePassword(encodedPassword, now, operator));
+        authAccountRepository.save(user.changePassword(passwordHash, now, operator));
 
         // パスワード履歴登録
 
 
-        PasswordHistory history = PasswordHistory.userChange(accountId, encodedPassword, now, operator);
+        PasswordHistory history = PasswordHistory.userChange(accountId, passwordHash, now, operator);
         passwordHistoryRepository.save(history);
     }
 

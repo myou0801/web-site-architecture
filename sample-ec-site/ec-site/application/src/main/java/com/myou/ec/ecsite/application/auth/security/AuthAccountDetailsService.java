@@ -53,7 +53,7 @@ public class AuthAccountDetailsService implements UserDetailsService {
         LocalDateTime previousLoginAt = null;
         if (accountId != null) {
             previousLoginAt = loginHistoryRepository
-                    .findPreviousSuccessLoginAtByAccountId(accountId)
+                    .findLatestSuccessByAccountId(accountId)
                     .map(LoginHistory::loginAt)
                     .orElse(null);
         }
@@ -70,7 +70,7 @@ public class AuthAccountDetailsService implements UserDetailsService {
         return new AuthAccountDetails(
                 accountId,
                 user.userId().value(),
-                user.encodedPassword().value(),
+                user.passwordHash().value(),
                 enabled,
                 accountNonExpired,
                 credentialsNonExpired,

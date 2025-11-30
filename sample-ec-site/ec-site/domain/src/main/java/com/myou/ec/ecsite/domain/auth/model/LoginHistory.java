@@ -1,8 +1,8 @@
 package com.myou.ec.ecsite.domain.auth.model;
 
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginResult;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -10,20 +10,13 @@ import java.util.Objects;
 /**
  * ログイン試行の履歴を表す Entity（基本 immutable）。
  */
-public class LoginHistory {
-
-    private final Long id;
-    private final AuthAccountId authAccountId;
-    private final LocalDateTime loginAt;
-    private final LoginResult result;
-
-    private final LocalDateTime createdAt;
-    private final UserId createdBy;
+public record LoginHistory(Long id, AuthAccountId authAccountId, LoginResult result, LocalDateTime loginAt,
+                           LocalDateTime createdAt, UserId createdBy) {
 
     public LoginHistory(Long id,
                         AuthAccountId authAccountId,
-                        LocalDateTime loginAt,
                         LoginResult result,
+                        LocalDateTime loginAt,
                         LocalDateTime createdAt,
                         UserId createdBy) {
 
@@ -38,52 +31,28 @@ public class LoginHistory {
     public static LoginHistory success(AuthAccountId authAccountId,
                                        LocalDateTime loginAt,
                                        UserId createdBy) {
-        return new LoginHistory(null, authAccountId, loginAt, LoginResult.SUCCESS,
+        return new LoginHistory(null, authAccountId, LoginResult.SUCCESS, loginAt,
                 loginAt, createdBy);
     }
 
     public static LoginHistory fail(AuthAccountId authAccountId,
                                     LocalDateTime loginAt,
                                     UserId createdBy) {
-        return new LoginHistory(null, authAccountId, loginAt, LoginResult.FAIL,
+        return new LoginHistory(null, authAccountId, LoginResult.FAIL, loginAt,
                 loginAt, createdBy);
     }
 
     public static LoginHistory locked(AuthAccountId authAccountId,
                                       LocalDateTime loginAt,
                                       UserId createdBy) {
-        return new LoginHistory(null, authAccountId, loginAt, LoginResult.LOCKED,
+        return new LoginHistory(null, authAccountId, LoginResult.LOCKED, loginAt,
                 loginAt, createdBy);
     }
 
     public static LoginHistory disabled(AuthAccountId authAccountId,
-                                      LocalDateTime loginAt,
-                                      UserId createdBy) {
-        return new LoginHistory(null, authAccountId, loginAt, LoginResult.DISABLED,
+                                        LocalDateTime loginAt,
+                                        UserId createdBy) {
+        return new LoginHistory(null, authAccountId, LoginResult.DISABLED, loginAt,
                 loginAt, createdBy);
-    }
-
-    public Long id() {
-        return id;
-    }
-
-    public AuthAccountId authAccountId() {
-        return authAccountId;
-    }
-
-    public LocalDateTime loginAt() {
-        return loginAt;
-    }
-
-    public LoginResult result() {
-        return result;
-    }
-
-    public LocalDateTime createdAt() {
-        return createdAt;
-    }
-
-    public UserId createdBy() {
-        return createdBy;
     }
 }

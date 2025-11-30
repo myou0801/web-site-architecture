@@ -1,4 +1,4 @@
-package com.myou.ec.ecsite.domain.auth.model.policy;
+package com.myou.ec.ecsite.domain.auth.policy;
 
 import java.util.Arrays;
 import java.util.Objects;

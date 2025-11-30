@@ -1,7 +1,7 @@
 package com.myou.ec.ecsite.domain.auth.model;
 
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.EncodedPassword;
+import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
@@ -25,7 +25,7 @@ public class AuthAccount {
     private final UserId userId;
 
     /** ハッシュ済みパスワード。 */
-    private final EncodedPassword encodedPassword;
+    private final PasswordHash passwordHash;
 
     /** 有効フラグ。false の場合はログイン不可。 */
     private final boolean enabled;
@@ -38,39 +38,43 @@ public class AuthAccount {
 
     // 監査情報
     private final LocalDateTime createdAt;
-    private final UserId createdByUserId;
+    private final UserId createdBy;
     private final LocalDateTime updatedAt;
-    private final UserId updatedByUserId;
-    private final long versionNo;
+    private final UserId updatedBy;
+    private final LocalDateTime deletedAt;
+    private final UserId deletedBy;
+
 
     /**
      * 永続化層からの再構築などに使うコンストラクタ。
      * newAccount(...) などのファクトリを通して生成するのが基本。
      */
     public AuthAccount(AuthAccountId id,
-                    UserId userId,
-                    EncodedPassword encodedPassword,
-                    boolean enabled,
-                    boolean deleted,
-                    List<RoleCode> roleCodes,
-                    LocalDateTime createdAt,
-                    UserId createdByUserId,
-                    LocalDateTime updatedAt,
-                    UserId updatedByUserId,
-                    long versionNo) {
+                       UserId userId,
+                       PasswordHash passwordHash,
+                       boolean enabled,
+                       boolean deleted,
+                       List<RoleCode> roleCodes,
+                       LocalDateTime createdAt,
+                       UserId createdBy,
+                       LocalDateTime updatedAt,
+                       UserId updatedBy,
+                       LocalDateTime deletedAt,
+                       UserId deletedBy) {
 
         this.id = id;
         this.userId = Objects.requireNonNull(userId, "userId must not be null");
-        this.encodedPassword = Objects.requireNonNull(encodedPassword, "encodedPassword must not be null");
+        this.passwordHash = Objects.requireNonNull(passwordHash, "encodedPassword must not be null");
         this.enabled = enabled;
         this.deleted = deleted;
         this.roleCodes = roleCodes == null ? List.of() : List.copyOf(roleCodes);
 
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
-        this.createdByUserId = Objects.requireNonNull(createdByUserId, "createdByUserId must not be null");
+        this.createdBy = Objects.requireNonNull(createdBy, "createdByUserId must not be null");
+        this.deletedAt = deletedAt;
+        this.deletedBy = deletedBy;
         this.updatedAt = updatedAt != null ? updatedAt : createdAt;
-        this.updatedByUserId = updatedByUserId != null ? updatedByUserId : createdByUserId;
-        this.versionNo = versionNo;
+        this.updatedBy = updatedBy != null ? updatedBy : createdBy;
     }
 
     /**
@@ -78,20 +82,20 @@ public class AuthAccount {
      * まだ ID は採番されていない（id == null）状態で生成する。
      */
     public static AuthAccount newAccount(UserId userId,
-                                   EncodedPassword encodedPassword,
+                                   PasswordHash passwordHash,
                                    List<RoleCode> roleCodes,
                                    LocalDateTime now,
                                    UserId operator) {
 
         Objects.requireNonNull(userId, "userId must not be null");
-        Objects.requireNonNull(encodedPassword, "encodedPassword must not be null");
+        Objects.requireNonNull(passwordHash, "encodedPassword must not be null");
         Objects.requireNonNull(now, "now must not be null");
         Objects.requireNonNull(operator, "operator must not be null");
 
         return new AuthAccount(
                 null,                     // id (未採番)
                 userId,
-                encodedPassword,
+                passwordHash,
                 true,                     // enabled デフォルト true
                 false,                    // deleted デフォルト false
                 roleCodes,
@@ -99,7 +103,8 @@ public class AuthAccount {
                 operator,
                 now,
                 operator,
-                0L                        // versionNo 初期値
+                null,
+                null                     // versionNo 初期値
         );
     }
 
@@ -109,7 +114,7 @@ public class AuthAccount {
      * パスワードを変更する。
      * 監査カラム（updatedAt/updatedBy/version）はインフラ層で更新する想定。
      */
-    public AuthAccount changePassword(EncodedPassword newPassword, LocalDateTime now, UserId operator) {
+    public AuthAccount changePassword(PasswordHash newPassword, LocalDateTime now, UserId operator) {
         Objects.requireNonNull(newPassword, "newPassword must not be null");
         Objects.requireNonNull(now, "now must not be null");
         Objects.requireNonNull(operator, "operator must not be null");
@@ -122,10 +127,11 @@ public class AuthAccount {
                 this.deleted,
                 this.roleCodes,
                 this.createdAt,
-                this.createdByUserId,
+                this.createdBy,
                 now,
                 operator,
-                this.versionNo + 1
+                this.deletedAt,
+                this.deletedBy
         );
     }
 
@@ -140,15 +146,16 @@ public class AuthAccount {
         return new AuthAccount(
                 this.id,
                 newUserId,
-                this.encodedPassword,
+                this.passwordHash,
                 this.enabled,
                 this.deleted,
                 this.roleCodes,
                 this.createdAt,
-                this.createdByUserId,
+                this.createdBy,
                 now,
                 operator,
-                this.versionNo + 1
+                this.deletedAt,
+                this.deletedBy
         );
     }
 
@@ -162,15 +169,16 @@ public class AuthAccount {
         return new AuthAccount(
                 this.id,
                 this.userId,
-                this.encodedPassword,
+                this.passwordHash,
                 true,
                 this.deleted,
                 this.roleCodes,
                 this.createdAt,
-                this.createdByUserId,
+                this.createdBy,
                 now,
                 operator,
-                this.versionNo + 1
+                this.deletedAt,
+                this.deletedBy
         );
     }
 
@@ -184,15 +192,16 @@ public class AuthAccount {
         return new AuthAccount(
                 this.id,
                 this.userId,
-                this.encodedPassword,
+                this.passwordHash,
                 false,
                 this.deleted,
                 this.roleCodes,
                 this.createdAt,
-                this.createdByUserId,
+                this.createdBy,
                 now,
                 operator,
-                this.versionNo + 1
+                this.deletedAt,
+                this.deletedBy
         );
     }
 
@@ -206,15 +215,16 @@ public class AuthAccount {
         return new AuthAccount(
                 this.id,
                 this.userId,
-                this.encodedPassword,
+                this.passwordHash,
                 this.enabled,
                 true,
                 this.roleCodes,
                 this.createdAt,
-                this.createdByUserId,
+                this.createdBy,
                 now,
                 operator,
-                this.versionNo + 1
+                now,
+                operator
         );
     }
 
@@ -228,15 +238,16 @@ public class AuthAccount {
         return new AuthAccount(
                 this.id,
                 this.userId,
-                this.encodedPassword,
+                this.passwordHash,
                 this.enabled,
                 this.deleted,
                 newRoles == null ? List.of() : List.copyOf(newRoles),
                 this.createdAt,
-                this.createdByUserId,
+                this.createdBy,
                 now,
                 operator,
-                this.versionNo + 1
+                this.deletedAt,
+                this.deletedBy
         );
     }
 
@@ -253,15 +264,16 @@ public class AuthAccount {
         return new AuthAccount(
                 this.id,
                 this.userId,
-                this.encodedPassword,
+                this.passwordHash,
                 this.enabled,
                 this.deleted,
                 List.copyOf(newRoleCodes),
                 this.createdAt,
-                this.createdByUserId,
+                this.createdBy,
                 now,
                 operator,
-                this.versionNo + 1
+                this.deletedAt,
+                this.deletedBy
         );
     }
 
@@ -278,15 +290,16 @@ public class AuthAccount {
         return new AuthAccount(
                 this.id,
                 this.userId,
-                this.encodedPassword,
+                this.passwordHash,
                 this.enabled,
                 this.deleted,
                 List.copyOf(newRoleCodes),
                 this.createdAt,
-                this.createdByUserId,
+                this.createdBy,
                 now,
                 operator,
-                this.versionNo + 1
+                this.deletedAt,
+                this.deletedBy
         );
     }
 
@@ -307,8 +320,8 @@ public class AuthAccount {
         return userId;
     }
 
-    public EncodedPassword encodedPassword() {
-        return encodedPassword;
+    public PasswordHash passwordHash() {
+        return passwordHash;
     }
 
     public boolean enabled() {
@@ -327,21 +340,26 @@ public class AuthAccount {
         return createdAt;
     }
 
-    public UserId createdByUserId() {
-        return createdByUserId;
+    public UserId createdBy() {
+        return createdBy;
     }
 
     public LocalDateTime updatedAt() {
         return updatedAt;
     }
 
-    public UserId updatedByUserId() {
-        return updatedByUserId;
+    public UserId updatedBy() {
+        return updatedBy;
     }
 
-    public long versionNo() {
-        return versionNo;
+    public LocalDateTime deletedAt() {
+        return deletedAt;
     }
+
+    public UserId deletedBy() {
+        return deletedBy;
+    }
+
 
     // ===== equals / hashCode / toString =====
 
@@ -366,7 +384,6 @@ public class AuthAccount {
                ", enabled=" + enabled +
                ", deleted=" + deleted +
                ", roleCodes=" + roleCodes +
-               ", versionNo=" + versionNo +
                '}';
     }
 }

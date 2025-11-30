@@ -1,8 +1,8 @@
-package com.myou.ec.ecsite.domain.auth.model.policy.rules;
+package com.myou.ec.ecsite.domain.auth.policy.rules;
 
-import com.myou.ec.ecsite.domain.auth.model.policy.PasswordRule;
-import com.myou.ec.ecsite.domain.auth.model.policy.PasswordViolation;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.policy.PasswordRule;
+import com.myou.ec.ecsite.domain.auth.policy.PasswordViolation;
 
 import java.util.Optional;
 

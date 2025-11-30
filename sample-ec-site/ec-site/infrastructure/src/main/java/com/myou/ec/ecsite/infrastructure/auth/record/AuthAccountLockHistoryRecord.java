@@ -10,8 +10,8 @@ public record AuthAccountLockHistoryRecord(
         Long authAccountLockHistoryId,
         long authAccountId,
         boolean locked,
-        LocalDateTime occurredAt,
         String reason,
+        LocalDateTime occurredAt,
         String operatedBy,
         LocalDateTime createdAt,
         String createdBy
@@ -22,8 +22,8 @@ public record AuthAccountLockHistoryRecord(
                 authAccountLockHistoryId,
                 new AuthAccountId(authAccountId),
                 locked,
-                occurredAt,
                 reason,
+                occurredAt,
                 new UserId(operatedBy),
                 createdAt,
                 new UserId(createdBy)
@@ -35,8 +35,8 @@ public record AuthAccountLockHistoryRecord(
                 event.id(),
                 event.authAccountId().value(),
                 event.locked(),
-                event.occurredAt(),
                 event.reason(),
+                event.occurredAt(),
                 event.operatedBy().value(),
                 event.createdAt(),
                 event.createdBy().value()

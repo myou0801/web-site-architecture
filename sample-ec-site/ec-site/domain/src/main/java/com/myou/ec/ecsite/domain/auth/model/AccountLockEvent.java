@@ -8,23 +8,19 @@ import java.util.Objects;
 
 /**
  * アカウントロック／ロック解除のイベント履歴 Entity。
+ *
+ * @param locked true=ロック / false=ロック解除
+ * @param reason 例: LOGIN_FAIL_THRESHOLD, ADMIN_UNLOCK 等
  */
-public class AccountLockEvent {
-
-    private final Long id;
-    private final AuthAccountId authAccountId;
-    private final boolean locked;          // true=ロック / false=ロック解除
-    private final LocalDateTime occurredAt;
-    private final String reason;           // 例: LOGIN_FAIL_THRESHOLD, ADMIN_UNLOCK 等
-    private final UserId operatedBy;
-    private final LocalDateTime createdAt;
-    private final UserId createdBy;
+public record AccountLockEvent(Long id, AuthAccountId authAccountId, boolean locked, String reason,
+                               LocalDateTime occurredAt,
+                               UserId operatedBy, LocalDateTime createdAt, UserId createdBy) {
 
     public AccountLockEvent(Long id,
                             AuthAccountId authAccountId,
                             boolean locked,
-                            LocalDateTime occurredAt,
                             String reason,
+                            LocalDateTime occurredAt,
                             UserId operatedBy,
                             LocalDateTime createdAt,
                             UserId createdBy) {
@@ -43,45 +39,13 @@ public class AccountLockEvent {
                                         LocalDateTime now,
                                         String reason,
                                         UserId operatedBy) {
-        return new AccountLockEvent(null, authAccountId, true, now, reason, operatedBy, now, operatedBy);
+        return new AccountLockEvent(null, authAccountId, true, reason, now, operatedBy, now, operatedBy);
     }
 
     public static AccountLockEvent unlock(AuthAccountId authAccountId,
                                           LocalDateTime now,
                                           String reason,
                                           UserId operatedBy) {
-        return new AccountLockEvent(null, authAccountId, false, now, reason, operatedBy, now, operatedBy);
-    }
-
-    public Long id() {
-        return id;
-    }
-
-    public AuthAccountId authAccountId() {
-        return authAccountId;
-    }
-
-    public boolean locked() {
-        return locked;
-    }
-
-    public LocalDateTime occurredAt() {
-        return occurredAt;
-    }
-
-    public String reason() {
-        return reason;
-    }
-
-    public UserId operatedBy() {
-        return operatedBy;
-    }
-
-    public LocalDateTime createdAt() {
-        return createdAt;
-    }
-
-    public UserId createdBy() {
-        return createdBy;
+        return new AccountLockEvent(null, authAccountId, false, reason, now, operatedBy, now, operatedBy);
     }
 }
