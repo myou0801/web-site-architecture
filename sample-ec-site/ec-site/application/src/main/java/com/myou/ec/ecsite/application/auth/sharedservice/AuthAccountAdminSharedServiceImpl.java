@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -31,19 +32,21 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final String initialPassword;
+    private final Clock clock;
 
     public AuthAccountAdminSharedServiceImpl(AuthAccountRepository authAccountRepository, AuthAccountRoleRepository authAccountRoleRepository,
 
                                              AuthPasswordHistoryRepository passwordHistoryRepository,
                                              AuthAccountLockHistoryRepository lockHistoryRepository,
                                              PasswordEncoder passwordEncoder,
-                                             @Value("${auth.initial-password:password123}") String initialPassword) {
+                                             @Value("${auth.initial-password:password123}") String initialPassword, Clock clock) {
         this.authAccountRepository = authAccountRepository;
         this.authAccountRoleRepository = authAccountRoleRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.lockHistoryRepository = lockHistoryRepository;
         this.passwordEncoder = passwordEncoder;
         this.initialPassword = initialPassword;
+        this.clock = clock;
     }
 
     @Override
@@ -54,7 +57,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         // パスワードハッシュ化
         PasswordHash passwordHash = new PasswordHash(passwordEncoder.encode(initialPassword));
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         // AuthAccount 作成 & 保存
         AuthAccount user = AuthAccount.newAccount(newUserId, passwordHash, now, operator);
         authAccountRepository.save(user);
@@ -92,7 +95,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         // パスワードハッシュ化
         PasswordHash passwordHash = new PasswordHash(passwordEncoder.encode(initialPassword));
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         // パスワード更新
         authAccountRepository.save(user.changePassword(passwordHash, now, operator));
@@ -128,7 +131,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
             return;
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         AccountLockEvent unlockEvent = AccountLockEvent.unlock(
                 user.id(),
@@ -143,7 +146,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     public void disableAccount(AuthAccountId targetAccountId, UserId operator) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         authAccountRepository.save(user.disable(now, operator));
     }
 
@@ -151,7 +154,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     public void enableAccount(AuthAccountId targetAccountId, UserId operator) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         authAccountRepository.save(user.enable(now, operator));
     }
 

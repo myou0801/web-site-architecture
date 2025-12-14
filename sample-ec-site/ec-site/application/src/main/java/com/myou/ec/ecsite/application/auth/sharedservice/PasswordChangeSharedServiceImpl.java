@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,15 +27,17 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicy passwordPolicy;
+    private final Clock clock;
 
     public PasswordChangeSharedServiceImpl(AuthAccountRepository authAccountRepository,
                                            AuthPasswordHistoryRepository passwordHistoryRepository,
                                            PasswordEncoder passwordEncoder,
-                                           PasswordPolicy passwordPolicy) {
+                                           PasswordPolicy passwordPolicy, Clock clock) {
         this.authAccountRepository = authAccountRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicy = passwordPolicy;
+        this.clock = clock;
     }
 
 
@@ -55,7 +58,7 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
             case ADMIN_RESET ->  PasswordChangeRequirementType.ADMIN_RESET;
             case INITIAL_REGISTER ->   PasswordChangeRequirementType.INITIAL_REGISTER;
             case USER_CHANGE -> {
-                ExpiredPasswordPolicy policy = new ExpiredPasswordPolicy(LocalDateTime.now());
+                ExpiredPasswordPolicy policy = new ExpiredPasswordPolicy(LocalDateTime.now(clock));
                 if(policy.isExpired(last.changedAt())){
                     yield PasswordChangeRequirementType.EXPIRED;
                 }
@@ -96,7 +99,7 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
         PasswordHash passwordHash = new PasswordHash(encoded);
 
         UserId operator = user.userId(); // 自分自身が変更
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         // ユーザのパスワード更新
         authAccountRepository.save(user.changePassword(passwordHash, now, operator));

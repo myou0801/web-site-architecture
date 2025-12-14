@@ -1,23 +1,31 @@
-package com.myou.ec.ecsite.application.auth.config;
+package com.myou.ec.ecsite.config;
 
-import com.myou.ec.ecsite.domain.auth.policy.CompositePasswordPolicy;
-import com.myou.ec.ecsite.domain.auth.policy.FixedThresholdLockPolicy;
-import com.myou.ec.ecsite.domain.auth.policy.LockPolicy;
-import com.myou.ec.ecsite.domain.auth.policy.PasswordPolicy;
+import com.myou.ec.ecsite.domain.auth.policy.*;
 import com.myou.ec.ecsite.domain.auth.policy.rules.AlphaNumericRule;
 import com.myou.ec.ecsite.domain.auth.policy.rules.MinLengthRule;
 import com.myou.ec.ecsite.domain.auth.policy.rules.NotSameAsLoginIdRule;
 import com.myou.ec.ecsite.domain.auth.policy.rules.RequiredRule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Clock;
 import java.util.List;
 
 @Configuration
-public class AuthPolicyConfig {
+public class ApplicationConfig {
 
-    // These values would typically come from application properties
-    // For now, hardcoding as per markdown's example
+    @Bean
+    public Clock clock() {
+        return Clock.systemDefaultZone();
+    }
+
+    @Bean
+    public static PasswordEncoder passwordEncoder() {
+        return NoOpPasswordEncoder.getInstance();
+    }
+
     @Bean
     public PasswordPolicy passwordPolicy() {
         return new CompositePasswordPolicy(List.of(
@@ -32,4 +40,15 @@ public class AuthPolicyConfig {
     public LockPolicy lockPolicy() {
         return new FixedThresholdLockPolicy();
     }
+
+//    @Bean
+//    public DormancyDaysPolicy dormancyDaysPolicy() {
+//        return new DormancyDaysPolicy();
+//    }
+
+    @Bean
+    public AccountExpiryPolicy  accountExpiryPolicy() {
+        return new AccountExpiryPolicy(90);
+    }
+
 }
