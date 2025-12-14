@@ -4,6 +4,7 @@ package com.myou.ec.ecsite.infrastructure.auth.repository;
 import com.myou.ec.ecsite.domain.auth.model.AccountExpiryEvent;
 import com.myou.ec.ecsite.domain.auth.model.AccountExpiryEvents;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountExpiryHistoryRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountExpiryHistoryMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AccountExpiryHistoryRecord;
@@ -28,7 +29,7 @@ public class AuthAccountExpiryHistoryRepositoryImpl implements AuthAccountExpiry
     }
 
     @Override
-    public void save(AccountExpiryEvent event, String createdBy) {
+    public void save(AccountExpiryEvent event, UserId createdBy) {
         mapper.insert(AccountExpiryHistoryRecord.fromDomain(event, createdBy));
     }
 }

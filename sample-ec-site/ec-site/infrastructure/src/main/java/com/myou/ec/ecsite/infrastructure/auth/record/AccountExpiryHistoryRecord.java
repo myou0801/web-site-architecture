@@ -28,7 +28,7 @@ public record AccountExpiryHistoryRecord(
         );
     }
 
-    public static AccountExpiryHistoryRecord fromDomain(AccountExpiryEvent ev, String createdBy) {
+    public static AccountExpiryHistoryRecord fromDomain(AccountExpiryEvent ev, UserId createdBy) {
         return new AccountExpiryHistoryRecord(
                 null,
                 ev.accountId().value(),
@@ -37,7 +37,7 @@ public record AccountExpiryHistoryRecord(
                 ev.occurredAt(),
                 ev.operatedBy() != null ? ev.operatedBy().value() : null,
                 null,
-                createdBy
+                createdBy.value()
         );
     }
 }

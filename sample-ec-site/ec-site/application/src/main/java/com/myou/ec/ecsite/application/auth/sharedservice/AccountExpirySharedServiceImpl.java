@@ -64,7 +64,7 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
                     now,
                     loginUserId
             );
-            expiryHistoryRepository.save(ev, loginUserId != null ? loginUserId.value() : "SYSTEM");
+            expiryHistoryRepository.save(ev, loginUserId != null ? loginUserId : new UserId("SYSTEM_USER"));
             return true;
         }
         return false;
@@ -85,7 +85,7 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
                 now,
                 operator
         );
-        expiryHistoryRepository.save(ev, operator.value());
+        expiryHistoryRepository.save(ev, operator);
     }
 
     private static Optional<LocalDateTime> max(Optional<LocalDateTime> a, Optional<LocalDateTime> b) {
