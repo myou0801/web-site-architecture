@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>ECサイト - メニュー</title>
+</head>
+<body>
+    <div th:replace="~{layout/header :: page_header}"></div>
+
+    <h1>メニュー</h1>
+    <ul>
+        <li><a href="#">業務画面Aへ</a></li>
+        <li><a href="#">業務画面Bへ</a></li>
+        <li><a href="/account/password/change">パスワード変更</a></li> <!-- Added link -->
+        <!-- Only show this link if the user has ADMIN role -->
+        <li sec:authorize="hasRole('ROLE_ADMIN')"><a href="/admin/accounts">アカウント管理</a></li>
+    </ul>
+
+</body>
+</html>

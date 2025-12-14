@@ -1,0 +1,122 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+package "AP基盤（認証スキーマ）" as AP #EEF7FF {
+
+  entity "AUTH_ACCOUNT" as AUTH_ACCOUNT {
+    * auth_account_id : BIGINT <<PK>>
+    --
+    * user_id : VARCHAR
+    * password_hash : VARCHAR
+    * enabled : BOOLEAN
+    * deleted : BOOLEAN
+    --
+    * created_at : TIMESTAMP
+    * created_by : VARCHAR
+    * updated_at : TIMESTAMP
+    * updated_by : VARCHAR
+    deleted_at : TIMESTAMP
+    deleted_by : VARCHAR
+  }
+
+  entity "AUTH_ROLE" as AUTH_ROLE {
+    * role_code : VARCHAR <<PK>>
+    --
+    * role_name : VARCHAR
+    * enabled : BOOLEAN
+    --
+    * created_at : TIMESTAMP
+    * created_by : VARCHAR
+    * updated_at : TIMESTAMP
+    * updated_by : VARCHAR
+  }
+
+  entity "AUTH_ACCOUNT_ROLE" as AUTH_ACCOUNT_ROLE {
+    * auth_account_id : BIGINT <<PK, FK>>
+    * role_code : VARCHAR <<PK, FK>>
+    --
+    * created_at : TIMESTAMP
+    * created_by : VARCHAR
+  }
+
+  entity "AUTH_PASSWORD_HISTORY" as AUTH_PASSWORD_HISTORY {
+    * auth_password_history_id : BIGINT <<PK>>
+    --
+    * auth_account_id : BIGINT <<FK>>
+    * password_hash : VARCHAR
+    * change_type : VARCHAR
+    * changed_at : TIMESTAMP
+    operated_by : VARCHAR
+    --
+    * created_at : TIMESTAMP
+    * created_by : VARCHAR
+  }
+
+  entity "AUTH_LOGIN_HISTORY" as AUTH_LOGIN_HISTORY {
+    * auth_login_history_id : BIGINT <<PK>>
+    --
+    * auth_account_id : BIGINT <<FK>>
+    * result : VARCHAR
+    * login_at : TIMESTAMP
+    --
+    * created_at : TIMESTAMP
+    * created_by : VARCHAR
+  }
+
+  entity "AUTH_ACCOUNT_LOCK_HISTORY" as AUTH_ACCOUNT_LOCK_HISTORY {
+    * auth_account_lock_history_id : BIGINT <<PK>>
+    --
+    * auth_account_id : BIGINT <<FK>>
+    * locked : BOOLEAN
+    * reason : VARCHAR
+    * occurred_at : TIMESTAMP
+    operated_by : VARCHAR
+    --
+    * created_at : TIMESTAMP
+    * created_by : VARCHAR
+  }
+
+  AUTH_ACCOUNT ||--o{ AUTH_PASSWORD_HISTORY : "1:N"
+  AUTH_ACCOUNT ||--o{ AUTH_LOGIN_HISTORY : "1:N"
+  AUTH_ACCOUNT ||--o{ AUTH_ACCOUNT_LOCK_HISTORY : "1:N"
+
+  AUTH_ACCOUNT ||--o{ AUTH_ACCOUNT_ROLE : "1:N"
+  AUTH_ROLE    ||--o{ AUTH_ACCOUNT_ROLE : "1:N"
+}
+
+package "業務（業務スキーマ：仮）" as BIZ #FFF7EE {
+
+  entity "BIZ_USER_PROFILE（仮：ユーザ詳細）" as BIZ_USER_PROFILE {
+    * biz_user_profile_id : BIGINT <<PK>>
+    --
+    * auth_account_id : BIGINT <<FK(→AUTH_ACCOUNT)>>
+    --
+    display_name : VARCHAR
+    email : VARCHAR
+    department : VARCHAR
+    note : VARCHAR
+    --
+    * created_at : TIMESTAMP
+    * created_by : VARCHAR
+    updated_at : TIMESTAMP
+    updated_by : VARCHAR
+  }
+
+}
+
+' 境界をまたぐ参照（業務→AP基盤）
+BIZ_USER_PROFILE }o--|| AUTH_ACCOUNT : "N:1（参照）"
+
+note right of BIZ_USER_PROFILE
+業務のユーザ詳細は仮テーブル。
+内部不変ID（auth_account_id）で
+AP基盤の AUTH_ACCOUNT と紐付ける想定。
+end note
+
+note bottom of AUTH_LOGIN_HISTORY
+AUTH_LOGIN_HISTORY は A案：
+存在するアカウントに紐づく履歴のみ保持（auth_account_id NOT NULL）
+end note
+
+@enduml

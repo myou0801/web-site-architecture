@@ -19,7 +19,14 @@ note right of AuthFailure
     - 失敗回数カウントアップ
     - 6回連続でアカウントロック
 end note
-AuthFailure --> Login : エラー表示
+AuthFailure --> LoginFailure
+
+state LoginFailure as "ログイン失敗画面"
+note right of LoginFailure
+  - エラーメッセージ表示
+  - ログイン画面へ戻るボタン
+end note
+LoginFailure --> Login : 戻る
 
 state AuthSuccess as "認証成功"
 note right of AuthSuccess
@@ -44,7 +51,14 @@ end note
 PwdChange --> PwdChangeProcess : 変更実行
 state PwdChangeProcess as "パスワード変更処理"
 PwdChangeProcess --> PwdChange : ポリシー違反エラー
-PwdChangeProcess --> Menu : 変更成功
+PwdChangeProcess --> PwdChangeSuccess : 変更成功
+
+state PwdChangeSuccess as "パスワード変更完了画面"
+note right of PwdChangeSuccess
+  - 変更完了メッセージ
+  - メニュー画面へ
+end note
+PwdChangeSuccess --> Menu
 
 state Menu as "メニュー画面"
 note left of Menu

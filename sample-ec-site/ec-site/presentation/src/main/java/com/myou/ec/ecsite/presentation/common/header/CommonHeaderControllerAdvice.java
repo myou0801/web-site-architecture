@@ -1,6 +1,6 @@
 package com.myou.ec.ecsite.presentation.common.header;
 
-import com.myou.ec.ecsite.application.auth.security.AuthAccountDetails;
+import com.myou.ec.ecsite.presentation.auth.security.userdetails.AuthAccountDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;

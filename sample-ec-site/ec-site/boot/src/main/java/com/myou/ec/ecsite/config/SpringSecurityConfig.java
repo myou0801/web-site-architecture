@@ -32,7 +32,7 @@ class SpringSecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .usernameParameter("username") // Match the parameter name in AuthAuthenticationFailureHandler
+                        .usernameParameter("userId") // Match the parameter name in AuthAuthenticationFailureHandler
                         .passwordParameter("password")
                         .successHandler(successHandler)
                         .failureHandler(failureHandler)
@@ -55,7 +55,7 @@ class SpringSecurityConfig {
     @Bean
     public AuthAuthenticationSuccessHandler authAuthenticationSuccessHandler(
             PasswordChangeSharedService passwordChangeSharedService,
-            @Value("${auth.default-success-url:/user/index}") String defaultSuccessUrl
+            @Value("${auth.default-success-url:/menu}") String defaultSuccessUrl
     ) {
         AuthAuthenticationSuccessHandler h = new AuthAuthenticationSuccessHandler(passwordChangeSharedService);
         h.setDefaultTargetUrl(defaultSuccessUrl);

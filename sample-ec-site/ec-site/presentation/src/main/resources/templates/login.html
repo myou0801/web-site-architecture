@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>ECサイト ログイン</title>
+</head>
+<body>
+    <h1>ECサイト ログイン</h1>
+    <form th:action="@{/login}" method="post">
+        <div>
+            <label for="userId">ユーザーID:</label>
+            <input type="text" id="userId" name="userId" autofocus="autofocus" />
+        </div>
+        <div>
+            <label for="password">パスワード:</label>
+            <input type="password" id="password" name="password" />
+        </div>
+        <div>
+            <button type="submit">ログイン</button>
+        </div>
+    </form>
+</body>
+</html>

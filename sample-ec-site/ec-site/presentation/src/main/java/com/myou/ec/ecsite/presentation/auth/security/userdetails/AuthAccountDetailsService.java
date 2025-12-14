@@ -70,7 +70,7 @@ public class AuthAccountDetailsService implements UserDetailsService {
 
 
         List<SimpleGrantedAuthority> authorities = authAccountRoleRepository.findRolesByAccountId(accountId).stream()
-                .map(rc -> new SimpleGrantedAuthority("ROLE_" + rc.value()))
+                .map(rc -> new SimpleGrantedAuthority(rc.value()))
                 .toList();
 
         boolean enabled = user.canLogin();     // 無効フラグ等を見ている想定

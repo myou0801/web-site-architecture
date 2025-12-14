@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<header th:fragment="page_header">
+    <span>ECサイト</span>
+    <div sec:authorize="isAuthenticated()">
+        <span>ようこそ、<span sec:authentication="principal.username"></span> さん</span>
+        <br>
+        <span>前回ログイン:</span>
+        <span th:if="${#authentication.principal.previousLoginAt != null}"
+              th:text="${#temporals.format(#authentication.principal.previousLoginAt, 'yyyy/MM/dd HH:mm')}">
+            </span>
+        <span th:if="${#authentication.principal.previousLoginAt == null}">
+                (初回ログイン)
+            </span>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit">ログアウト</button>
+        </form>
+    </div>
+</header>
+</body>
+</html>
