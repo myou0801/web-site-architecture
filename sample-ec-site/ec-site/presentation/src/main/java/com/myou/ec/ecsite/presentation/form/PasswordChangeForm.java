@@ -1,5 +1,6 @@
 package com.myou.ec.ecsite.presentation.form;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 
 public class PasswordChangeForm {
@@ -35,5 +36,10 @@ public class PasswordChangeForm {
 
     public void setConfirmPassword(String confirmPassword) {
         this.confirmPassword = confirmPassword;
+    }
+
+    @AssertTrue(message = "新しいパスワードと確認用パスワードが一致しません。")
+    public boolean isValidConfirmPassword(){
+        return newPassword.equals(confirmPassword);
     }
 }

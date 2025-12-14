@@ -47,11 +47,6 @@ public class PasswordChangeController {
         if (bindingResult.hasErrors()) {
             return "account/passwordChange";
         }
-        
-        if (!form.getNewPassword().equals(form.getConfirmPassword())) {
-            bindingResult.rejectValue("confirmPassword", "passwordChangeForm.confirmPassword.unmatch", "新しいパスワードと確認用パスワードが一致しません。");
-            return "account/passwordChange";
-        }
 
         try {
             passwordChangeSharedService.changePassword(
