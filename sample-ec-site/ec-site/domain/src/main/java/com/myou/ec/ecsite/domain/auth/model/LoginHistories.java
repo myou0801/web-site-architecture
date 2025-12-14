@@ -75,11 +75,11 @@ public class LoginHistories {
                 break; // 成功が出たらそこで連続失敗は終了
             }
 
-            if (result == LoginResult.FAIL) {
+            if (result == LoginResult.FAILURE) {
                 count++;
             }
 
-            // LOCKED / DISABLED は countしない
+            // LOCKED / DISABLED / DORMANT は countしない
         }
         return count;
     }

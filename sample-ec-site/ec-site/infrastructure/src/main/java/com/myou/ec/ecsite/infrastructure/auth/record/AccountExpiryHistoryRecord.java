@@ -1,0 +1,43 @@
+package com.myou.ec.ecsite.infrastructure.auth.record;
+
+
+import com.myou.ec.ecsite.domain.auth.model.AccountExpiryEvent;
+import com.myou.ec.ecsite.domain.auth.model.value.AccountExpiryEventType;
+import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+
+import java.time.LocalDateTime;
+
+public record AccountExpiryHistoryRecord(
+        Long authAccountExpiryHistoryId,
+        long authAccountId,
+        String eventType,
+        String reason,
+        LocalDateTime occurredAt,
+        String operatedBy,
+        LocalDateTime createdAt,
+        String createdBy
+) {
+    public AccountExpiryEvent toDomain() {
+        return new AccountExpiryEvent(
+                new AuthAccountId(authAccountId),
+                AccountExpiryEventType.valueOf(eventType),
+                reason,
+                occurredAt,
+                operatedBy != null ? new UserId(operatedBy) : null
+        );
+    }
+
+    public static AccountExpiryHistoryRecord fromDomain(AccountExpiryEvent ev, String createdBy) {
+        return new AccountExpiryHistoryRecord(
+                null,
+                ev.accountId().value(),
+                ev.eventType().name(),
+                ev.reason(),
+                ev.occurredAt(),
+                ev.operatedBy() != null ? ev.operatedBy().value() : null,
+                null,
+                createdBy
+        );
+    }
+}

@@ -38,7 +38,7 @@ public record LoginHistory(Long id, AuthAccountId authAccountId, LoginResult res
     public static LoginHistory fail(AuthAccountId authAccountId,
                                     LocalDateTime loginAt,
                                     UserId createdBy) {
-        return new LoginHistory(null, authAccountId, LoginResult.FAIL, loginAt,
+        return new LoginHistory(null, authAccountId, LoginResult.FAILURE, loginAt,
                 loginAt, createdBy);
     }
 
@@ -53,6 +53,13 @@ public record LoginHistory(Long id, AuthAccountId authAccountId, LoginResult res
                                         LocalDateTime loginAt,
                                         UserId createdBy) {
         return new LoginHistory(null, authAccountId, LoginResult.DISABLED, loginAt,
+                loginAt, createdBy);
+    }
+
+    public static LoginHistory expired(AuthAccountId authAccountId,
+                                       LocalDateTime loginAt,
+                                       UserId createdBy) {
+        return new LoginHistory(null, authAccountId, LoginResult.EXPIRED, loginAt,
                 loginAt, createdBy);
     }
 }

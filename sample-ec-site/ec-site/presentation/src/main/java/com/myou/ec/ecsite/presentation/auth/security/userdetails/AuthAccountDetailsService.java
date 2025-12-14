@@ -1,5 +1,6 @@
-package com.myou.ec.ecsite.application.auth.security;
+package com.myou.ec.ecsite.presentation.auth.security.userdetails;
 
+import com.myou.ec.ecsite.application.auth.sharedservice.AccountExpirySharedService;
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvents;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,15 +27,22 @@ public class AuthAccountDetailsService implements UserDetailsService {
     private final AuthAccountRoleRepository authAccountRoleRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
     private final AuthLoginHistoryRepository loginHistoryRepository;
+    private final AccountExpirySharedService accountExpirySharedService;
+    private final Clock clock;
+
 
     public AuthAccountDetailsService(AuthAccountRepository authAccountRepository,
                                      AuthAccountRoleRepository authAccountRoleRepository,
                                      AuthAccountLockHistoryRepository lockHistoryRepository,
-                                     AuthLoginHistoryRepository loginHistoryRepository) {
+                                     AuthLoginHistoryRepository loginHistoryRepository,
+                                     AccountExpirySharedService accountExpirySharedService,
+                                     Clock clock) {
         this.authAccountRepository = authAccountRepository;
         this.authAccountRoleRepository = authAccountRoleRepository;
         this.lockHistoryRepository = lockHistoryRepository;
         this.loginHistoryRepository = loginHistoryRepository;
+        this.accountExpirySharedService = accountExpirySharedService;
+        this.clock = clock;
     }
 
     @Override
@@ -46,28 +55,26 @@ public class AuthAccountDetailsService implements UserDetailsService {
 
         AuthAccountId accountId = user.id();
 
-        // ロック状態の判定
-        boolean locked = false;
-        if (accountId != null) {
-            AccountLockEvents lockEvents = lockHistoryRepository.findByAccountId(accountId, 20);
-            locked = lockEvents.isLocked();
-        }
-
         // 前回ログイン日時（今回ログインより前の SUCCESS）
-        LocalDateTime previousLoginAt = null;
-        if (accountId != null) {
-            previousLoginAt = loginHistoryRepository
-                    .findLatestSuccessByAccountId(accountId)
-                    .map(LoginHistory::loginAt)
-                    .orElse(null);
-        }
+        LocalDateTime previousLoginAt = loginHistoryRepository
+                .findLatestSuccessByAccountId(accountId)
+                .map(LoginHistory::loginAt)
+                .orElse(null);
+
+        // 休眠状態かの判定
+        boolean expired = accountExpirySharedService.evaluateAndExpireIfNeeded(accountId, userId);
+
+        // ロック状態の判定
+        AccountLockEvents lockEvents = lockHistoryRepository.findByAccountId(accountId, 20);
+        boolean locked = lockEvents.isLocked();
+
 
         List<SimpleGrantedAuthority> authorities = authAccountRoleRepository.findRolesByAccountId(accountId).stream()
                 .map(rc -> new SimpleGrantedAuthority("ROLE_" + rc.value()))
                 .toList();
 
         boolean enabled = user.canLogin();     // 無効フラグ等を見ている想定
-        boolean accountNonExpired = true;
+        boolean accountNonExpired = !expired;
         boolean credentialsNonExpired = true;
         boolean accountNonLocked = !locked;
 
@@ -83,4 +90,5 @@ public class AuthAccountDetailsService implements UserDetailsService {
                 previousLoginAt
         );
     }
+
 }

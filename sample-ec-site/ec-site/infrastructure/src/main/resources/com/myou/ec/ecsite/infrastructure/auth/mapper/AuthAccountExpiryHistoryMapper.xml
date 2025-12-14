@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountExpiryHistoryMapper">
+
+    <resultMap id="AccountExpiryHistoryRecordMap" type="com.myou.ec.ecsite.infrastructure.auth.record.AccountExpiryHistoryRecord">
+        <id     column="auth_account_expiry_history_id" property="authAccountExpiryHistoryId"/>
+        <result column="auth_account_id"                property="authAccountId"/>
+        <result column="event_type"                     property="eventType"/>
+        <result column="reason"                         property="reason"/>
+        <result column="occurred_at"                    property="occurredAt"/>
+        <result column="operated_by"                    property="operatedBy"/>
+        <result column="created_at"                     property="createdAt"/>
+        <result column="created_by"                     property="createdBy"/>
+    </resultMap>
+
+    <select id="selectByAccountId" resultMap="AccountExpiryHistoryRecordMap">
+        SELECT
+            auth_account_expiry_history_id,
+            auth_account_id,
+            event_type,
+            reason,
+            occurred_at,
+            operated_by,
+            created_at,
+            created_by
+        FROM AUTH_ACCOUNT_EXPIRY_HISTORY
+        WHERE auth_account_id = #{authAccountId}
+        ORDER BY occurred_at DESC, auth_account_expiry_history_id DESC
+    </select>
+
+    <insert id="insert">
+        INSERT INTO AUTH_ACCOUNT_EXPIRY_HISTORY (
+            auth_account_id,
+            event_type,
+            reason,
+            occurred_at,
+            operated_by,
+            created_at,
+            created_by
+        ) VALUES (
+            #{r.authAccountId},
+            #{r.eventType},
+            #{r.reason},
+            #{r.occurredAt},
+            #{r.operatedBy},
+            CURRENT_TIMESTAMP,
+            #{r.createdBy}
+        )
+    </insert>
+
+</mapper>

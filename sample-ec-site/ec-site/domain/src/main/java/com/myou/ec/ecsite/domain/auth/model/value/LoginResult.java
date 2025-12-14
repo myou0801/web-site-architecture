@@ -5,7 +5,8 @@ package com.myou.ec.ecsite.domain.auth.model.value;
  */
 public enum LoginResult {
     SUCCESS,
-    FAIL,
+    FAILURE,
     LOCKED,
-    DISABLED
+    DISABLED,
+    EXPIRED
 }

@@ -6,12 +6,14 @@ import com.myou.ec.ecsite.domain.auth.model.*;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.policy.LockPolicy;
+import com.myou.ec.ecsite.domain.auth.repository.AuthAccountExpiryHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -22,16 +24,20 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
     private final AuthAccountRepository authAccountRepository;
     private final AuthLoginHistoryRepository loginHistoryRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
+    private final AuthAccountExpiryHistoryRepository accountExpiryHistoryRepository;
     private final LockPolicy lockPolicy;
+    private final Clock clock;
 
     public LoginProcessSharedServiceImpl(AuthAccountRepository authAccountRepository,
                                          AuthLoginHistoryRepository loginHistoryRepository,
-                                         AuthAccountLockHistoryRepository lockHistoryRepository,
-                                         LockPolicy lockPolicy) {
+                                         AuthAccountLockHistoryRepository lockHistoryRepository, AuthAccountExpiryHistoryRepository accountExpiryHistoryRepository,
+                                         LockPolicy lockPolicy, Clock clock) {
         this.authAccountRepository = authAccountRepository;
         this.loginHistoryRepository = loginHistoryRepository;
         this.lockHistoryRepository = lockHistoryRepository;
+        this.accountExpiryHistoryRepository = accountExpiryHistoryRepository;
         this.lockPolicy = lockPolicy;
+        this.clock = clock;
     }
 
     @Override
@@ -44,7 +50,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
             throw new AuthDomainException("アカウントID未採番のためログイン履歴を記録できません。");
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         // ログイン成功履歴を登録
         LoginHistory successHistory = LoginHistory.success(
@@ -77,7 +83,15 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
             return;
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        AccountExpiryEvents expiryEvents = accountExpiryHistoryRepository.findByAccountId(accountId);
+
+        // アカウント有効期限切れ
+        if (expiryEvents.isExpired()) {
+            loginHistoryRepository.save(LoginHistory.expired(accountId, now, userId));
+            return;
+        }
 
         if (!user.canLogin()) {
             // ★ DISABLED として履歴を残し、ロック判定はしない
@@ -86,7 +100,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
         }
 
         // ◆ ロックイベント一覧から現在のロック状態を判定
-        AccountLockEvents lockEvents = lockHistoryRepository.findByAccountId(accountId,20);
+        AccountLockEvents lockEvents = lockHistoryRepository.findByAccountId(accountId, 20);
 
         if (lockEvents.isLocked()) {
             // すでにロック中のアカウントによるログイン試行は 'LOCKED' として履歴のみ記録（連続失敗カウントには影響しない）。
@@ -136,7 +150,6 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
             lockHistoryRepository.save(lockEvent);
         }
     }
-
 
 
 }
