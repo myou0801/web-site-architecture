@@ -1,4 +1,4 @@
-package com.myou.ec.ecsite.application.auth.security;
+package com.myou.ec.ecsite.presentation.auth.security.userdetails;
 
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import org.springframework.security.core.GrantedAuthority;

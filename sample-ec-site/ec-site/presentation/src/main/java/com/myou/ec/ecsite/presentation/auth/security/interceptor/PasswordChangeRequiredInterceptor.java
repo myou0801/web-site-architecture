@@ -1,8 +1,8 @@
-package com.myou.ec.ecsite.presentation.auth.interceptor;
+package com.myou.ec.ecsite.presentation.auth.security.interceptor;
 
-import com.myou.ec.ecsite.application.auth.security.AuthAccountDetails;
 import com.myou.ec.ecsite.application.auth.sharedservice.PasswordChangeSharedService;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.presentation.auth.security.userdetails.AuthAccountDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;

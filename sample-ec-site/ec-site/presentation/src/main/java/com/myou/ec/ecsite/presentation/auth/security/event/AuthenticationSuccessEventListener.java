@@ -1,29 +1,29 @@
-package com.myou.ec.ecsite.presentation.auth.event;
+package com.myou.ec.ecsite.presentation.auth.security.event;
 
 import com.myou.ec.ecsite.application.auth.sharedservice.LoginProcessSharedService;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import org.springframework.context.event.EventListener;
-import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AuthenticationFailureEventListener {
+public class AuthenticationSuccessEventListener {
 
     private final LoginProcessSharedService loginProcessSharedService;
 
-    public AuthenticationFailureEventListener(LoginProcessSharedService loginProcessSharedService) {
+    public AuthenticationSuccessEventListener(LoginProcessSharedService loginProcessSharedService) {
         this.loginProcessSharedService = loginProcessSharedService;
     }
 
     @EventListener
-    public void handle(AbstractAuthenticationFailureEvent event) {
+    public void handle(AuthenticationSuccessEvent event) {
         Authentication authentication = event.getAuthentication();
         String loginIdStr = extractLoginId(authentication);
         UserId loginId = new UserId(loginIdStr);
-        loginProcessSharedService.onLoginFailure(loginId);
+        loginProcessSharedService.onLoginSuccess(loginId);
     }
 
     private String extractLoginId(Authentication authentication) {
@@ -37,4 +37,3 @@ public class AuthenticationFailureEventListener {
         throw new AuthDomainException("認証情報からログインIDを取得できません。");
     }
 }
-

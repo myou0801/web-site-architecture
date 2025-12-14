@@ -17,7 +17,7 @@ subprojects {
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
+            languageVersion = JavaLanguageVersion.of(25)
         }
     }
 
@@ -54,23 +54,29 @@ project(":boot") {
         implementation project(':domain')
 
         implementation libs.spring.boot.starter.actuator
-        implementation libs.spring.boot.starter.data.jdbc
-        implementation libs.spring.boot.starter.data.redis
         implementation libs.spring.boot.starter.security
         implementation libs.spring.boot.starter.thymeleaf
         implementation libs.spring.boot.starter.web
-        implementation libs.spring.cloud.starter.config
-        implementation libs.spring.cloud.starter.bus.amqp
-        implementation libs.spring.session.data.redis
+
+
+
         implementation libs.mybatis.spring.boot.starter
         implementation libs.thymeleaf.extras.springsecurity6
-        implementation libs.awspring.cloud.starter
-        implementation libs.awspring.cloud.starter.s3
-        implementation libs.awspring.cloud.starter.sqs
-        implementation libs.awspring.cloud.starter.parameter.store
-        implementation libs.awspring.cloud.starter.secrets.manager
-        implementation libs.awspring.cloud.starter.metrics
-        implementation libs.awspring.cloud.aws.testcontainers
+
+        implementation libs.spring.session.data.redis
+//        implementation libs.spring.boot.starter.data.jdbc
+//        implementation libs.spring.boot.starter.data.redis
+
+        // いったんAWS周りは利用しない
+//        implementation libs.spring.cloud.starter.config
+//        implementation libs.spring.cloud.starter.bus.amqp
+//        implementation libs.awspring.cloud.starter
+//        implementation libs.awspring.cloud.starter.s3
+//        implementation libs.awspring.cloud.starter.sqs
+//        implementation libs.awspring.cloud.starter.parameter.store
+//        implementation libs.awspring.cloud.starter.secrets.manager
+//        implementation libs.awspring.cloud.starter.metrics
+//        implementation libs.awspring.cloud.aws.testcontainers
 
         implementation libs.micrometer.tracing.bridge.otel
         implementation libs.opentelemetry.exporter.otlp
@@ -89,6 +95,8 @@ project(":boot") {
 }
 
 project(":presentation") {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
 
     dependencies {
         implementation project(':application')
@@ -98,7 +106,10 @@ project(":presentation") {
         implementation libs.spring.boot.starter.web
         implementation libs.spring.boot.starter.security
         implementation libs.spring.boot.starter.thymeleaf
+        implementation libs.spring.boot.starter.validation
+        implementation libs.thymeleaf.layout.dialect
         implementation libs.spring.session.data.redis
+
         implementation libs.spring.cloud.starter.config
 
         implementation libs.micrometer.tracing.bridge.otel
@@ -131,11 +142,14 @@ project(":infrastructure") {
         implementation project(':domain')
 
         implementation libs.spring.boot.starter.data.jdbc
-        implementation libs.spring.boot.starter.data.redis
+//        implementation libs.spring.boot.starter.data.redis
         implementation libs.mybatis.spring.boot.starter
 
-        implementation libs.awspring.cloud.starter
-        implementation libs.awspring.cloud.starter.s3
+        // いったんAWS周りは利用しない
+//        implementation libs.awspring.cloud.starter
+//        implementation libs.awspring.cloud.starter.s3
+
+
         implementation libs.apache.httpcomponents.client5
 
         runtimeOnly libs.h2

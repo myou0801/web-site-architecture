@@ -9,6 +9,7 @@ logbackAccessTomcatVersion = "2.0.7"
 lombokVersion = "1.18.42"
 thymeleafExtrasSpringsecurity6Version = "3.1.3.RELEASE"
 apacheHttpcomponentsClient5Version = "5.5.1"
+thymeleafLayoutDialectVersion = "3.3.0"
 mybatisSpringbootStarterVersion = "3.0.5"
 
 [plugins]
@@ -33,6 +34,7 @@ spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boo
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot-starter-thymeleaf = { module = "org.springframework.boot:spring-boot-starter-thymeleaf" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
 
@@ -46,6 +48,7 @@ spring-security-test = { module = "org.springframework.security:spring-security-
 
 # Thymeleaf Extras
 thymeleaf-extras-springsecurity6 = { module = "org.thymeleaf.extras:thymeleaf-extras-springsecurity6", version.ref = "thymeleafExtrasSpringsecurity6Version" }
+thymeleaf-layout-dialect = { module = "nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect", version.ref = "thymeleafLayoutDialectVersion" }
 
 # AWS Spring Cloud
 awspring-cloud-starter = { module = "io.awspring.cloud:spring-cloud-aws-starter" }

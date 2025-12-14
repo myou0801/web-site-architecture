@@ -9,22 +9,30 @@ public class ExpiredPasswordPolicy {
     // パスワード有効期限
     private static final long EXPIRE_DAYS = 90;
 
-    private final LocalDateTime now;
+    private static final int DORMACNY_DAYS = 15;
 
-    public ExpiredPasswordPolicy(LocalDateTime now) {
-        this.now = now;
+
+    private final LocalDateTime lastSuccessAt;
+
+    public ExpiredPasswordPolicy(LocalDateTime lastSuccessAt) {
+        this.lastSuccessAt = lastSuccessAt;
     }
 
-    public boolean isExpired(LocalDateTime lastChangedAt) {
-        if (lastChangedAt == null) {
+    public boolean isExpired(LocalDateTime now) {
+        if (lastSuccessAt == null) {
             // 安全側：不明なら期限切れ扱い
             return true;
         }
 
-        LocalDate changedDate = lastChangedAt.toLocalDate();
+        LocalDate changedDate = lastSuccessAt.toLocalDate();
         LocalDate nowDate = now.toLocalDate();
         long days = ChronoUnit.DAYS.between(changedDate, nowDate);
 
         return days >= EXPIRE_DAYS;
+    }
+
+    public boolean validateDormancyDays(LocalDateTime now) {
+        var threshold = now.minusDays(DORMACNY_DAYS);
+        return !lastSuccessAt.isBefore(threshold);
     }
 }

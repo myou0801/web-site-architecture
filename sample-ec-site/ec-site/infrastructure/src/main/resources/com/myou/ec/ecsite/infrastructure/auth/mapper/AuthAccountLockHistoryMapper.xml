@@ -5,8 +5,7 @@
 
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountLockHistoryMapper">
 
-    <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord"
-            useGeneratedKeys="true" keyProperty="authAccountLockHistoryId">
+    <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountLockHistoryRecord">
         INSERT INTO AUTH_ACCOUNT_LOCK_HISTORY (auth_account_id,
                                                locked,
                                                reason,

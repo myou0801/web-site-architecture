@@ -14,6 +14,17 @@ spring:
     init:
       schema-locations:
         - classpath:schema.sql
+      data-locations:
+        - classpath:test-data.sql
+
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testDB
+    name: sa
+
+  h2:
+    console:
+      enabled: true
 
 management:
   endpoints.web.exposure.include: "*"

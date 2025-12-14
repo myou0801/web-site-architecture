@@ -58,8 +58,8 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
             case ADMIN_RESET ->  PasswordChangeRequirementType.ADMIN_RESET;
             case INITIAL_REGISTER ->   PasswordChangeRequirementType.INITIAL_REGISTER;
             case USER_CHANGE -> {
-                ExpiredPasswordPolicy policy = new ExpiredPasswordPolicy(LocalDateTime.now(clock));
-                if(policy.isExpired(last.changedAt())){
+                ExpiredPasswordPolicy policy = new ExpiredPasswordPolicy(last.changedAt());
+                if(policy.isExpired(LocalDateTime.now(clock))){
                     yield PasswordChangeRequirementType.EXPIRED;
                 }
                 yield PasswordChangeRequirementType.NONE;

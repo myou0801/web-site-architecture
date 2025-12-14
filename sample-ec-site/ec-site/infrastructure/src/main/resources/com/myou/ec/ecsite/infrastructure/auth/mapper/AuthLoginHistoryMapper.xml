@@ -5,8 +5,7 @@
 
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthLoginHistoryMapper">
 
-    <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord"
-            useGeneratedKeys="true" keyProperty="authLoginHistoryId">
+    <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord">
         INSERT INTO AUTH_LOGIN_HISTORY (
             auth_account_id,
             result,

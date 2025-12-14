@@ -1,4 +1,4 @@
-package com.myou.ec.ecsite.presentation.auth.security;
+package com.myou.ec.ecsite.presentation.auth.security.handler;
 
 import com.myou.ec.ecsite.application.auth.sharedservice.PasswordChangeSharedService;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
