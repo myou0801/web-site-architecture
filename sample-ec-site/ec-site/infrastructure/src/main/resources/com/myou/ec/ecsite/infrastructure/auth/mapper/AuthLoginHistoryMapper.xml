@@ -10,13 +10,11 @@
             auth_account_id,
             result,
             login_at,
-            created_at,
             created_by
         ) VALUES (
                      #{authAccountId},
                      #{result},
                      #{loginAt},
-                     #{createdAt},
                      #{createdBy}
                  )
     </insert>

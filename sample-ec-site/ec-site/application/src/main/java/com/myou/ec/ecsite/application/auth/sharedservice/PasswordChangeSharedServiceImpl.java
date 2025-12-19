@@ -102,13 +102,13 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
         LocalDateTime now = LocalDateTime.now(clock);
 
         // ユーザのパスワード更新
-        authAccountRepository.save(user.changePassword(passwordHash, now, operator));
+        authAccountRepository.save(user.changePassword(passwordHash), operator);
 
         // パスワード履歴登録
 
 
         PasswordHistory history = PasswordHistory.userChange(accountId, passwordHash, now, operator);
-        passwordHistoryRepository.save(history);
+        passwordHistoryRepository.save(history, operator);
     }
 
 

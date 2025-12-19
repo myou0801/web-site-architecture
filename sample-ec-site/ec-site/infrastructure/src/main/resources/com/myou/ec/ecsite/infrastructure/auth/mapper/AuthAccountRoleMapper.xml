@@ -16,12 +16,10 @@
         INSERT INTO AUTH_ACCOUNT_ROLE (
             auth_account_id,
             role_code,
-            created_at,
             created_by
         ) VALUES (
             #{authAccountId},
             #{roleCode},
-            #{createdAt},
             #{createdBy}
         )
     </insert>

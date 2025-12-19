@@ -4,6 +4,7 @@ import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginResult;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +13,7 @@ public record AuthLoginHistoryRecord(
         long authAccountId,
         String result,
         LocalDateTime loginAt,
-        LocalDateTime createdAt,
+        @Nullable LocalDateTime createdAt, // Nullable as per policy
         String createdBy
 ) {
 
@@ -21,20 +22,18 @@ public record AuthLoginHistoryRecord(
                 authLoginHistoryId,
                 new AuthAccountId(authAccountId),
                 LoginResult.valueOf(result),
-                loginAt,
-                createdAt,
-                new UserId(createdBy)
+                loginAt
         );
     }
 
-    public static AuthLoginHistoryRecord fromDomain(LoginHistory history) {
+    public static AuthLoginHistoryRecord fromDomain(LoginHistory history, UserId createdByApp) {
         return new AuthLoginHistoryRecord(
                 history.id(),
                 history.authAccountId().value(),
                 history.result().name(),
                 history.loginAt(),
-                history.createdAt(),
-                history.createdBy().value()
+                null, // createdAt is handled by DB
+                createdByApp.value()
         );
     }
 }

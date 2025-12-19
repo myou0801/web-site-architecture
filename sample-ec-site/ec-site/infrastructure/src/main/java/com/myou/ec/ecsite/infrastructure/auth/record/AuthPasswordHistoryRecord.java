@@ -5,6 +5,7 @@ import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordChangeType;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
 
@@ -14,8 +15,8 @@ public record AuthPasswordHistoryRecord(
         String passwordHash,
         String changeType,
         LocalDateTime changedAt,
-        String operatedBy,
-        LocalDateTime createdAt,
+        @Nullable String operatedBy,
+        @Nullable LocalDateTime createdAt, // Nullable as per policy
         String createdBy
 ) {
 
@@ -26,22 +27,20 @@ public record AuthPasswordHistoryRecord(
                 new PasswordHash(passwordHash),
                 PasswordChangeType.valueOf(changeType),
                 changedAt,
-                operatedBy != null ? new UserId(operatedBy) : null,
-                createdAt,
-                new UserId(createdBy)
+                operatedBy != null ? new UserId(operatedBy) : null
         );
     }
 
-    public static AuthPasswordHistoryRecord fromDomain(PasswordHistory history) {
+    public static AuthPasswordHistoryRecord fromDomain(PasswordHistory history, UserId createdByApp) {
         return new AuthPasswordHistoryRecord(
                 history.id(),
                 history.authAccountId().value(),
                 history.passwordHash().value(),
                 history.changeType().name(),
                 history.changedAt(),
-                history.operatedBy() != null?  history.operatedBy().value() : null,
-                history.createdAt(),
-                history.createdBy().value()
+                history.operatedBy() != null ? history.operatedBy().value() : null,
+                null, // createdAt is handled by DB
+                createdByApp.value()
         );
     }
 }

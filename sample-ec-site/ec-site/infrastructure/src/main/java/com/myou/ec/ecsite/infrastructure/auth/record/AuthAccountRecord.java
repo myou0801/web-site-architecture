@@ -17,7 +17,7 @@ public record AuthAccountRecord(
         String userId,
         String passwordHash,
         String accountStatus, // ACTIVE, DISABLED, DELETED
-        LocalDateTime createdAt,
+        @Nullable LocalDateTime createdAt,
         String createdBy,
         LocalDateTime updatedAt,
         String updatedBy
@@ -28,25 +28,7 @@ public record AuthAccountRecord(
                 authAccountId != null ? new AuthAccountId(authAccountId) : null,
                 new UserId(userId),
                 new PasswordHash(passwordHash),
-                AccountStatus.valueOf(accountStatus),
-                createdAt,
-                new UserId(createdBy),
-                updatedAt,
-                new UserId(updatedBy)
-        );
-    }
-
-    public static AuthAccountRecord fromDomain(AuthAccount user) {
-        Long id = user.id() != null ? user.id().value() : null;
-        return new AuthAccountRecord(
-                id,
-                user.userId().value(),
-                user.passwordHash().value(),
-                user.accountStatus().name(),
-                user.createdAt(),
-                user.createdBy().value(),
-                user.updatedAt(),
-                user.updatedBy().value()
+                AccountStatus.valueOf(accountStatus)
         );
     }
 }

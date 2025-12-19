@@ -31,8 +31,8 @@ public class AuthAccountRoleRepositoryImpl implements AuthAccountRoleRepository 
     }
 
     @Override
-    public int addRole(AuthAccountId accountId, RoleCode role, LocalDateTime now, UserId operator) {
-        return authAccountRoleMapper.insert(accountId.value(), role.value(), now, operator.value());
+    public int addRole(AuthAccountId accountId, RoleCode role, UserId operator) {
+        return authAccountRoleMapper.insert(accountId.value(), role.value(), operator.value());
     }
 
     @Override

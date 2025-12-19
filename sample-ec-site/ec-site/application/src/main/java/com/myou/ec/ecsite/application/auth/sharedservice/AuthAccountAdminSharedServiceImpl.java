@@ -56,8 +56,8 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
         LocalDateTime now = LocalDateTime.now(clock);
         // AuthAccount 作成 & 保存
-        AuthAccount user = AuthAccount.newAccount(newUserId, passwordHash, now, operator);
-        authAccountRepository.save(user);
+        AuthAccount user = AuthAccount.newAccount(newUserId, passwordHash);
+        authAccountRepository.save(user, operator);
 
         // ID 採番後のアカウントを再取得（ID 必要なため）
         AuthAccount savedUser = authAccountRepository.findByUserId(newUserId)
@@ -69,7 +69,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         }
 
         // ユーザロール設定
-        roleCodes.forEach(roleCode -> authAccountRoleRepository.addRole(accountId, roleCode, now, operator));
+        roleCodes.forEach(roleCode -> authAccountRoleRepository.addRole(accountId, roleCode, operator));
         
         // パスワード履歴登録（初回登録）
         PasswordHistory history = PasswordHistory.initialRegister(
@@ -78,7 +78,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 now,
                 operator
         );
-        passwordHistoryRepository.save(history);
+        passwordHistoryRepository.save(history, operator);
 
         // ステータス履歴登録（初回登録）
         AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forNewAccount(
@@ -87,7 +87,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 operator,
                 "REGISTER_ACCOUNT"
         );
-        statusHistoryRepository.save(statusHistory);
+        statusHistoryRepository.save(statusHistory, operator);
 
         return accountId;
     }
@@ -104,7 +104,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         LocalDateTime now = LocalDateTime.now(clock);
 
         // パスワード更新
-        authAccountRepository.save(user.changePassword(passwordHash, now, operator));
+        authAccountRepository.save(user.changePassword(passwordHash), operator);
 
         // パスワード履歴（ADMIN_RESET）
         PasswordHistory history = PasswordHistory.adminReset(
@@ -113,7 +113,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 now,
                 operator
         );
-        passwordHistoryRepository.save(history);
+        passwordHistoryRepository.save(history, operator);
 
         // ロック解除イベント（パスワード初期化時はロック解除も行う）
         AccountLockEvent unlockEvent = AccountLockEvent.unlock(
@@ -122,7 +122,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 "ADMIN_RESET_AND_UNLOCK",
                 operator
         );
-        lockHistoryRepository.save(unlockEvent);
+        lockHistoryRepository.save(unlockEvent, operator);
     }
 
     @Override
@@ -145,7 +145,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 "ADMIN_UNLOCK",
                 operator
         );
-        lockHistoryRepository.save(unlockEvent);
+        lockHistoryRepository.save(unlockEvent, operator);
     }
 
     @Override
@@ -159,8 +159,8 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         }
 
         LocalDateTime now = LocalDateTime.now(clock);
-        AuthAccount disabledUser = user.disable(now, operator);
-        authAccountRepository.save(disabledUser);
+        AuthAccount disabledUser = user.disable();
+        authAccountRepository.save(disabledUser, operator);
 
         AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forDisabling(
                 targetAccountId,
@@ -169,7 +169,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 operator,
                 "DISABLE_ACCOUNT"
         );
-        statusHistoryRepository.save(statusHistory);
+        statusHistoryRepository.save(statusHistory, operator);
     }
 
     @Override
@@ -189,8 +189,8 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
             return;
         }
 
-        AuthAccount activatedUser = user.activate(now, operator);
-        authAccountRepository.save(activatedUser);
+        AuthAccount activatedUser = user.activate();
+        authAccountRepository.save(activatedUser, operator);
 
         AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forActivating(
                 targetAccountId,
@@ -199,7 +199,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 operator,
                 "ENABLE_ACCOUNT"
         );
-        statusHistoryRepository.save(statusHistory);
+        statusHistoryRepository.save(statusHistory, operator);
     }
 
     @Override
@@ -223,8 +223,8 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         }
 
         LocalDateTime now = LocalDateTime.now(clock);
-        AuthAccount deletedUser = user.markAsDeleted(now, operator);
-        authAccountRepository.save(deletedUser);
+        AuthAccount deletedUser = user.markAsDeleted();
+        authAccountRepository.save(deletedUser, operator);
 
         AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forDeleting(
                 targetAccountId,
@@ -233,7 +233,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 operator,
                 "DELETE_ACCOUNT"
         );
-        statusHistoryRepository.save(statusHistory);
+        statusHistoryRepository.save(statusHistory, operator);
     }
 }
 

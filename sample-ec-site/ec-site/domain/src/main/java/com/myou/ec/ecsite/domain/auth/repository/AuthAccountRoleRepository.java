@@ -10,7 +10,7 @@ import java.util.Set;
 public interface AuthAccountRoleRepository {
     Set<RoleCode> findRolesByAccountId(AuthAccountId accountId);
 
-    int addRole(AuthAccountId accountId, RoleCode role, LocalDateTime now, UserId operator);
+    int addRole(AuthAccountId accountId, RoleCode role, UserId operator);
 
     int removeRole(AuthAccountId accountId, RoleCode role);
 

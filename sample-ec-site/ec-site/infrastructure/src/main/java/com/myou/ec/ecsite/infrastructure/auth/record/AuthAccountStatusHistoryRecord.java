@@ -17,10 +17,10 @@ public record AuthAccountStatusHistoryRecord(
         String reason,
         LocalDateTime occurredAt,
         @Nullable String operatedBy,
-        LocalDateTime createdAt,
+        @Nullable LocalDateTime createdAt, // Nullable as per policy
         String createdBy
 ) {
-    public static AuthAccountStatusHistoryRecord fromDomain(AuthAccountStatusHistory history) {
+    public static AuthAccountStatusHistoryRecord fromDomain(AuthAccountStatusHistory history, UserId createdByApp) {
         return new AuthAccountStatusHistoryRecord(
                 history.getId() != null ? history.getId().value() : null,
                 history.getAuthAccountId().value(),
@@ -29,8 +29,8 @@ public record AuthAccountStatusHistoryRecord(
                 history.getReason(),
                 history.getOccurredAt(),
                 history.getOperatedBy() != null ? history.getOperatedBy().value() : null,
-                history.getCreatedAt(),
-                history.getCreatedBy().value()
+                null, // createdAt is handled by DB
+                createdByApp.value()
         );
     }
 
@@ -42,9 +42,7 @@ public record AuthAccountStatusHistoryRecord(
                 AccountStatus.valueOf(toStatus),
                 reason,
                 occurredAt,
-                operatedBy != null ? new UserId(operatedBy) : null,
-                createdAt,
-                new UserId(createdBy)
+                operatedBy != null ? new UserId(operatedBy) : null
         );
     }
 }

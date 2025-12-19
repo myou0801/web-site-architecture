@@ -21,8 +21,6 @@ public class AuthAccountStatusHistory {
     private final String reason;
     private final LocalDateTime occurredAt;
     private final UserId operatedBy;
-    private final LocalDateTime createdAt;
-    private final UserId createdBy;
 
     public AuthAccountStatusHistory(
             AuthAccountStatusHistoryId id,
@@ -31,9 +29,7 @@ public class AuthAccountStatusHistory {
             AccountStatus toStatus,
             String reason,
             LocalDateTime occurredAt,
-            UserId operatedBy,
-            LocalDateTime createdAt,
-            UserId createdBy
+            UserId operatedBy
     ) {
         this.id = id;
         this.authAccountId = Objects.requireNonNull(authAccountId);
@@ -42,8 +38,6 @@ public class AuthAccountStatusHistory {
         this.reason = Objects.requireNonNull(reason);
         this.occurredAt = Objects.requireNonNull(occurredAt);
         this.operatedBy = operatedBy;
-        this.createdAt = Objects.requireNonNull(createdAt);
-        this.createdBy = Objects.requireNonNull(createdBy);
 
         if (fromStatus == AccountStatus.DELETED) {
             throw new AuthDomainException("Cannot transition from DELETED status.");
@@ -62,8 +56,6 @@ public class AuthAccountStatusHistory {
                 AccountStatus.ACTIVE,
                 AccountStatus.ACTIVE,
                 reason,
-                occurredAt,
-                operator,
                 occurredAt,
                 operator
         );
@@ -87,8 +79,6 @@ public class AuthAccountStatusHistory {
                 toStatus,
                 reason,
                 occurredAt,
-                operator,
-                occurredAt,
                 operator
         );
     }
@@ -111,8 +101,6 @@ public class AuthAccountStatusHistory {
                 toStatus,
                 reason,
                 occurredAt,
-                operator,
-                occurredAt,
                 operator
         );
     }
@@ -134,8 +122,6 @@ public class AuthAccountStatusHistory {
                 fromStatus,
                 toStatus,
                 reason,
-                occurredAt,
-                operator,
                 occurredAt,
                 operator
         );
@@ -170,13 +156,5 @@ public class AuthAccountStatusHistory {
 
     public UserId getOperatedBy() {
         return operatedBy;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public UserId getCreatedBy() {
-        return createdBy;
     }
 }

@@ -8,15 +8,19 @@ import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord;
 import org.springframework.stereotype.Repository;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
 public class AuthAccountRepositoryImpl implements AuthAccountRepository {
 
     private final AuthAccountMapper userMapper;
+    private final Clock clock;
 
-    public AuthAccountRepositoryImpl(AuthAccountMapper userMapper) {
+    public AuthAccountRepositoryImpl(AuthAccountMapper userMapper, Clock clock) {
         this.userMapper = userMapper;
+        this.clock = clock;
     }
 
     @Override
@@ -38,13 +42,39 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
     }
 
     @Override
-    public void save(AuthAccount user) {
-        AuthAccountRecord record = AuthAccountRecord.fromDomain(user);
+    public void save(AuthAccount user, UserId operator) {
+        LocalDateTime now = LocalDateTime.now(clock);
         if (user.id() == null) {
+            // Insert
+            var record = new AuthAccountRecord(
+                    null,
+                    user.userId().value(),
+                    user.passwordHash().value(),
+                    user.accountStatus().name(),
+                    null, // createdAt is handled by DB
+                    operator.value(),
+                    now,
+                    operator.value()
+            );
             userMapper.insert(record);
         } else {
+            // Update
+            AuthAccountRecord currentRecord = userMapper.selectByAccountId(user.id().value());
+            if (currentRecord == null) {
+                throw new IllegalStateException("Attempted to update a non-existent account: " + user.id());
+            }
+
+            var record = new AuthAccountRecord(
+                    user.id().value(),
+                    user.userId().value(),
+                    user.passwordHash().value(),
+                    user.accountStatus().name(),
+                    currentRecord.createdAt(), // preserve original
+                    currentRecord.createdBy(), // preserve original
+                    now,
+                    operator.value()
+            );
             userMapper.update(record);
         }
     }
-
 }

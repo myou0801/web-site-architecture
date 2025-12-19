@@ -37,11 +37,11 @@
             parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
         INSERT INTO auth_account (user_id, password_hash,
                                   account_status,
-                                  created_at, created_by,
+                                  created_by,
                                   updated_at, updated_by)
         VALUES (#{userId}, #{passwordHash},
                 #{accountStatus},
-                #{createdAt}, #{createdBy},
+                #{createdBy},
                 #{updatedAt}, #{updatedBy})
     </insert>
 

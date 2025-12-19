@@ -3,6 +3,7 @@ package com.myou.ec.ecsite.infrastructure.auth.repository;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistories;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthLoginHistoryMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord;
@@ -21,8 +22,8 @@ public class AuthLoginHistoryRepositoryImpl implements AuthLoginHistoryRepositor
     }
 
     @Override
-    public void save(LoginHistory history) {
-        AuthLoginHistoryRecord record = AuthLoginHistoryRecord.fromDomain(history);
+    public void save(LoginHistory history, UserId operator) {
+        AuthLoginHistoryRecord record = AuthLoginHistoryRecord.fromDomain(history, operator);
         mapper.insert(record);
     }
 

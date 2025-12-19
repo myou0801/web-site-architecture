@@ -12,17 +12,14 @@ import java.util.Objects;
  * パスワード変更履歴 Entity（immutable）。
  */
 public record PasswordHistory(Long id, AuthAccountId authAccountId, PasswordHash passwordHash,
-                              PasswordChangeType changeType, LocalDateTime changedAt, UserId operatedBy ,
-                              LocalDateTime createdAt, UserId createdBy) {
+                              PasswordChangeType changeType, LocalDateTime changedAt, UserId operatedBy) {
 
     public PasswordHistory(Long id,
                            AuthAccountId authAccountId,
                            PasswordHash passwordHash,
                            PasswordChangeType changeType,
                            LocalDateTime changedAt,
-                           UserId operatedBy,
-                           LocalDateTime createdAt,
-                           UserId createdBy) {
+                           UserId operatedBy) {
 
         this.id = id;
         this.authAccountId = Objects.requireNonNull(authAccountId, "authAccountId must not be null");
@@ -30,8 +27,6 @@ public record PasswordHistory(Long id, AuthAccountId authAccountId, PasswordHash
         this.changeType = Objects.requireNonNull(changeType, "changeType must not be null");
         this.changedAt = Objects.requireNonNull(changedAt, "changedAt must not be null");
         this.operatedBy = Objects.requireNonNull(operatedBy, "operatedBy must not be null");
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
-        this.createdBy = Objects.requireNonNull(createdBy, "createdBy must not be null");
     }
 
     public static PasswordHistory initialRegister(AuthAccountId authAccountId,
@@ -39,7 +34,7 @@ public record PasswordHistory(Long id, AuthAccountId authAccountId, PasswordHash
                                                   LocalDateTime now,
                                                   UserId operator) {
         return new PasswordHistory(null, authAccountId, password,
-                PasswordChangeType.INITIAL_REGISTER, now, operator, now, operator);
+                PasswordChangeType.INITIAL_REGISTER, now, operator);
     }
 
     public static PasswordHistory adminReset(AuthAccountId authAccountId,
@@ -47,7 +42,7 @@ public record PasswordHistory(Long id, AuthAccountId authAccountId, PasswordHash
                                              LocalDateTime now,
                                              UserId operator) {
         return new PasswordHistory(null, authAccountId, password,
-                PasswordChangeType.ADMIN_RESET, now, operator, now, operator);
+                PasswordChangeType.ADMIN_RESET, now, operator);
     }
 
     public static PasswordHistory userChange(AuthAccountId authAccountId,
@@ -55,7 +50,7 @@ public record PasswordHistory(Long id, AuthAccountId authAccountId, PasswordHash
                                              LocalDateTime now,
                                              UserId operator) {
         return new PasswordHistory(null, authAccountId, password,
-                PasswordChangeType.USER_CHANGE, now, operator, now, operator);
+                PasswordChangeType.USER_CHANGE, now, operator);
     }
 
     /**

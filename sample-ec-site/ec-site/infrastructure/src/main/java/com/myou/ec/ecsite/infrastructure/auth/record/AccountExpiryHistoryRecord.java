@@ -5,6 +5,7 @@ import com.myou.ec.ecsite.domain.auth.model.AccountExpiryEvent;
 import com.myou.ec.ecsite.domain.auth.model.value.AccountExpiryEventType;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
 
@@ -14,8 +15,8 @@ public record AccountExpiryHistoryRecord(
         String eventType,
         String reason,
         LocalDateTime occurredAt,
-        String operatedBy,
-        LocalDateTime createdAt,
+        @Nullable String operatedBy, // Nullable as per DDL
+        @Nullable LocalDateTime createdAt, // Nullable as per policy
         String createdBy
 ) {
     public AccountExpiryEvent toDomain() {
@@ -36,7 +37,7 @@ public record AccountExpiryHistoryRecord(
                 ev.reason(),
                 ev.occurredAt(),
                 ev.operatedBy() != null ? ev.operatedBy().value() : null,
-                null,
+                null, // createdAt is handled by DB
                 createdBy.value()
         );
     }

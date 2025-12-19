@@ -55,10 +55,9 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
         // ログイン成功履歴を登録
         LoginHistory successHistory = LoginHistory.success(
                 accountId,
-                now,
-                userId
+                now
         );
-        loginHistoryRepository.save(successHistory);
+        loginHistoryRepository.save(successHistory, userId);
     }
 
     @Override
@@ -89,13 +88,13 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
 
         // アカウント有効期限切れ
         if (expiryEvents.isExpired()) {
-            loginHistoryRepository.save(LoginHistory.expired(accountId, now, userId));
+            loginHistoryRepository.save(LoginHistory.expired(accountId, now), userId);
             return;
         }
 
         if (!user.canLogin()) {
             // ★ DISABLED として履歴を残し、ロック判定はしない
-            loginHistoryRepository.save(LoginHistory.disabled(accountId, now, userId));
+            loginHistoryRepository.save(LoginHistory.disabled(accountId, now), userId);
             return;
         }
 
@@ -106,10 +105,9 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
             // すでにロック中のアカウントによるログイン試行は 'LOCKED' として履歴のみ記録（連続失敗カウントには影響しない）。
             LoginHistory lockedHistory = LoginHistory.locked(
                     accountId,
-                    now,
-                    userId
+                    now
             );
-            loginHistoryRepository.save(lockedHistory);
+            loginHistoryRepository.save(lockedHistory, userId);
             return;
         }
 
@@ -123,9 +121,8 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
         // 今回の 'FAIL' 履歴を生成
         LoginHistory failHistory = LoginHistory.fail(
                 accountId,
-                now,
-                userId
-        );
+                now
+            );
 
         // 今回の失敗を加えて、履歴コレクションを再構成
         LoginHistories loginHistories = recentHistories.add(failHistory);
@@ -137,7 +134,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
         boolean shouldLockout = lockPolicy.isLockout(loginHistories, lastUnlockAt);
 
         // まず今回の 'FAIL' 履歴を保存
-        loginHistoryRepository.save(failHistory);
+        loginHistoryRepository.save(failHistory, userId);
 
         if (shouldLockout) {
             // ポリシー違反なら、ロックイベントを追加
@@ -147,9 +144,10 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
                     "LOGIN_FAIL_THRESHOLD", // ロック理由
                     userId
             );
-            lockHistoryRepository.save(lockEvent);
+            lockHistoryRepository.save(lockEvent, userId);
         }
     }
 
 
 }
+

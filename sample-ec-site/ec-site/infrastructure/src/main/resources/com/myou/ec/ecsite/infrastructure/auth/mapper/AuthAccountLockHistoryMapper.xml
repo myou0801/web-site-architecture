@@ -11,14 +11,12 @@
                                                reason,
                                                occurred_at,
                                                operated_by,
-                                               created_at,
                                                created_by)
         VALUES (#{authAccountId},
                 #{locked},
                 #{reason},
                 #{occurredAt},
                 #{operatedBy},
-                #{createdAt},
                 #{createdBy})
     </insert>
 

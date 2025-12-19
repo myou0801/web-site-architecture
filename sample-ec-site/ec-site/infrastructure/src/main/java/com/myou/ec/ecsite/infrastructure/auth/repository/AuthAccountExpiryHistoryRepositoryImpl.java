@@ -17,6 +17,7 @@ public class AuthAccountExpiryHistoryRepositoryImpl implements AuthAccountExpiry
 
     private final AuthAccountExpiryHistoryMapper mapper;
 
+
     public AuthAccountExpiryHistoryRepositoryImpl(AuthAccountExpiryHistoryMapper mapper) {
         this.mapper = requireNonNull(mapper);
     }
