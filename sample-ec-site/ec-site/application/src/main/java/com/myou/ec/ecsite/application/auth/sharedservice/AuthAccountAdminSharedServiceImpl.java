@@ -1,20 +1,9 @@
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
-import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
-import com.myou.ec.ecsite.domain.auth.model.AccountLockEvents;
-import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
-import com.myou.ec.ecsite.domain.auth.model.AuthAccountStatusHistory;
-import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
-import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
-import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRoleRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthAccountStatusHistoryRepository;
-import com.myou.ec.ecsite.domain.auth.repository.AuthPasswordHistoryRepository;
+import com.myou.ec.ecsite.domain.auth.model.*;
+import com.myou.ec.ecsite.domain.auth.model.value.*;
+import com.myou.ec.ecsite.domain.auth.repository.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,6 +22,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
     private final AuthAccountStatusHistoryRepository statusHistoryRepository;
+    private final AccountExpirySharedService accountExpirySharedService;
     private final PasswordEncoder passwordEncoder;
     private final String initialPassword;
     private final Clock clock;
@@ -42,6 +32,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                                              AuthPasswordHistoryRepository passwordHistoryRepository,
                                              AuthAccountLockHistoryRepository lockHistoryRepository,
                                              AuthAccountStatusHistoryRepository statusHistoryRepository,
+                                             AccountExpirySharedService accountExpirySharedService,
                                              PasswordEncoder passwordEncoder,
                                              @Value("${auth.initial-password:password123}") String initialPassword, Clock clock) {
         this.authAccountRepository = authAccountRepository;
@@ -49,6 +40,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.lockHistoryRepository = lockHistoryRepository;
         this.statusHistoryRepository = statusHistoryRepository;
+        this.accountExpirySharedService = accountExpirySharedService;
         this.passwordEncoder = passwordEncoder;
         this.initialPassword = initialPassword;
         this.clock = clock;
@@ -160,14 +152,19 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     public void disableAccount(AuthAccountId targetAccountId, UserId operator) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
+
+        // すでに無効化されているユーザは処理不要
+        if(user.accountStatus() == AccountStatus.DISABLED){
+            return;
+        }
+
         LocalDateTime now = LocalDateTime.now(clock);
         AuthAccount disabledUser = user.disable(now, operator);
         authAccountRepository.save(disabledUser);
 
-        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forStatusChange(
+        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forDisabling(
                 targetAccountId,
                 user.accountStatus(),
-                disabledUser.accountStatus(),
                 now,
                 operator,
                 "DISABLE_ACCOUNT"
@@ -179,14 +176,25 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     public void enableAccount(AuthAccountId targetAccountId, UserId operator) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
+
+
+
         LocalDateTime now = LocalDateTime.now(clock);
+
+        // 有効期限切れのユーザも有効化する
+        accountExpirySharedService.unexpireIfExpired(targetAccountId, operator);
+
+        // すでに有効化されているユーザは処理不要
+        if(user.accountStatus() == AccountStatus.ACTIVE){
+            return;
+        }
+
         AuthAccount activatedUser = user.activate(now, operator);
         authAccountRepository.save(activatedUser);
 
-        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forStatusChange(
+        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forActivating(
                 targetAccountId,
                 user.accountStatus(),
-                activatedUser.accountStatus(),
                 now,
                 operator,
                 "ENABLE_ACCOUNT"
@@ -208,14 +216,19 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     public void deleteAccount(AuthAccountId targetAccountId, UserId operator) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
+
+        // すでに削除されているユーザは処理不要
+        if(user.accountStatus() == AccountStatus.DELETED){
+            return;
+        }
+
         LocalDateTime now = LocalDateTime.now(clock);
         AuthAccount deletedUser = user.markAsDeleted(now, operator);
         authAccountRepository.save(deletedUser);
 
-        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forStatusChange(
+        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forDeleting(
                 targetAccountId,
                 user.accountStatus(),
-                deletedUser.accountStatus(),
                 now,
                 operator,
                 "DELETE_ACCOUNT"

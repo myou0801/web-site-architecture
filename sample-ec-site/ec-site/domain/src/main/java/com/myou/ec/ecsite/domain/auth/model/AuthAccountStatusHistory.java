@@ -69,14 +69,65 @@ public class AuthAccountStatusHistory {
         );
     }
 
-    public static AuthAccountStatusHistory forStatusChange(
+    public static AuthAccountStatusHistory forActivating(
             AuthAccountId authAccountId,
             AccountStatus fromStatus,
-            AccountStatus toStatus,
             LocalDateTime occurredAt,
             UserId operator,
             String reason
     ) {
+        AccountStatus toStatus = AccountStatus.ACTIVE;
+        if (fromStatus == toStatus) {
+            throw new AuthDomainException("Cannot transition to the same status.");
+        }
+        return new AuthAccountStatusHistory(
+                null,
+                authAccountId,
+                fromStatus,
+                toStatus,
+                reason,
+                occurredAt,
+                operator,
+                occurredAt,
+                operator
+        );
+    }
+
+    public static AuthAccountStatusHistory forDisabling(
+            AuthAccountId authAccountId,
+            AccountStatus fromStatus,
+            LocalDateTime occurredAt,
+            UserId operator,
+            String reason
+    ) {
+        AccountStatus toStatus = AccountStatus.DISABLED;
+        if (fromStatus == toStatus) {
+            throw new AuthDomainException("Cannot transition to the same status.");
+        }
+        return new AuthAccountStatusHistory(
+                null,
+                authAccountId,
+                fromStatus,
+                toStatus,
+                reason,
+                occurredAt,
+                operator,
+                occurredAt,
+                operator
+        );
+    }
+
+    public static AuthAccountStatusHistory forDeleting(
+            AuthAccountId authAccountId,
+            AccountStatus fromStatus,
+            LocalDateTime occurredAt,
+            UserId operator,
+            String reason
+    ) {
+        AccountStatus toStatus = AccountStatus.DELETED;
+        if (fromStatus == toStatus) {
+            throw new AuthDomainException("Cannot transition to the same status.");
+        }
         return new AuthAccountStatusHistory(
                 null,
                 authAccountId,

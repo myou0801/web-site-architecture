@@ -3,11 +3,10 @@ VALUES ('ROLE_USER', 'User', TRUE, CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAM
        ('ROLE_ADMIN', 'Admin', TRUE, CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
        ('ROLE_GUEST', 'Guest', TRUE, CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM');
 
-INSERT INTO AUTH_ACCOUNT (user_id, password_hash, enabled, deleted, created_at, created_by, updated_at,
-                          updated_by, deleted_at, deleted_by)
+INSERT INTO AUTH_ACCOUNT (user_id, password_hash, account_status, created_at, created_by, updated_at, updated_by)
 VALUES
-    ('testUser', 'pass', TRUE, FALSE, CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM', NULL,NULL)
-   ,('adminUser', 'pass', TRUE, FALSE, CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM', NULL,NULL)
+    ('testUser', 'pass', 'ACTIVE', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM')
+   ,('adminUser', 'pass', 'ACTIVE', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM')
 ;
 
 INSERT INTO AUTH_ACCOUNT_ROLE (auth_account_id, role_code, created_at, created_by)

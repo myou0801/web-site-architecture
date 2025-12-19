@@ -10,14 +10,11 @@
             auth_account_id AS authAccountId,
             user_id         AS userId,
             password_hash   AS passwordHash,
-            enabled,
-            deleted,
+            account_status  AS accountStatus,
             created_at      AS createdAt,
             created_by      AS createdBy,
             updated_at      AS updatedAt,
-            updated_by      AS updatedBy,
-            deleted_at      AS deletedAt,
-            deleted_by      AS deletedBy
+            updated_by      AS updatedBy
         FROM auth_account
         WHERE auth_account_id = #{authAccountId}
     </select>
@@ -27,14 +24,11 @@
             auth_account_id AS authAccountId,
             user_id         AS userId,
             password_hash   AS passwordHash,
-            enabled,
-            deleted,
+            account_status  AS accountStatus,
             created_at      AS createdAt,
             created_by      AS createdBy,
             updated_at      AS updatedAt,
-            updated_by      AS updatedBy,
-            deleted_at      AS deletedAt,
-            deleted_by      AS deletedBy
+            updated_by      AS updatedBy
         FROM auth_account
         WHERE user_id = #{userId}
     </select>
@@ -42,11 +36,11 @@
     <insert id="insert"
             parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
         INSERT INTO auth_account (user_id, password_hash,
-                                  enabled, deleted,
+                                  account_status,
                                   created_at, created_by,
                                   updated_at, updated_by)
         VALUES (#{userId}, #{passwordHash},
-                #{enabled}, #{deleted},
+                #{accountStatus},
                 #{createdAt}, #{createdBy},
                 #{updatedAt}, #{updatedBy})
     </insert>
@@ -54,16 +48,13 @@
     <update id="update"
             parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
         UPDATE AUTH_ACCOUNT
-        SET user_id       = #{userId},
-            password_hash = #{passwordHash},
-            enabled       = #{enabled},
-            deleted       = #{deleted},
-            created_at    = #{createdAt},
-            created_by    = #{createdBy},
-            updated_at    = #{updatedAt},
-            updated_by    = #{updatedBy},
-            deleted_at    = #{deletedAt},
-            deleted_by    = #{deletedBy}
+        SET user_id         = #{userId},
+            password_hash   = #{passwordHash},
+            account_status  = #{accountStatus},
+            created_at      = #{createdAt},
+            created_by      = #{createdBy},
+            updated_at      = #{updatedAt},
+            updated_by      = #{updatedBy}
         WHERE AUTH_ACCOUNT_ID = #{authAccountId}
     </update>
 
