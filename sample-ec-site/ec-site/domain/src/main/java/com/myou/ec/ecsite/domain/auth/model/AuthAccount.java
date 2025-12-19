@@ -1,5 +1,6 @@
 package com.myou.ec.ecsite.domain.auth.model;
 
+import com.myou.ec.ecsite.domain.auth.model.value.AccountStatus;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
@@ -24,11 +25,8 @@ public class AuthAccount {
     /** ハッシュ済みパスワード。 */
     private final PasswordHash passwordHash;
 
-    /** 有効フラグ。false の場合はログイン不可。 */
-    private final boolean enabled;
-
-    /** 論理削除フラグ。true の場合は無効ユーザ扱い。 */
-    private final boolean deleted;
+    /** アカウント状態。 */
+    private final AccountStatus accountStatus;
 
 
     // 監査情報
@@ -36,8 +34,6 @@ public class AuthAccount {
     private final UserId createdBy;
     private final LocalDateTime updatedAt;
     private final UserId updatedBy;
-    private final LocalDateTime deletedAt;
-    private final UserId deletedBy;
 
 
     /**
@@ -47,24 +43,18 @@ public class AuthAccount {
     public AuthAccount(AuthAccountId id,
                        UserId userId,
                        PasswordHash passwordHash,
-                       boolean enabled,
-                       boolean deleted,
+                       AccountStatus accountStatus,
                        LocalDateTime createdAt,
                        UserId createdBy,
                        LocalDateTime updatedAt,
-                       UserId updatedBy,
-                       LocalDateTime deletedAt,
-                       UserId deletedBy) {
+                       UserId updatedBy) {
 
         this.id = id;
         this.userId = Objects.requireNonNull(userId, "userId must not be null");
         this.passwordHash = Objects.requireNonNull(passwordHash, "encodedPassword must not be null");
-        this.enabled = enabled;
-        this.deleted = deleted;
+        this.accountStatus = Objects.requireNonNull(accountStatus, "accountStatus must not be null");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
         this.createdBy = Objects.requireNonNull(createdBy, "createdByUserId must not be null");
-        this.deletedAt = deletedAt;
-        this.deletedBy = deletedBy;
         this.updatedAt = updatedAt != null ? updatedAt : createdAt;
         this.updatedBy = updatedBy != null ? updatedBy : createdBy;
     }
@@ -87,14 +77,11 @@ public class AuthAccount {
                 null,                     // id (未採番)
                 userId,
                 passwordHash,
-                true,                     // enabled デフォルト true
-                false,                    // deleted デフォルト false
+                AccountStatus.ACTIVE,     // accountStatus デフォルト ACTIVE
                 now,
                 operator,
                 now,
-                operator,
-                null,
-                null                     // versionNo 初期値
+                operator
         );
     }
 
@@ -113,14 +100,11 @@ public class AuthAccount {
                 this.id,
                 this.userId,
                 newPassword,
-                this.enabled,
-                this.deleted,
+                this.accountStatus,
                 this.createdAt,
                 this.createdBy,
                 now,
-                operator,
-                this.deletedAt,
-                this.deletedBy
+                operator
         );
     }
 
@@ -136,21 +120,18 @@ public class AuthAccount {
                 this.id,
                 newUserId,
                 this.passwordHash,
-                this.enabled,
-                this.deleted,
+                this.accountStatus,
                 this.createdAt,
                 this.createdBy,
                 now,
-                operator,
-                this.deletedAt,
-                this.deletedBy
+                operator
         );
     }
 
     /**
      * アカウントを有効にする。
      */
-    public AuthAccount enable(LocalDateTime now, UserId operator) {
+    public AuthAccount activate(LocalDateTime now, UserId operator) {
         Objects.requireNonNull(now, "now must not be null");
         Objects.requireNonNull(operator, "operator must not be null");
 
@@ -158,14 +139,11 @@ public class AuthAccount {
                 this.id,
                 this.userId,
                 this.passwordHash,
-                true,
-                this.deleted,
+                AccountStatus.ACTIVE,
                 this.createdAt,
                 this.createdBy,
                 now,
-                operator,
-                this.deletedAt,
-                this.deletedBy
+                operator
         );
     }
 
@@ -180,21 +158,18 @@ public class AuthAccount {
                 this.id,
                 this.userId,
                 this.passwordHash,
-                false,
-                this.deleted,
+                AccountStatus.DISABLED,
                 this.createdAt,
                 this.createdBy,
                 now,
-                operator,
-                this.deletedAt,
-                this.deletedBy
+                operator
         );
     }
 
     /**
      * アカウントを論理削除状態にする。
      */
-    public AuthAccount markDeleted(LocalDateTime now, UserId operator) {
+    public AuthAccount markAsDeleted(LocalDateTime now, UserId operator) {
         Objects.requireNonNull(now, "now must not be null");
         Objects.requireNonNull(operator, "operator must not be null");
 
@@ -202,12 +177,9 @@ public class AuthAccount {
                 this.id,
                 this.userId,
                 this.passwordHash,
-                this.enabled,
-                true,
+                AccountStatus.DELETED,
                 this.createdAt,
                 this.createdBy,
-                now,
-                operator,
                 now,
                 operator
         );
@@ -218,7 +190,7 @@ public class AuthAccount {
      * ログイン可能かどうかの簡易判定（ロック状態は別途 LockStatus で判定）。
      */
     public boolean canLogin() {
-        return enabled && !deleted;
+        return accountStatus == AccountStatus.ACTIVE;
     }
 
     // ===== getter =====
@@ -235,12 +207,8 @@ public class AuthAccount {
         return passwordHash;
     }
 
-    public boolean enabled() {
-        return enabled;
-    }
-
-    public boolean deleted() {
-        return deleted;
+    public AccountStatus accountStatus() {
+        return accountStatus;
     }
 
 
@@ -258,14 +226,6 @@ public class AuthAccount {
 
     public UserId updatedBy() {
         return updatedBy;
-    }
-
-    public LocalDateTime deletedAt() {
-        return deletedAt;
-    }
-
-    public UserId deletedBy() {
-        return deletedBy;
     }
 
 
@@ -289,8 +249,7 @@ public class AuthAccount {
         return "AuthAccount{" +
                "id=" + id +
                ", userId=" + userId +
-               ", enabled=" + enabled +
-               ", deleted=" + deleted +
+               ", accountStatus=" + accountStatus +
                '}';
     }
 }

@@ -4,6 +4,7 @@ import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvents;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
+import com.myou.ec.ecsite.domain.auth.model.AuthAccountStatusHistory;
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
@@ -12,6 +13,7 @@ import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRoleRepository;
+import com.myou.ec.ecsite.domain.auth.repository.AuthAccountStatusHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthPasswordHistoryRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +32,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     private final AuthAccountRoleRepository authAccountRoleRepository;
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
+    private final AuthAccountStatusHistoryRepository statusHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final String initialPassword;
     private final Clock clock;
@@ -38,12 +41,14 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
                                              AuthPasswordHistoryRepository passwordHistoryRepository,
                                              AuthAccountLockHistoryRepository lockHistoryRepository,
+                                             AuthAccountStatusHistoryRepository statusHistoryRepository,
                                              PasswordEncoder passwordEncoder,
                                              @Value("${auth.initial-password:password123}") String initialPassword, Clock clock) {
         this.authAccountRepository = authAccountRepository;
         this.authAccountRoleRepository = authAccountRoleRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.lockHistoryRepository = lockHistoryRepository;
+        this.statusHistoryRepository = statusHistoryRepository;
         this.passwordEncoder = passwordEncoder;
         this.initialPassword = initialPassword;
         this.clock = clock;
@@ -82,6 +87,15 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                 operator
         );
         passwordHistoryRepository.save(history);
+
+        // ステータス履歴登録（初回登録）
+        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forNewAccount(
+                accountId,
+                now,
+                operator,
+                "REGISTER_ACCOUNT"
+        );
+        statusHistoryRepository.save(statusHistory);
 
         return accountId;
     }
@@ -147,7 +161,18 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
         LocalDateTime now = LocalDateTime.now(clock);
-        authAccountRepository.save(user.disable(now, operator));
+        AuthAccount disabledUser = user.disable(now, operator);
+        authAccountRepository.save(disabledUser);
+
+        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forStatusChange(
+                targetAccountId,
+                user.accountStatus(),
+                disabledUser.accountStatus(),
+                now,
+                operator,
+                "DISABLE_ACCOUNT"
+        );
+        statusHistoryRepository.save(statusHistory);
     }
 
     @Override
@@ -155,7 +180,18 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
         LocalDateTime now = LocalDateTime.now(clock);
-        authAccountRepository.save(user.enable(now, operator));
+        AuthAccount activatedUser = user.activate(now, operator);
+        authAccountRepository.save(activatedUser);
+
+        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forStatusChange(
+                targetAccountId,
+                user.accountStatus(),
+                activatedUser.accountStatus(),
+                now,
+                operator,
+                "ENABLE_ACCOUNT"
+        );
+        statusHistoryRepository.save(statusHistory);
     }
 
     @Override
@@ -170,6 +206,21 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
     @Override
     public void deleteAccount(AuthAccountId targetAccountId, UserId operator) {
+        AuthAccount user = authAccountRepository.findById(targetAccountId)
+                .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
+        LocalDateTime now = LocalDateTime.now(clock);
+        AuthAccount deletedUser = user.markAsDeleted(now, operator);
+        authAccountRepository.save(deletedUser);
 
+        AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forStatusChange(
+                targetAccountId,
+                user.accountStatus(),
+                deletedUser.accountStatus(),
+                now,
+                operator,
+                "DELETE_ACCOUNT"
+        );
+        statusHistoryRepository.save(statusHistory);
     }
 }
+

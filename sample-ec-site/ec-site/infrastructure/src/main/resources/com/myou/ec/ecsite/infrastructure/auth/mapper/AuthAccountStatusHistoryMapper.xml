@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountStatusHistoryMapper">
+
+    <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountStatusHistoryRecord"
+            useGeneratedKeys="true" keyProperty="authAccountStatusHistoryId">
+        INSERT INTO AUTH_ACCOUNT_STATUS_HISTORY (
+            auth_account_id,
+            from_status,
+            to_status,
+            reason,
+            occurred_at,
+            operated_by,
+            created_at,
+            created_by
+        ) VALUES (
+            #{authAccountId},
+            #{fromStatus},
+            #{toStatus},
+            #{reason},
+            #{occurredAt},
+            #{operatedBy},
+            #{createdAt},
+            #{createdBy}
+        )
+    </insert>
+
+</mapper>

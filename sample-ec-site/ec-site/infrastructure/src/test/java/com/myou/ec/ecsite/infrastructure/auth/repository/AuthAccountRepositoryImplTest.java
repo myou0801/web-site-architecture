@@ -1,6 +1,7 @@
 package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
+import com.myou.ec.ecsite.domain.auth.model.value.AccountStatus;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
@@ -42,14 +43,11 @@ class AuthAccountRepositoryImplTest {
                 id,
                 userIdValue,
                 "encodedPassword",
-                true,
-                false,
+                "ACTIVE",
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                 "createdBy",
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
-                "updatedBy",
-                null,
-                null
+                "updatedBy"
         );
     }
 
@@ -58,14 +56,11 @@ class AuthAccountRepositoryImplTest {
                 id != null && id > 0 ? new AuthAccountId(id) : null, // handle null ID for insert case
                 new UserId(userIdValue),
                 new PasswordHash("encodedPassword"),
-                true,
-                false,
+                AccountStatus.ACTIVE,
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                 new UserId("createdBy"),
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
-                new UserId("updatedBy"),
-                null,
-                null
+                new UserId("updatedBy")
         );
     }
 
@@ -76,7 +71,6 @@ class AuthAccountRepositoryImplTest {
 
         private long testAccountId = 1L;
         private String testUserId = "testUser";
-        private List<RoleCode> testRoles = List.of(new RoleCode("ROLE_USER"), new RoleCode("ROLE_ADMIN"));
 
         @BeforeEach
         void setup() {
@@ -92,6 +86,7 @@ class AuthAccountRepositoryImplTest {
             assertThat(result.get().id().value()).isEqualTo(testAccountId);
             assertThat(result.get().userId().value()).isEqualTo(testUserId);
             assertThat(result.get().passwordHash().value()).isEqualTo("passwordHash");
+            assertThat(result.get().accountStatus()).isEqualTo(AccountStatus.ACTIVE);
         }
 
         @Test
@@ -110,7 +105,6 @@ class AuthAccountRepositoryImplTest {
 
         private long testAccountId = 1L;
         private String testUserId = "testUser";
-        private List<RoleCode> testRoles = List.of(new RoleCode("ROLE_USER"), new RoleCode("ROLE_ADMIN"));
 
         @BeforeEach
         void setup() {
@@ -126,6 +120,7 @@ class AuthAccountRepositoryImplTest {
             assertThat(result.get().id().value()).isEqualTo(testAccountId);
             assertThat(result.get().userId().value()).isEqualTo(testUserId);
             assertThat(result.get().passwordHash().value()).isEqualTo("passwordHash");
+            assertThat(result.get().accountStatus()).isEqualTo(AccountStatus.ACTIVE);
         }
 
         @Test
@@ -144,10 +139,8 @@ class AuthAccountRepositoryImplTest {
     @DisplayName("save")
     class Save {
 
-        private long testAccountIdForInsert = 2L; // Use a different ID for insert tests
         private String testUserIdForInsert = "newUser";
         private List<RoleCode> testRolesForInsert = List.of(new RoleCode("ROLE_USER"));
-        private List<RoleCode> testRolesForUpdate = List.of(new RoleCode("ROLE_ADMIN"));
 
 
         @BeforeEach
@@ -167,6 +160,7 @@ class AuthAccountRepositoryImplTest {
             assertThat(insertedRecord).isNotNull();
             assertThat(insertedRecord.userId()).isEqualTo(testUserIdForInsert);
             assertThat(insertedRecord.authAccountId()).isNotNull().isPositive(); // ID should be generated
+            assertThat(insertedRecord.accountStatus()).isEqualTo(AccountStatus.ACTIVE.name());
 
         }
 
@@ -181,14 +175,11 @@ class AuthAccountRepositoryImplTest {
                     new AuthAccountId(initialRecord.authAccountId()),
                     new UserId("updatedUser"), // Changed userId
                     new PasswordHash("newEncodedPassword"),
-                    false, // Changed enabled
-                    true,  // Changed deleted
+                    AccountStatus.DISABLED,  // Changed status
                     initialRecord.createdAt(),
                     new UserId(initialRecord.createdBy()),
                     LocalDateTime.of(2023, 1, 2, 0, 0, 0), // Updated time
-                    new UserId("updater"),
-                    null,
-                    null
+                    new UserId("updater")
             );
 
             authAccountRepositoryImpl.save(existingAccount);
@@ -198,10 +189,8 @@ class AuthAccountRepositoryImplTest {
             assertThat(updatedRecord).isNotNull();
             assertThat(updatedRecord.userId()).isEqualTo("updatedUser");
             assertThat(updatedRecord.passwordHash()).isEqualTo("newEncodedPassword");
-            assertThat(updatedRecord.enabled()).isFalse();
-            assertThat(updatedRecord.deleted()).isTrue();
+            assertThat(updatedRecord.accountStatus()).isEqualTo(AccountStatus.DISABLED.name());
             assertThat(updatedRecord.updatedBy()).isEqualTo("updater");
-
         }
     }
 }
