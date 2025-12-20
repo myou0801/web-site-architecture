@@ -10,5 +10,5 @@ import java.util.List;
 @Mapper
 public interface AuthAccountExpiryHistoryMapper {
     List<AccountExpiryHistoryRecord> selectByAccountId(@Param("authAccountId") long authAccountId);
-    int insert(@Param("r") AccountExpiryHistoryRecord record);
+    int insert(AccountExpiryHistoryRecord record);
 }

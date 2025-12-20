@@ -5,18 +5,7 @@
 
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountExpiryHistoryMapper">
 
-    <resultMap id="AccountExpiryHistoryRecordMap" type="com.myou.ec.ecsite.infrastructure.auth.record.AccountExpiryHistoryRecord">
-        <id     column="auth_account_expiry_history_id" property="authAccountExpiryHistoryId"/>
-        <result column="auth_account_id"                property="authAccountId"/>
-        <result column="event_type"                     property="eventType"/>
-        <result column="reason"                         property="reason"/>
-        <result column="occurred_at"                    property="occurredAt"/>
-        <result column="operated_by"                    property="operatedBy"/>
-        <result column="created_at"                     property="createdAt"/>
-        <result column="created_by"                     property="createdBy"/>
-    </resultMap>
-
-    <select id="selectByAccountId" resultMap="AccountExpiryHistoryRecordMap">
+    <select id="selectByAccountId" resultType="com.myou.ec.ecsite.infrastructure.auth.record.AccountExpiryHistoryRecord">
         SELECT
             auth_account_expiry_history_id,
             auth_account_id,

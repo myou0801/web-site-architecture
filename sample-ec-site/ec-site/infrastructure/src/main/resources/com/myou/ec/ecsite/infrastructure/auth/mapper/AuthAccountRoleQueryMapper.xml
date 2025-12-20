@@ -2,12 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountRoleQueryMapper">
 
-    <resultMap id="AuthAccountRoleRecordMap" type="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRoleRecord">
-        <result column="auth_account_id" property="authAccountId"/>
-        <result column="role_code" property="roleCode"/>
-    </resultMap>
-
-    <select id="selectRoleCodesByAccountIds" resultMap="AuthAccountRoleRecordMap">
+    <select id="selectRoleCodesByAccountIds" resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRoleRecord">
         SELECT
             aar.auth_account_id,
             ar.role_code
