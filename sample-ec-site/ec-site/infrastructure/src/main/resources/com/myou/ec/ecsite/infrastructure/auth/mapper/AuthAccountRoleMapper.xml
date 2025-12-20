@@ -5,21 +5,21 @@
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountRoleMapper">
 
     <select id="selectRoleCodesByAccountId" resultType="string">
-        SELECT ar.role_code
+        SELECT r.role_code
         FROM AUTH_ACCOUNT_ROLE ar
-        JOIN AUTH_ROLE r ON r.role_code = ar.role_code
+        JOIN AUTH_ROLE r ON r.auth_role_id = ar.auth_role_id
         WHERE ar.auth_account_id = #{authAccountId}
-          AND r.enabled = TRUE
+        ORDER BY r.auth_role_id
     </select>
 
     <insert id="insert">
         INSERT INTO AUTH_ACCOUNT_ROLE (
             auth_account_id,
-            role_code,
+            auth_role_id,
             created_by
         ) VALUES (
             #{authAccountId},
-            #{roleCode},
+            #{authRoleId},
             #{createdBy}
         )
     </insert>
@@ -27,7 +27,6 @@
     <delete id="delete">
         DELETE FROM AUTH_ACCOUNT_ROLE
         WHERE auth_account_id = #{authAccountId}
-          AND role_code = #{roleCode}
     </delete>
 
 </mapper>

@@ -11,7 +11,7 @@ public interface AuthAccountRoleMapper {
 
     int insert(
             @Param("authAccountId") long authAccountId,
-            @Param("roleCode") String roleCode,
+            @Param("authRoleId") String authRoleId,
             @Param("createdBy") String createdBy
     );
 

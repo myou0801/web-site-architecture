@@ -1,11 +1,7 @@
 package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
-import com.myou.ec.ecsite.domain.auth.model.value.AccountStatus;
-import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
-import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.*;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,9 +12,9 @@ import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
-import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,17 +22,19 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @MybatisTest
-@AutoConfigureTestDatabase(replace = Replace.NONE) // Use test container or configured database, not H2 default
-@Import({AuthAccountRepositoryImpl.class}) // Import all real implementations
+@AutoConfigureTestDatabase(replace = Replace.NONE)
 @Transactional
 class AuthAccountRepositoryImplTest {
 
-    @Autowired
     private AuthAccountRepositoryImpl authAccountRepositoryImpl;
 
     @Autowired
-    private AuthAccountMapper authAccountMapper; // Autowire the real mapper
+    private AuthAccountMapper authAccountMapper;
 
+    @BeforeEach
+    void setUp(){
+        authAccountRepositoryImpl = new AuthAccountRepositoryImpl(authAccountMapper, Clock.systemDefaultZone());
+    }
 
     private AuthAccountRecord createAuthAccountRecord(Long id, String userIdValue) {
         return new AuthAccountRecord(
@@ -53,14 +51,10 @@ class AuthAccountRepositoryImplTest {
 
     private AuthAccount createAuthAccount(Long id, String userIdValue, List<RoleCode> roleCodes) {
         return new AuthAccount(
-                id != null && id > 0 ? new AuthAccountId(id) : null, // handle null ID for insert case
+                id != null && id > 0 ? new AuthAccountId(id) : null,
                 new UserId(userIdValue),
-                new PasswordHash("encodedPassword"),
-                AccountStatus.ACTIVE,
-                LocalDateTime.of(2023, 1, 1, 0, 0, 0),
-                new UserId("createdBy"),
-                LocalDateTime.of(2023, 1, 1, 0, 0, 0),
-                new UserId("updatedBy")
+                new PasswordHash("pass"),
+                AccountStatus.ACTIVE
         );
     }
 
@@ -85,7 +79,7 @@ class AuthAccountRepositoryImplTest {
             assertThat(result).isPresent();
             assertThat(result.get().id().value()).isEqualTo(testAccountId);
             assertThat(result.get().userId().value()).isEqualTo(testUserId);
-            assertThat(result.get().passwordHash().value()).isEqualTo("passwordHash");
+            assertThat(result.get().passwordHash().value()).isEqualTo("pass");
             assertThat(result.get().accountStatus()).isEqualTo(AccountStatus.ACTIVE);
         }
 
@@ -119,7 +113,7 @@ class AuthAccountRepositoryImplTest {
             assertThat(result).isPresent();
             assertThat(result.get().id().value()).isEqualTo(testAccountId);
             assertThat(result.get().userId().value()).isEqualTo(testUserId);
-            assertThat(result.get().passwordHash().value()).isEqualTo("passwordHash");
+            assertThat(result.get().passwordHash().value()).isEqualTo("pass");
             assertThat(result.get().accountStatus()).isEqualTo(AccountStatus.ACTIVE);
         }
 
@@ -153,7 +147,7 @@ class AuthAccountRepositoryImplTest {
         void testSave_insert() {
             AuthAccount newAccount = createAuthAccount(null, testUserIdForInsert, testRolesForInsert);
 
-            authAccountRepositoryImpl.save(newAccount);
+            authAccountRepositoryImpl.save(newAccount, Operator.system());
 
             // Verify insertion by finding it directly via mapper
             AuthAccountRecord insertedRecord = authAccountMapper.selectByUserId(testUserIdForInsert);
@@ -173,16 +167,12 @@ class AuthAccountRepositoryImplTest {
             // Create an AuthAccount representing the existing record with updated info
             AuthAccount existingAccount = new AuthAccount(
                     new AuthAccountId(initialRecord.authAccountId()),
-                    new UserId("updatedUser"), // Changed userId
+                    new UserId("updatedUser"),
                     new PasswordHash("newEncodedPassword"),
-                    AccountStatus.DISABLED,  // Changed status
-                    initialRecord.createdAt(),
-                    new UserId(initialRecord.createdBy()),
-                    LocalDateTime.of(2023, 1, 2, 0, 0, 0), // Updated time
-                    new UserId("updater")
+                    AccountStatus.DISABLED
             );
 
-            authAccountRepositoryImpl.save(existingAccount);
+            authAccountRepositoryImpl.save(existingAccount, Operator.system());
 
             // Verify update by finding it directly via mapper
             AuthAccountRecord updatedRecord = authAccountMapper.selectByAccountId(existingAccountId);
@@ -190,7 +180,7 @@ class AuthAccountRepositoryImplTest {
             assertThat(updatedRecord.userId()).isEqualTo("updatedUser");
             assertThat(updatedRecord.passwordHash()).isEqualTo("newEncodedPassword");
             assertThat(updatedRecord.accountStatus()).isEqualTo(AccountStatus.DISABLED.name());
-            assertThat(updatedRecord.updatedBy()).isEqualTo("updater");
+            assertThat(updatedRecord.updatedBy()).isEqualTo(Operator.system().value());
         }
     }
 }
