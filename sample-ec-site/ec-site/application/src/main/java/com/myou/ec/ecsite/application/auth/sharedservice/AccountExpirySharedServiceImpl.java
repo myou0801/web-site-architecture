@@ -1,11 +1,12 @@
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
 
+import com.myou.ec.ecsite.application.auth.provider.CurrentUserProvider;
 import com.myou.ec.ecsite.domain.auth.model.AccountExpiryEvent;
 import com.myou.ec.ecsite.domain.auth.model.AccountExpiryEvents;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import com.myou.ec.ecsite.domain.auth.policy.AccountExpiryPolicy;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountExpiryHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
@@ -27,22 +28,24 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
     private final AuthAccountExpiryHistoryRepository expiryHistoryRepository;
     private final AuthLoginHistoryRepository authLoginHistoryRepository;
     private final AccountExpiryPolicy policy;
+    private final CurrentUserProvider currentUserProvider;
     private final Clock clock;
 
     public AccountExpirySharedServiceImpl(
             AuthAccountExpiryHistoryRepository expiryHistoryRepository,
             AuthLoginHistoryRepository authLoginHistoryRepository,
-            AccountExpiryPolicy policy, Clock clock
+            AccountExpiryPolicy policy, CurrentUserProvider currentUserProvider, Clock clock
     ) {
         this.expiryHistoryRepository = requireNonNull(expiryHistoryRepository);
         this.authLoginHistoryRepository = requireNonNull(authLoginHistoryRepository);
         this.policy = requireNonNull(policy);
+        this.currentUserProvider = currentUserProvider;
         this.clock = clock;
     }
 
     @Transactional
     @Override
-    public boolean evaluateAndExpireIfNeeded(AuthAccountId accountId, UserId loginUserId) {
+    public boolean evaluateAndExpireIfNeeded(AuthAccountId accountId) { // Change UserId to Operator
         AccountExpiryEvents events = expiryHistoryRepository.findByAccountId(accountId);
         if (events.isExpired()) {
             return true;
@@ -55,6 +58,9 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
         if (baseAt.isEmpty()) {
             return false;
         }
+
+        Operator operator = currentUserProvider.currentOrSystem();
+
         LocalDateTime now = LocalDateTime.now(clock);
         boolean expired = now.isAfter(baseAt.get().plus(policy.expiryDuration()));
         if (expired) {
@@ -62,9 +68,9 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
                     accountId,
                     REASON_INACTIVE_90D,
                     now,
-                    loginUserId
+                    operator
             );
-            expiryHistoryRepository.save(ev, loginUserId != null ? loginUserId : new UserId("SYSTEM_USER"));
+            expiryHistoryRepository.save(ev, operator);
             return true;
         }
         return false;
@@ -72,11 +78,13 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
 
     @Transactional
     @Override
-    public void unexpireIfExpired(AuthAccountId accountId, UserId operator) {
+    public void unexpireIfExpired(AuthAccountId accountId) { // Change UserId to Operator
         var events = expiryHistoryRepository.findByAccountId(accountId);
         if (!events.isExpired()) {
             return;
         }
+
+        Operator operator = currentUserProvider.currentOrSystem();
 
         LocalDateTime now = LocalDateTime.now(clock);
         var ev = AccountExpiryEvent.unexpired(
@@ -84,8 +92,8 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
                 REASON_ADMIN_ENABLE,
                 now,
                 operator
-        );
-        expiryHistoryRepository.save(ev, operator);
+            );
+        expiryHistoryRepository.save(ev, operator); // Pass Operator directly
     }
 
     private static Optional<LocalDateTime> max(Optional<LocalDateTime> a, Optional<LocalDateTime> b) {

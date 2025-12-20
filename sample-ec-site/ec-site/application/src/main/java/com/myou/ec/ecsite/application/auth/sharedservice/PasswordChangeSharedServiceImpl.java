@@ -1,12 +1,13 @@
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
+import com.myou.ec.ecsite.application.auth.provider.CurrentUserProvider;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.exception.PasswordReuseNotAllowedException;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.policy.ExpiredPasswordPolicy;
 import com.myou.ec.ecsite.domain.auth.policy.PasswordPolicy;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
@@ -27,16 +28,18 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
     private final AuthPasswordHistoryRepository passwordHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicy passwordPolicy;
+    private final CurrentUserProvider currentUserProvider;
     private final Clock clock;
 
     public PasswordChangeSharedServiceImpl(AuthAccountRepository authAccountRepository,
                                            AuthPasswordHistoryRepository passwordHistoryRepository,
                                            PasswordEncoder passwordEncoder,
-                                           PasswordPolicy passwordPolicy, Clock clock) {
+                                           PasswordPolicy passwordPolicy, CurrentUserProvider currentUserProvider, Clock clock) {
         this.authAccountRepository = authAccountRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicy = passwordPolicy;
+        this.currentUserProvider = currentUserProvider;
         this.clock = clock;
     }
 
@@ -44,9 +47,11 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
 
     @Override
     @Transactional(readOnly = true)
-    public PasswordChangeRequirementType requirementOf(UserId userId) {
+    public PasswordChangeRequirementType requirementOf() {
 
-        Optional<PasswordHistory> optLast = authAccountRepository.findByUserId(userId)
+        Operator operator = currentUserProvider.currentOrSystem();
+
+        Optional<PasswordHistory> optLast = authAccountRepository.findByUserId(operator.toUserId())
                 .flatMap(user -> passwordHistoryRepository.findLastByAccountId(user.id()));
 
         if (optLast.isEmpty()) {
@@ -71,7 +76,7 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
 
     @Override
     @Transactional
-    public void changePassword(AuthAccountId accountId, String currentRawPassword, String newRawPassword) {
+    public void changePassword(AuthAccountId accountId, String currentRawPassword, String newRawPassword) { // Add Operator operator
 
         AuthAccount user = authAccountRepository.findById(accountId)
                 .orElseThrow(() -> new AuthDomainException("アカウントID未採番のためパスワード変更ができません。"));
@@ -98,15 +103,14 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
         String encoded = passwordEncoder.encode(newRawPassword);
         PasswordHash passwordHash = new PasswordHash(encoded);
 
-        UserId operator = user.userId(); // 自分自身が変更
         LocalDateTime now = LocalDateTime.now(clock);
+
+        Operator operator = currentUserProvider.currentOrSystem();
 
         // ユーザのパスワード更新
         authAccountRepository.save(user.changePassword(passwordHash), operator);
 
         // パスワード履歴登録
-
-
         PasswordHistory history = PasswordHistory.userChange(accountId, passwordHash, now, operator);
         passwordHistoryRepository.save(history, operator);
     }

@@ -14,54 +14,49 @@ public interface AuthAccountAdminSharedService {
     /**
      * アカウントを新規登録する。
      *
-     * @param newUserId    作成ユーザーID
+     * @param newUserId 作成ユーザーID
      * @param roleCodes 付与するロール一覧
-     * @param operator  操作ユーザ（管理者）の userId
+
      * @return 登録された ユーザーID
      */
     AuthAccountId registerAccount(UserId newUserId,
-                                  Set<RoleCode> roleCodes,
-                                  UserId operator);
+                                  Set<RoleCode> roleCodes);
 
     /**
      * 初期パスワードにリセットする。
      *
      * @param targetAccountId 対象アカウントID
-     * @param operator        操作ユーザ（管理者）の userId
      */
-    void resetPassword(AuthAccountId targetAccountId, UserId operator);
+    void resetPassword(AuthAccountId targetAccountId);
 
     /**
      * アカウントロックを解除する。
      *
      * @param targetAccountId 対象アカウントID
-     * @param operator        操作ユーザ（管理者）の userId
      */
-    void unlockAccount(AuthAccountId targetAccountId, UserId operator);
+    void unlockAccount(AuthAccountId targetAccountId);
 
     /**
      * アカウントを無効化する。
      *
      * @param targetAccountId 対象アカウントID
-     * @param operator        操作ユーザ（管理者）の userId
      */
-    void disableAccount(AuthAccountId targetAccountId, UserId operator);
+    void disableAccount(AuthAccountId targetAccountId);
 
     /**
      * アカウントを有効化する。
      *
      * @param targetAccountId 対象アカウントID
-     * @param operator        操作ユーザ（管理者）の userId
      */
-    void enableAccount(AuthAccountId targetAccountId, UserId operator);
+    void enableAccount(AuthAccountId targetAccountId);
 
 
     /** ロール付与 */
-    void addRole(AuthAccountId targetAccountId, RoleCode role, UserId operator);
+    void addRole(AuthAccountId targetAccountId, RoleCode role);
 
     /** ロール剥奪 */
-    void removeRole(AuthAccountId targetAccountId, RoleCode role, UserId operator);
+    void removeRole(AuthAccountId targetAccountId, RoleCode role);
 
     /** 論理削除（deleted=true, enabled=false） */
-    void deleteAccount(AuthAccountId targetAccountId, UserId operator);
+    void deleteAccount(AuthAccountId targetAccountId);
 }

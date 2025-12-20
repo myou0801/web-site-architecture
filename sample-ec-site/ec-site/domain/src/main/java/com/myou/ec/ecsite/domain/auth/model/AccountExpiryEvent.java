@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.domain.auth.model;
 
 import com.myou.ec.ecsite.domain.auth.model.value.AccountExpiryEventType;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +13,7 @@ public record AccountExpiryEvent(
         AccountExpiryEventType eventType,
         String reason,
         LocalDateTime occurredAt,
-        UserId operatedBy // nullable for EXPIRE
+        Operator operatedBy
 ) {
     public AccountExpiryEvent {
         requireNonNull(accountId, "accountId");
@@ -25,7 +25,7 @@ public record AccountExpiryEvent(
     public static AccountExpiryEvent expired(AuthAccountId accountId,
                                              String reason,
                                              LocalDateTime occurredAt,
-                                             UserId operatedBy ) {
+                                             Operator operatedBy ) {
         return  new AccountExpiryEvent(
                 accountId,
                 AccountExpiryEventType.EXPIRE,
@@ -37,8 +37,7 @@ public record AccountExpiryEvent(
 
     public static AccountExpiryEvent unexpired(AuthAccountId accountId,
                                              String reason,
-                                             LocalDateTime occurredAt,
-                                             UserId operatedBy ) {
+                                             LocalDateTime occurredAt, Operator operatedBy ) {
         return  new AccountExpiryEvent(
                 accountId,
                 AccountExpiryEventType.UNEXPIRE,

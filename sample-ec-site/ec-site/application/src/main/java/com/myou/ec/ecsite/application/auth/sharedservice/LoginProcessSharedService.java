@@ -11,7 +11,7 @@ public interface LoginProcessSharedService {
     /**
      * ログイン成功時の処理。
      *
-     * @param userId   ユーザID（認証成功済）
+     * @param userId   ユーザID（フォーム入力値。存在しない場合もある）
      */
     void onLoginSuccess(UserId userId);
 

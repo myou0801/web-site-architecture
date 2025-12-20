@@ -3,7 +3,7 @@ package com.myou.ec.ecsite.infrastructure.auth.record;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.LoginResult;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
@@ -26,14 +26,14 @@ public record AuthLoginHistoryRecord(
         );
     }
 
-    public static AuthLoginHistoryRecord fromDomain(LoginHistory history, UserId createdByApp) {
+    public static AuthLoginHistoryRecord fromDomain(LoginHistory history, Operator operator) {
         return new AuthLoginHistoryRecord(
                 history.id(),
                 history.authAccountId().value(),
                 history.result().name(),
                 history.loginAt(),
                 null, // createdAt is handled by DB
-                createdByApp.value()
+                operator.value()
         );
     }
 }

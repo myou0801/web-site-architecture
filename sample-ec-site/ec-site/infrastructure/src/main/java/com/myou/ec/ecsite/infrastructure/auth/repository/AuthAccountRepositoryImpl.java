@@ -2,6 +2,7 @@ package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator; // Import Operator
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountMapper;
@@ -42,7 +43,7 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
     }
 
     @Override
-    public void save(AuthAccount user, UserId operator) {
+    public void save(AuthAccount user, Operator operator) { // Use Operator
         LocalDateTime now = LocalDateTime.now(clock);
         if (user.id() == null) {
             // Insert
@@ -52,9 +53,9 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
                     user.passwordHash().value(),
                     user.accountStatus().name(),
                     null, // createdAt is handled by DB
-                    operator.value(),
+                    operator.value(), // Use operator.value()
                     now,
-                    operator.value()
+                    operator.value() // Use operator.value()
             );
             userMapper.insert(record);
         } else {
@@ -72,7 +73,7 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
                     currentRecord.createdAt(), // preserve original
                     currentRecord.createdBy(), // preserve original
                     now,
-                    operator.value()
+                    operator.value() // Use operator.value()
             );
             userMapper.update(record);
         }

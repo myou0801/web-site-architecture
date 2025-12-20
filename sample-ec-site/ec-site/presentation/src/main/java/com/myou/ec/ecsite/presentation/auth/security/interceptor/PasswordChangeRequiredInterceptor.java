@@ -1,11 +1,8 @@
 package com.myou.ec.ecsite.presentation.auth.security.interceptor;
 
 import com.myou.ec.ecsite.application.auth.sharedservice.PasswordChangeSharedService;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
-import com.myou.ec.ecsite.presentation.auth.security.userdetails.AuthAccountDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -35,12 +32,7 @@ public class PasswordChangeRequiredInterceptor implements HandlerInterceptor {
             return true; // 無限ループ防止（外部設定で制御）
         }
 
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof AuthAccountDetails principal)) {
-            return true;
-        }
-
-        if (passwordChangeSharedService.isPasswordChangeRequired(new UserId(principal.getUsername()))) {
+        if (passwordChangeSharedService.isPasswordChangeRequired()) {
             response.sendRedirect(request.getContextPath() + passwordChangeUrl);
             return false;
         }

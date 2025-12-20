@@ -1,13 +1,10 @@
 package com.myou.ec.ecsite.presentation.auth.security.handler;
 
 import com.myou.ec.ecsite.application.auth.sharedservice.PasswordChangeSharedService;
-import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -38,9 +35,7 @@ public class AuthAuthenticationSuccessHandler extends SavedRequestAwareAuthentic
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        String loginIdStr = extractLoginId(authentication);
-        UserId loginId = new UserId(loginIdStr);
-        boolean result = passwordChangeSharedService.isPasswordChangeRequired(loginId);
+        boolean result = passwordChangeSharedService.isPasswordChangeRequired();
 
         if (result) {
             // パスワード変更画面へリダイレクト
@@ -50,15 +45,5 @@ public class AuthAuthenticationSuccessHandler extends SavedRequestAwareAuthentic
         }
     }
 
-    private String extractLoginId(Authentication authentication) {
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof User userDetails) {
-            return userDetails.getUsername();
-        }
-        if (principal instanceof String s) {
-            return s;
-        }
-        throw new AuthDomainException("認証情報からログインIDを取得できません。");
-    }
 }
 

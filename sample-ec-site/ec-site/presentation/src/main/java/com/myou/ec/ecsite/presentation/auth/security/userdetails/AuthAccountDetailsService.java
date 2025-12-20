@@ -61,8 +61,8 @@ public class AuthAccountDetailsService implements UserDetailsService {
                 .map(LoginHistory::loginAt)
                 .orElse(null);
 
-        // 休眠状態かの判定
-        boolean expired = accountExpirySharedService.evaluateAndExpireIfNeeded(accountId, userId);
+        // アカウント有効期限切れ状態かの判定
+        boolean expired = accountExpirySharedService.evaluateAndExpireIfNeeded(accountId);
 
         // ロック状態の判定
         AccountLockEvents lockEvents = lockHistoryRepository.findByAccountId(accountId, 20);

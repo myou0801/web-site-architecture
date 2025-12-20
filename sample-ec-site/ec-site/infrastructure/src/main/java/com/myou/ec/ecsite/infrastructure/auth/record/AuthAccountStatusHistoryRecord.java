@@ -4,7 +4,7 @@ import com.myou.ec.ecsite.domain.auth.model.AuthAccountStatusHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AccountStatus;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountStatusHistoryId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
@@ -20,7 +20,7 @@ public record AuthAccountStatusHistoryRecord(
         @Nullable LocalDateTime createdAt, // Nullable as per policy
         String createdBy
 ) {
-    public static AuthAccountStatusHistoryRecord fromDomain(AuthAccountStatusHistory history, UserId createdByApp) {
+    public static AuthAccountStatusHistoryRecord fromDomain(AuthAccountStatusHistory history, Operator operator) {
         return new AuthAccountStatusHistoryRecord(
                 history.getId() != null ? history.getId().value() : null,
                 history.getAuthAccountId().value(),
@@ -30,7 +30,7 @@ public record AuthAccountStatusHistoryRecord(
                 history.getOccurredAt(),
                 history.getOperatedBy() != null ? history.getOperatedBy().value() : null,
                 null, // createdAt is handled by DB
-                createdByApp.value()
+                operator.value()
         );
     }
 
@@ -42,7 +42,7 @@ public record AuthAccountStatusHistoryRecord(
                 AccountStatus.valueOf(toStatus),
                 reason,
                 occurredAt,
-                operatedBy != null ? new UserId(operatedBy) : null
+                operatedBy != null ? Operator.of(operatedBy) : null
         );
     }
 }

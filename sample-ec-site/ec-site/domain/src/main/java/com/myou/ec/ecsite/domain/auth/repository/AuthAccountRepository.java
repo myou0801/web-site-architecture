@@ -2,6 +2,7 @@ package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator; // Import Operator
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 
 import java.util.Optional;
@@ -15,6 +16,6 @@ public interface AuthAccountRepository {
 
     Optional<AuthAccount> findByUserId(UserId userId);
 
-    void save(AuthAccount user, UserId operator);
+    void save(AuthAccount user, Operator operator);
 
 }

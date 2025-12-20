@@ -31,25 +31,6 @@ public class LoginHistories {
     }
 
 
-//    /**
-//     * 前回ログイン日時（今回を除く直近 SUCCESS）を返す。
-//     * 履歴が1件以下、またはSUCCESSがない場合は empty。
-//     */
-//    public Optional<LocalDateTime> findPreviousSuccessLoginAt() {
-//        LocalDateTime firstSuccess = null;
-//        for (LoginHistory history : histories) {
-//            if (history.result() == LoginResult.SUCCESS) {
-//                if (firstSuccess == null) {
-//                    firstSuccess = history.loginAt();
-//                } else {
-//                    // 2件目の SUCCESS が「前回ログイン」
-//                    return Optional.of(history.loginAt());
-//                }
-//            }
-//        }
-//        return Optional.empty();
-//    }
-
     /**
      * 連続失敗回数をカウントする。
      * <p>

@@ -4,7 +4,7 @@ package com.myou.ec.ecsite.infrastructure.auth.record;
 import com.myou.ec.ecsite.domain.auth.model.AccountExpiryEvent;
 import com.myou.ec.ecsite.domain.auth.model.value.AccountExpiryEventType;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
@@ -25,11 +25,11 @@ public record AccountExpiryHistoryRecord(
                 AccountExpiryEventType.valueOf(eventType),
                 reason,
                 occurredAt,
-                operatedBy != null ? new UserId(operatedBy) : null
+                operatedBy != null ? Operator.of(operatedBy) : null
         );
     }
 
-    public static AccountExpiryHistoryRecord fromDomain(AccountExpiryEvent ev, UserId createdBy) {
+    public static AccountExpiryHistoryRecord fromDomain(AccountExpiryEvent ev, Operator operator) {
         return new AccountExpiryHistoryRecord(
                 null,
                 ev.accountId().value(),
@@ -38,7 +38,7 @@ public record AccountExpiryHistoryRecord(
                 ev.occurredAt(),
                 ev.operatedBy() != null ? ev.operatedBy().value() : null,
                 null, // createdAt is handled by DB
-                createdBy.value()
+                operator.value() // Pass String value directly
         );
     }
 }

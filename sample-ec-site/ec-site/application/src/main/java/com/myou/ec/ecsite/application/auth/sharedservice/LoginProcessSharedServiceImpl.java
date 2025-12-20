@@ -4,6 +4,7 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.*;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.policy.LockPolicy;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountExpiryHistoryRepository;
@@ -57,7 +58,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
                 accountId,
                 now
         );
-        loginHistoryRepository.save(successHistory, userId);
+        loginHistoryRepository.save(successHistory, Operator.ofUserId(userId));
     }
 
     @Override
@@ -86,15 +87,17 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
 
         AccountExpiryEvents expiryEvents = accountExpiryHistoryRepository.findByAccountId(accountId);
 
+        Operator operator = Operator.of(userId.value());
+
         // アカウント有効期限切れ
         if (expiryEvents.isExpired()) {
-            loginHistoryRepository.save(LoginHistory.expired(accountId, now), userId);
+            loginHistoryRepository.save(LoginHistory.expired(accountId, now), operator);
             return;
         }
 
         if (!user.canLogin()) {
             // ★ DISABLED として履歴を残し、ロック判定はしない
-            loginHistoryRepository.save(LoginHistory.disabled(accountId, now), userId);
+            loginHistoryRepository.save(LoginHistory.disabled(accountId, now), operator);
             return;
         }
 
@@ -107,7 +110,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
                     accountId,
                     now
             );
-            loginHistoryRepository.save(lockedHistory, userId);
+            loginHistoryRepository.save(lockedHistory, operator);
             return;
         }
 
@@ -134,7 +137,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
         boolean shouldLockout = lockPolicy.isLockout(loginHistories, lastUnlockAt);
 
         // まず今回の 'FAIL' 履歴を保存
-        loginHistoryRepository.save(failHistory, userId);
+        loginHistoryRepository.save(failHistory, operator);
 
         if (shouldLockout) {
             // ポリシー違反なら、ロックイベントを追加
@@ -142,12 +145,11 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
                     accountId,
                     now,
                     "LOGIN_FAIL_THRESHOLD", // ロック理由
-                    userId
+                    Operator.ofUserId(userId)
             );
-            lockHistoryRepository.save(lockEvent, userId);
+            lockHistoryRepository.save(lockEvent, operator);
         }
     }
 
 
 }
-

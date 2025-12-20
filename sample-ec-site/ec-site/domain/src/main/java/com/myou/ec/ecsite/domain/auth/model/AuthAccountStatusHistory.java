@@ -4,7 +4,7 @@ import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.value.AccountStatus;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountStatusHistoryId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -20,7 +20,7 @@ public class AuthAccountStatusHistory {
     private final AccountStatus toStatus;
     private final String reason;
     private final LocalDateTime occurredAt;
-    private final UserId operatedBy;
+    private final Operator operatedBy;
 
     public AuthAccountStatusHistory(
             AuthAccountStatusHistoryId id,
@@ -29,7 +29,7 @@ public class AuthAccountStatusHistory {
             AccountStatus toStatus,
             String reason,
             LocalDateTime occurredAt,
-            UserId operatedBy
+            Operator operatedBy
     ) {
         this.id = id;
         this.authAccountId = Objects.requireNonNull(authAccountId);
@@ -47,7 +47,7 @@ public class AuthAccountStatusHistory {
     public static AuthAccountStatusHistory forNewAccount(
             AuthAccountId authAccountId,
             LocalDateTime occurredAt,
-            UserId operator,
+            Operator operator,
             String reason
     ) {
         return new AuthAccountStatusHistory(
@@ -65,7 +65,7 @@ public class AuthAccountStatusHistory {
             AuthAccountId authAccountId,
             AccountStatus fromStatus,
             LocalDateTime occurredAt,
-            UserId operator,
+            Operator operator,
             String reason
     ) {
         AccountStatus toStatus = AccountStatus.ACTIVE;
@@ -87,7 +87,7 @@ public class AuthAccountStatusHistory {
             AuthAccountId authAccountId,
             AccountStatus fromStatus,
             LocalDateTime occurredAt,
-            UserId operator,
+            Operator operator,
             String reason
     ) {
         AccountStatus toStatus = AccountStatus.DISABLED;
@@ -109,7 +109,7 @@ public class AuthAccountStatusHistory {
             AuthAccountId authAccountId,
             AccountStatus fromStatus,
             LocalDateTime occurredAt,
-            UserId operator,
+            Operator operator,
             String reason
     ) {
         AccountStatus toStatus = AccountStatus.DELETED;
@@ -136,8 +136,6 @@ public class AuthAccountStatusHistory {
         return authAccountId;
     }
 
-
-
     public AccountStatus getFromStatus() {
         return fromStatus;
     }
@@ -154,7 +152,7 @@ public class AuthAccountStatusHistory {
         return occurredAt;
     }
 
-    public UserId getOperatedBy() {
+    public Operator getOperatedBy() {
         return operatedBy;
     }
 }

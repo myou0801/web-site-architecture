@@ -1,5 +1,6 @@
 package com.myou.ec.ecsite.application.auth.sharedservice;
 
+import com.myou.ec.ecsite.application.auth.provider.CurrentUserProvider;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.*;
 import com.myou.ec.ecsite.domain.auth.model.value.*;
@@ -23,6 +24,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
     private final AuthAccountStatusHistoryRepository statusHistoryRepository;
     private final AccountExpirySharedService accountExpirySharedService;
+    private final CurrentUserProvider currentUserProvider;
     private final PasswordEncoder passwordEncoder;
     private final String initialPassword;
     private final Clock clock;
@@ -32,7 +34,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
                                              AuthPasswordHistoryRepository passwordHistoryRepository,
                                              AuthAccountLockHistoryRepository lockHistoryRepository,
                                              AuthAccountStatusHistoryRepository statusHistoryRepository,
-                                             AccountExpirySharedService accountExpirySharedService,
+                                             AccountExpirySharedService accountExpirySharedService, CurrentUserProvider currentUserProvider,
                                              PasswordEncoder passwordEncoder,
                                              @Value("${auth.initial-password:password123}") String initialPassword, Clock clock) {
         this.authAccountRepository = authAccountRepository;
@@ -41,6 +43,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         this.lockHistoryRepository = lockHistoryRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.accountExpirySharedService = accountExpirySharedService;
+        this.currentUserProvider = currentUserProvider;
         this.passwordEncoder = passwordEncoder;
         this.initialPassword = initialPassword;
         this.clock = clock;
@@ -48,8 +51,9 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
     @Override
     public AuthAccountId registerAccount(UserId newUserId,
-                                         Set<RoleCode> roleCodes,
-                                         UserId operator) {
+                                         Set<RoleCode> roleCodes) {
+
+        Operator operator = currentUserProvider.currentOrSystem();
 
         // パスワードハッシュ化
         PasswordHash passwordHash = new PasswordHash(passwordEncoder.encode(initialPassword));
@@ -69,7 +73,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         }
 
         // ユーザロール設定
-        roleCodes.forEach(roleCode -> authAccountRoleRepository.addRole(accountId, roleCode, operator));
+        roleCodes.forEach(roleCode -> authAccountRoleRepository.addRole(accountId, roleCode, operator)); // Pass Operator directly
         
         // パスワード履歴登録（初回登録）
         PasswordHistory history = PasswordHistory.initialRegister(
@@ -93,10 +97,11 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public void resetPassword(AuthAccountId targetAccountId, UserId operator) {
+    public void resetPassword(AuthAccountId targetAccountId) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
+        Operator operator = currentUserProvider.currentOrSystem();
 
         // パスワードハッシュ化
         PasswordHash passwordHash = new PasswordHash(passwordEncoder.encode(initialPassword));
@@ -126,7 +131,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public void unlockAccount(AuthAccountId targetAccountId, UserId operator) {
+    public void unlockAccount(AuthAccountId targetAccountId) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
@@ -136,6 +141,8 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
             // 既に未ロックなら何もしない（イベントを増やさない方針）
             return;
         }
+
+        Operator operator = currentUserProvider.currentOrSystem();
 
         LocalDateTime now = LocalDateTime.now(clock);
 
@@ -149,14 +156,16 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public void disableAccount(AuthAccountId targetAccountId, UserId operator) {
+    public void disableAccount(AuthAccountId targetAccountId) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         // すでに無効化されているユーザは処理不要
-        if(user.accountStatus() == AccountStatus.DISABLED){
+        if(!user.accountStatus().canTransitionTo(AccountStatus.DISABLED)){
             return;
         }
+
+        Operator operator = currentUserProvider.currentOrSystem();
 
         LocalDateTime now = LocalDateTime.now(clock);
         AuthAccount disabledUser = user.disable();
@@ -173,24 +182,22 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public void enableAccount(AuthAccountId targetAccountId, UserId operator) {
+    public void enableAccount(AuthAccountId targetAccountId) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
-
-
-        LocalDateTime now = LocalDateTime.now(clock);
-
         // 有効期限切れのユーザも有効化する
-        accountExpirySharedService.unexpireIfExpired(targetAccountId, operator);
+        accountExpirySharedService.unexpireIfExpired(targetAccountId);
 
         // すでに有効化されているユーザは処理不要
-        if(user.accountStatus() == AccountStatus.ACTIVE){
+        if(!user.accountStatus().canTransitionTo(AccountStatus.ACTIVE)){
             return;
         }
 
-        AuthAccount activatedUser = user.activate();
-        authAccountRepository.save(activatedUser, operator);
+        Operator operator = currentUserProvider.currentOrSystem();
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        authAccountRepository.save(user.activate(), operator);
 
         AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forActivating(
                 targetAccountId,
@@ -203,24 +210,26 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public void addRole(AuthAccountId targetAccountId, RoleCode role, UserId operator) {
+    public void addRole(AuthAccountId targetAccountId, RoleCode role) {
 
     }
 
     @Override
-    public void removeRole(AuthAccountId targetAccountId, RoleCode role, UserId operator) {
+    public void removeRole(AuthAccountId targetAccountId, RoleCode role) {
 
     }
 
     @Override
-    public void deleteAccount(AuthAccountId targetAccountId, UserId operator) {
+    public void deleteAccount(AuthAccountId targetAccountId) {
         AuthAccount user = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         // すでに削除されているユーザは処理不要
-        if(user.accountStatus() == AccountStatus.DELETED){
+        if(!user.accountStatus().canTransitionTo(AccountStatus.DELETED)){
             return;
         }
+
+        Operator operator = currentUserProvider.currentOrSystem();
 
         LocalDateTime now = LocalDateTime.now(clock);
         AuthAccount deletedUser = user.markAsDeleted();

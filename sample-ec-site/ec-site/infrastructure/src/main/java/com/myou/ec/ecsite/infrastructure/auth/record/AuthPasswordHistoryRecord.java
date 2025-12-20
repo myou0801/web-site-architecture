@@ -2,9 +2,9 @@ package com.myou.ec.ecsite.infrastructure.auth.record;
 
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordChangeType;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
@@ -27,11 +27,11 @@ public record AuthPasswordHistoryRecord(
                 new PasswordHash(passwordHash),
                 PasswordChangeType.valueOf(changeType),
                 changedAt,
-                operatedBy != null ? new UserId(operatedBy) : null
+                operatedBy != null ? Operator.of(operatedBy) : null
         );
     }
 
-    public static AuthPasswordHistoryRecord fromDomain(PasswordHistory history, UserId createdByApp) {
+    public static AuthPasswordHistoryRecord fromDomain(PasswordHistory history, Operator operator) {
         return new AuthPasswordHistoryRecord(
                 history.id(),
                 history.authAccountId().value(),
@@ -40,7 +40,7 @@ public record AuthPasswordHistoryRecord(
                 history.changedAt(),
                 history.operatedBy() != null ? history.operatedBy().value() : null,
                 null, // createdAt is handled by DB
-                createdByApp.value()
+                operator.value()
         );
     }
 }

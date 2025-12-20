@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.infrastructure.auth.record;
 
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
@@ -25,11 +25,11 @@ public record AuthAccountLockHistoryRecord(
                 locked,
                 reason,
                 occurredAt,
-                operatedBy != null ? new UserId(operatedBy) : null
+                operatedBy != null ? Operator.of(operatedBy) : null
         );
     }
 
-    public static AuthAccountLockHistoryRecord fromDomain(AccountLockEvent event, UserId createdByApp) {
+    public static AuthAccountLockHistoryRecord fromDomain(AccountLockEvent event, Operator operator) {
         return new AuthAccountLockHistoryRecord(
                 event.id(),
                 event.authAccountId().value(),
@@ -38,7 +38,7 @@ public record AuthAccountLockHistoryRecord(
                 event.occurredAt(),
                 event.operatedBy() != null ? event.operatedBy().value() : null,
                 null, // createdAt is handled by DB
-                createdByApp.value()
+                operator.value()
         );
     }
 }

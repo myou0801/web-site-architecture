@@ -1,7 +1,7 @@
 package com.myou.ec.ecsite.domain.auth.model;
 
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -14,14 +14,14 @@ import java.util.Objects;
  */
 public record AccountLockEvent(Long id, AuthAccountId authAccountId, boolean locked, String reason,
                                LocalDateTime occurredAt,
-                               UserId operatedBy) {
+                               Operator operatedBy) {
 
     public AccountLockEvent(Long id,
                             AuthAccountId authAccountId,
                             boolean locked,
                             String reason,
                             LocalDateTime occurredAt,
-                            UserId operatedBy) {
+                            Operator operatedBy) {
 
         this.id = id;
         this.authAccountId = Objects.requireNonNull(authAccountId, "authAccountId must not be null");
@@ -34,14 +34,14 @@ public record AccountLockEvent(Long id, AuthAccountId authAccountId, boolean loc
     public static AccountLockEvent lock(AuthAccountId authAccountId,
                                         LocalDateTime now,
                                         String reason,
-                                        UserId operatedBy) {
+                                        Operator operatedBy) {
         return new AccountLockEvent(null, authAccountId, true, reason, now, operatedBy);
     }
 
     public static AccountLockEvent unlock(AuthAccountId authAccountId,
                                           LocalDateTime now,
                                           String reason,
-                                          UserId operatedBy) {
+                                          Operator operatedBy) {
         return new AccountLockEvent(null, authAccountId, false, reason, now, operatedBy);
     }
 }

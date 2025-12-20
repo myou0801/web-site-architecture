@@ -12,20 +12,13 @@ import java.util.Objects;
  * <p>
  * ユーザの氏名・所属などの業務的な属性は、別ドメイン（業務T側）の
  * アカウント詳細テーブルで管理する前提。
+ *
+ * @param id            AUTH_ACCOUNT_ID。null の場合は未採番。
+ * @param userId        ユーザーID。
+ * @param passwordHash  ハッシュ済みパスワード。
+ * @param accountStatus アカウント状態。
  */
-public class AuthAccount {
-
-    /** AUTH_ACCOUNT_ID。null の場合は未採番。 */
-    private final AuthAccountId id;
-
-    /** ユーザーID。 */
-    private final UserId userId;
-
-    /** ハッシュ済みパスワード。 */
-    private final PasswordHash passwordHash;
-
-    /** アカウント状態。 */
-    private final AccountStatus accountStatus;
+public record AuthAccount(AuthAccountId id, UserId userId, PasswordHash passwordHash, AccountStatus accountStatus) {
 
     /**
      * 永続化層からの再構築などに使うコンストラクタ。
@@ -47,7 +40,7 @@ public class AuthAccount {
      * まだ ID は採番されていない（id == null）状態で生成する。
      */
     public static AuthAccount newAccount(UserId userId,
-                                   PasswordHash passwordHash) {
+                                         PasswordHash passwordHash) {
 
         Objects.requireNonNull(userId, "userId must not be null");
         Objects.requireNonNull(passwordHash, "encodedPassword must not be null");
@@ -108,24 +101,6 @@ public class AuthAccount {
         return accountStatus == AccountStatus.ACTIVE;
     }
 
-    // ===== getter =====
-
-    public AuthAccountId id() {
-        return id;
-    }
-
-    public UserId userId() {
-        return userId;
-    }
-
-    public PasswordHash passwordHash() {
-        return passwordHash;
-    }
-
-    public AccountStatus accountStatus() {
-        return accountStatus;
-    }
-
     // ===== equals / hashCode / toString =====
 
     @Override
@@ -144,9 +119,9 @@ public class AuthAccount {
     @Override
     public String toString() {
         return "AuthAccount{" +
-               "id=" + id +
-               ", userId=" + userId +
-               ", accountStatus=" + accountStatus +
-               '}';
+                "id=" + id +
+                ", userId=" + userId +
+                ", accountStatus=" + accountStatus +
+                '}';
     }
 }
