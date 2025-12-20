@@ -55,7 +55,7 @@
 
     <select id="countSummaries" resultType="long">
         SELECT
-        COUNT(AUTH_ACCOUNT.AUTH_ACCOUNT_ID)
+        COUNT(AUTH_ACCOUNT_ID)
         FROM
         AUTH_ACCOUNT_CURRENT_V
         <include refid="whereAuthAccountCriteria"/>

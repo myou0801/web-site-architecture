@@ -15,12 +15,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class AuthAccountQueryQueryRepositoryImpl implements AuthAccountQueryRepository {
+public class AuthAccountQueryRepositoryImpl implements AuthAccountQueryRepository {
 
     private final AuthAccountQueryMapper accountQueryMapper;
     private final AuthAccountRoleQueryMapper accountRoleQueryMapper;
 
-    public AuthAccountQueryQueryRepositoryImpl(AuthAccountQueryMapper accountQueryMapper, AuthAccountRoleQueryMapper accountRoleQueryMapper) {
+    public AuthAccountQueryRepositoryImpl(AuthAccountQueryMapper accountQueryMapper, AuthAccountRoleQueryMapper accountRoleQueryMapper) {
         this.accountQueryMapper = accountQueryMapper;
         this.accountRoleQueryMapper = accountRoleQueryMapper;
     }
