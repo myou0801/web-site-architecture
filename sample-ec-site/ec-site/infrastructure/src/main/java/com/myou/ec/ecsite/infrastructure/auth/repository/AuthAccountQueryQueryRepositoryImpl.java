@@ -30,14 +30,14 @@ public class AuthAccountQueryQueryRepositoryImpl implements AuthAccountQueryRepo
         List<AuthAccountSummaryRecord> records = accountQueryMapper.selectSummaries(param);
         return records.stream().map(r -> {
             AuthAccountSummaryDto dto = new AuthAccountSummaryDto();
-            dto.authAccountId = r.authAccountId;
-            dto.userId = r.userId;
-            dto.accountStatus = r.accountStatus;
-            dto.locked = r.locked != null && r.locked;
-            dto.expired = r.expired != null && r.expired;
-            dto.createdAt = r.createdAt;
-            dto.updatedAt = r.updatedAt;
-            dto.lastLoginAt = r.lastLoginAt;
+            dto.setAuthAccountId(r.authAccountId());
+            dto.setUserId(r.userId());
+            dto.setAccountStatus(r.accountStatus());
+            dto.setLocked(r.locked() != null && r.locked());
+            dto.setExpired(r.expired() != null && r.expired());
+            dto.setCreatedAt(r.createdAt());
+            dto.setUpdatedAt(r.updatedAt());
+            dto.setLastLoginAt(r.lastLoginAt());
             return dto;
         }).collect(java.util.stream.Collectors.toList());
     }
@@ -52,14 +52,14 @@ public class AuthAccountQueryQueryRepositoryImpl implements AuthAccountQueryRepo
         return accountQueryMapper.selectDetailByUserId(userId)
                 .map(r -> {
                     AuthAccountDetailDto dto = new AuthAccountDetailDto();
-                    dto.authAccountId = r.authAccountId;
-                    dto.userId = r.userId;
-                    dto.accountStatus = r.accountStatus;
-                    dto.locked = r.locked != null && r.locked;
-                    dto.expired = r.expired != null && r.expired;
-                    dto.createdAt = r.createdAt;
-                    dto.updatedAt = r.updatedAt;
-                    dto.lastLoginAt = r.lastLoginAt;
+                    dto.setAuthAccountId(r.authAccountId());
+                    dto.setUserId(r.userId());
+                    dto.setAccountStatus(r.accountStatus());
+                    dto.setLocked(r.locked() != null && r.locked());
+                    dto.setExpired(r.expired() != null && r.expired());
+                    dto.setCreatedAt(r.createdAt());
+                    dto.setUpdatedAt(r.updatedAt());
+                    dto.setLastLoginAt(r.lastLoginAt());
                     return dto;
                 });
     }
@@ -69,8 +69,8 @@ public class AuthAccountQueryQueryRepositoryImpl implements AuthAccountQueryRepo
         List<AuthAccountRoleRecord> records = accountRoleQueryMapper.selectRoleCodesByAccountIds(authAccountIds);
         return records.stream().map(r -> {
             AuthAccountRoleDto dto = new AuthAccountRoleDto();
-            dto.authAccountId = r.authAccountId;
-            dto.roleCode = r.roleCode;
+            dto.setAuthAccountId(r.authAccountId());
+            dto.setRoleCode(r.roleCode());
             return dto;
         }).collect(java.util.stream.Collectors.toList());
     }

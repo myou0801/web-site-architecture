@@ -41,10 +41,6 @@ public class ApplicationConfig {
         return new FixedThresholdLockPolicy();
     }
 
-//    @Bean
-//    public DormancyDaysPolicy dormancyDaysPolicy() {
-//        return new DormancyDaysPolicy();
-//    }
 
     @Bean
     public AccountExpiryPolicy  accountExpiryPolicy() {

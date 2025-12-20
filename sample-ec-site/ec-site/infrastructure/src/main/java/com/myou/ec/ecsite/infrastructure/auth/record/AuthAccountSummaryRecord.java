@@ -2,13 +2,14 @@ package com.myou.ec.ecsite.infrastructure.auth.record;
 
 import java.time.LocalDateTime;
 
-public class AuthAccountSummaryRecord {
-    public Long authAccountId;
-    public String userId;
-    public String accountStatus;
-    public Boolean locked;
-    public Boolean expired;
-    public LocalDateTime createdAt;
-    public LocalDateTime updatedAt;
-    public LocalDateTime lastLoginAt;
+public record AuthAccountSummaryRecord(
+        Long authAccountId,
+        String userId,
+        String accountStatus,
+        Boolean locked,
+        Boolean expired,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        LocalDateTime lastLoginAt
+) {
 }
