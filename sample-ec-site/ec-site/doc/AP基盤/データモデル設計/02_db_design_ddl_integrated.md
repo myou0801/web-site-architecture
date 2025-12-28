@@ -128,6 +128,7 @@ CREATE TABLE AUTH_ACCOUNT_LOCK_HISTORY
 (
     auth_account_lock_history_id BIGSERIAL PRIMARY KEY,
     auth_account_id              BIGINT      NOT NULL,
+
     locked                       BOOLEAN     NOT NULL,
     reason                       VARCHAR(64) NOT NULL,
 
