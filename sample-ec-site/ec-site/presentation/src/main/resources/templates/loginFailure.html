@@ -3,10 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title>ECサイト - ログイン失敗</title>
+    <style>
+        .error-text {
+            color: red;
+            font-weight: bold;
+        }
+        .container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+    </style>
 </head>
 <body>
-    <h1>ログイン失敗</h1>
-    <p th:text="${errorMessage}">エラーメッセージがここに表示されます</p>
-    <a href="/login">ログイン画面に戻る</a>
+    <div class="container">
+        <!-- errorKeyの値に応じてFragmentを切り替え -->
+        <div th:switch="${errorKey}">
+            <div th:case="'invalid'" th:replace="~{loginFailureFragments :: invalid}"></div>
+            <div th:case="'bad_credentials'" th:replace="~{loginFailureFragments :: invalid}"></div>
+            <div th:case="'locked'" th:replace="~{loginFailureFragments :: locked}"></div>
+            <div th:case="'disabled'" th:replace="~{loginFailureFragments :: disabled}"></div>
+            <div th:case="'expired'" th:replace="~{loginFailureFragments :: expired}"></div>
+            <div th:case="*" th:replace="~{loginFailureFragments :: default}"></div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a href="/login">ログイン画面に戻る</a>
+        </div>
+    </div>
 </body>
 </html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <!-- 認証失敗（ID/PASS間違い） -->
+    <div th:fragment="invalid">
+        <h2>ログインできませんでした</h2>
+        <p class="error-text">ユーザーIDまたはパスワードが正しくありません。</p>
+        <p>入力内容をご確認の上、再度お試しください。</p>
+    </div>
+
+    <!-- アカウントロック -->
+    <div th:fragment="locked">
+        <h2>アカウントがロックされています</h2>
+        <p class="error-text">パスワードの入力間違いが続いたため、セキュリティ保護のためにアカウントをロックしました。</p>
+        <p>ロック解除については、システム管理者にお問い合わせください。</p>
+    </div>
+
+    <!-- アカウント無効 -->
+    <div th:fragment="disabled">
+        <h2>アカウントが無効です</h2>
+        <p class="error-text">このアカウントは現在利用できません。</p>
+        <p>詳しくはシステム管理者にお問い合わせください。</p>
+    </div>
+
+    <!-- パスワード期限切れ -->
+    <div th:fragment="expired">
+        <h2>パスワードの有効期限切れ</h2>
+        <p class="error-text">パスワードの有効期限が切れています。</p>
+        <p>パスワードの変更が必要です。</p>
+    </div>
+
+    <!-- その他エラー -->
+    <div th:fragment="default">
+        <h2>エラーが発生しました</h2>
+        <p class="error-text" th:text="${errorMessage}">予期せぬエラーが発生しました。</p>
+    </div>
+
+</body>
+</html>
