@@ -2,30 +2,28 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountRoleQueryMapper">
 
-    <select id="selectRoleCodesByAccountIds" resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRoleRecord">
+    <select id="selectRoleCodesByAccountIds"
+            resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRoleRecord">
         SELECT
-            aar.auth_account_id,
-            ar.role_code
+        aar.auth_account_id,
+        ar.role_code
         FROM
-            AUTH_ACCOUNT_ROLE aar
+        AUTH_ACCOUNT_ROLE aar
         JOIN
-            AUTH_ROLE ar ON aar.auth_role_id = ar.auth_role_id
+        AUTH_ROLE ar ON aar.auth_role_id = ar.auth_role_id
         WHERE
-            aar.auth_account_id IN
+        aar.auth_account_id IN
         <foreach item="authAccountId" collection="authAccountIds" open="(" separator="," close=")">
             #{authAccountId}
         </foreach>
     </select>
 
     <select id="selectRoleCodesByAccountId" resultType="string">
-        SELECT
-            ar.role_code
-        FROM
-            AUTH_ACCOUNT_ROLE aar
-        JOIN
-            AUTH_ROLE ar ON aar.auth_role_id = ar.auth_role_id
-        WHERE
-            aar.auth_account_id = #{authAccountId}
+        SELECT ar.role_code
+        FROM AUTH_ACCOUNT_ROLE aar
+                 JOIN
+             AUTH_ROLE ar ON aar.auth_role_id = ar.auth_role_id
+        WHERE aar.auth_account_id = #{authAccountId}
     </select>
 
 </mapper>

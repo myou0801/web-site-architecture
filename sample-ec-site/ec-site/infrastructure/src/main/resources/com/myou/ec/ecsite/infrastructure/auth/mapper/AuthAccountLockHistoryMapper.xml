@@ -33,7 +33,7 @@
         FROM AUTH_ACCOUNT_LOCK_HISTORY
         WHERE auth_account_id = #{authAccountId}
         ORDER BY occurred_at DESC
-            LIMIT #{limit}
+        LIMIT #{limit}
     </select>
 
 </mapper>

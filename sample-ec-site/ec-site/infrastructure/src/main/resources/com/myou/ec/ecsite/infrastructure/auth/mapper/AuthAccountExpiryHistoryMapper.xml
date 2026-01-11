@@ -5,16 +5,17 @@
 
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountExpiryHistoryMapper">
 
-    <select id="selectByAccountId" resultType="com.myou.ec.ecsite.infrastructure.auth.record.AccountExpiryHistoryRecord">
+    <select id="selectByAccountId"
+            resultType="com.myou.ec.ecsite.infrastructure.auth.record.AccountExpiryHistoryRecord">
         SELECT
-            auth_account_expiry_history_id,
-            auth_account_id,
-            event_type,
-            reason,
-            occurred_at,
-            operated_by,
-            created_at,
-            created_by
+        auth_account_expiry_history_id,
+        auth_account_id,
+        event_type,
+        reason,
+        occurred_at,
+        operated_by,
+        created_at,
+        created_by
         FROM AUTH_ACCOUNT_EXPIRY_HISTORY
         WHERE auth_account_id = #{authAccountId}
         ORDER BY occurred_at DESC, auth_account_expiry_history_id DESC
@@ -22,19 +23,19 @@
 
     <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AccountExpiryHistoryRecord">
         INSERT INTO AUTH_ACCOUNT_EXPIRY_HISTORY (
-            auth_account_id,
-            event_type,
-            reason,
-            occurred_at,
-            operated_by,
-            created_by
+        auth_account_id,
+        event_type,
+        reason,
+        occurred_at,
+        operated_by,
+        created_by
         ) VALUES (
-            #{authAccountId},
-            #{eventType},
-            #{reason},
-            #{occurredAt},
-            #{operatedBy},
-            #{createdBy}
+        #{authAccountId},
+        #{eventType},
+        #{reason},
+        #{occurredAt},
+        #{operatedBy},
+        #{createdBy}
         )
     </insert>
 

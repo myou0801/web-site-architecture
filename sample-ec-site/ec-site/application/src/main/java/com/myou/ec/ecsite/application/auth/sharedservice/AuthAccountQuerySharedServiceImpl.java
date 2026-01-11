@@ -69,7 +69,7 @@ public class AuthAccountQuerySharedServiceImpl implements AuthAccountQueryShared
             throw new IllegalArgumentException("pageSize must be 1..100");
 
         if (request.getSort() != null) {
-            Set<String> allowedKeys = Set.of("USER_ID","CREATED_AT","UPDATED_AT","LAST_LOGIN_AT");
+            Set<String> allowedKeys = Set.of("USER_ID", "CREATED_AT", "UPDATED_AT", "LAST_LOGIN_AT");
             if (request.getSort().getSortKey() != null && !allowedKeys.contains(request.getSort().getSortKey())) {
                 throw new IllegalArgumentException("invalid sortKey: " + request.getSort().getSortKey());
             }

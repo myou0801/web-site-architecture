@@ -43,9 +43,9 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
         this.clock = clock;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
-    public boolean evaluateAndExpireIfNeeded(AuthAccountId accountId) { // Change UserId to Operator
+    public boolean isExpired(AuthAccountId accountId) {
         AccountExpiryEvents events = expiryHistoryRepository.findByAccountId(accountId);
         if (events.isExpired()) {
             return true;
@@ -59,21 +59,33 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
             return false;
         }
 
-        Operator operator = currentUserProvider.currentOrSystem();
-
         LocalDateTime now = LocalDateTime.now(clock);
-        boolean expired = now.isAfter(baseAt.get().plus(policy.expiryDuration()));
-        if (expired) {
-            var ev = AccountExpiryEvent.expired(
-                    accountId,
-                    REASON_INACTIVE_90D,
-                    now,
-                    operator
-            );
-            expiryHistoryRepository.save(ev, operator);
-            return true;
+        return now.isAfter(baseAt.get().plus(policy.expiryDuration()));
+    }
+
+    @Transactional
+    @Override
+    public void expireIfNeeded(AuthAccountId accountId) {
+        if (!isExpired(accountId)) {
+            return;
         }
-        return false;
+        
+        // 既にEXPIRED状態なら何もしない（isExpiredは計算上の期限切れも含むため、DB上の状態も確認する）
+        AccountExpiryEvents events = expiryHistoryRepository.findByAccountId(accountId);
+        if (events.isExpired()) {
+            return;
+        }
+
+        Operator operator = currentUserProvider.currentOrSystem();
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        var ev = AccountExpiryEvent.expired(
+                accountId,
+                REASON_INACTIVE_90D,
+                now,
+                operator
+        );
+        expiryHistoryRepository.save(ev, operator);
     }
 
     @Transactional

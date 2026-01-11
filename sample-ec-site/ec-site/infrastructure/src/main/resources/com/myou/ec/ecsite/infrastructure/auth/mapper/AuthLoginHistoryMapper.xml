@@ -1,52 +1,48 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthLoginHistoryMapper">
 
     <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord">
-        INSERT INTO AUTH_LOGIN_HISTORY (
-            auth_account_id,
-            result,
-            login_at,
-            created_by
-        ) VALUES (
-                     #{authAccountId},
-                     #{result},
-                     #{loginAt},
-                     #{createdBy}
-                 )
+        INSERT INTO AUTH_LOGIN_HISTORY (auth_account_id,
+                                        result,
+                                        login_at,
+                                        created_by)
+        VALUES (#{authAccountId},
+                #{result},
+                #{loginAt},
+                #{createdBy})
     </insert>
 
-    <select id="selectRecentByAccountId" resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord">
-        SELECT
-            auth_login_history_id AS authLoginHistoryId,
-            auth_account_id       AS authAccountId,
-            result,
-            login_at              AS loginAt,
-            created_at            AS createdAt,
-            created_by            AS createdBy
+    <select id="selectRecentByAccountId"
+            resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord">
+        SELECT auth_login_history_id AS authLoginHistoryId,
+               auth_account_id       AS authAccountId,
+               result,
+               login_at              AS loginAt,
+               created_at            AS createdAt,
+               created_by            AS createdBy
         FROM AUTH_LOGIN_HISTORY
         WHERE auth_account_id = #{authAccountId}
         ORDER BY login_at DESC
         LIMIT #{limit}
     </select>
 
-    <select id="selectLatestSuccessByAccountId" resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord">
-        SELECT
-            auth_login_history_id AS authLoginHistoryId,
-            auth_account_id       AS authAccountId,
-            result,
-            login_at              AS loginAt,
-            created_at            AS createdAt,
-            created_by            AS createdBy
+    <select id="selectLatestSuccessByAccountId"
+            resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthLoginHistoryRecord">
+        SELECT auth_login_history_id AS authLoginHistoryId,
+               auth_account_id       AS authAccountId,
+               result,
+               login_at              AS loginAt,
+               created_at            AS createdAt,
+               created_by            AS createdBy
         FROM AUTH_LOGIN_HISTORY
-        WHERE auth_account_id = #{authAccountId} AND result = 'SUCCESS'
+        WHERE auth_account_id = #{authAccountId}
+          AND result = 'SUCCESS'
         ORDER BY login_at DESC
         LIMIT 1
     </select>
-
-
 
 </mapper>

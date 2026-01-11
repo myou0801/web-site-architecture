@@ -5,23 +5,20 @@
 <mapper namespace="com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountStatusHistoryMapper">
 
     <insert id="insert" parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountStatusHistoryRecord">
-        INSERT INTO AUTH_ACCOUNT_STATUS_HISTORY (
-            auth_account_id,
-            from_status,
-            to_status,
-            reason,
-            occurred_at,
-            operated_by,
-            created_by
-        ) VALUES (
-            #{authAccountId},
-            #{fromStatus},
-            #{toStatus},
-            #{reason},
-            #{occurredAt},
-            #{operatedBy},
-            #{createdBy}
-        )
+        INSERT INTO AUTH_ACCOUNT_STATUS_HISTORY (auth_account_id,
+                                                 from_status,
+                                                 to_status,
+                                                 reason,
+                                                 occurred_at,
+                                                 operated_by,
+                                                 created_by)
+        VALUES (#{authAccountId},
+                #{fromStatus},
+                #{toStatus},
+                #{reason},
+                #{occurredAt},
+                #{operatedBy},
+                #{createdBy})
     </insert>
 
 </mapper>

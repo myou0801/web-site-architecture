@@ -7,7 +7,6 @@ import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.policy.LockPolicy;
-import com.myou.ec.ecsite.domain.auth.repository.AuthAccountExpiryHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
@@ -25,18 +24,19 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
     private final AuthAccountRepository authAccountRepository;
     private final AuthLoginHistoryRepository loginHistoryRepository;
     private final AuthAccountLockHistoryRepository lockHistoryRepository;
-    private final AuthAccountExpiryHistoryRepository accountExpiryHistoryRepository;
+    private final AccountExpirySharedService accountExpirySharedService;
     private final LockPolicy lockPolicy;
     private final Clock clock;
 
     public LoginProcessSharedServiceImpl(AuthAccountRepository authAccountRepository,
                                          AuthLoginHistoryRepository loginHistoryRepository,
-                                         AuthAccountLockHistoryRepository lockHistoryRepository, AuthAccountExpiryHistoryRepository accountExpiryHistoryRepository,
+                                         AuthAccountLockHistoryRepository lockHistoryRepository,
+                                         AccountExpirySharedService accountExpirySharedService,
                                          LockPolicy lockPolicy, Clock clock) {
         this.authAccountRepository = authAccountRepository;
         this.loginHistoryRepository = loginHistoryRepository;
         this.lockHistoryRepository = lockHistoryRepository;
-        this.accountExpiryHistoryRepository = accountExpiryHistoryRepository;
+        this.accountExpirySharedService = accountExpirySharedService;
         this.lockPolicy = lockPolicy;
         this.clock = clock;
     }
@@ -63,93 +63,76 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
 
     @Override
     public void onLoginFailure(UserId userId) {
-
-        if (userId == null) {
-            // ユーザーIDが入力されていない場合は、アカウントを特定できないため履歴を残さず終了。
+        AuthAccount user = findAccount(userId);
+        if (user == null) {
             return;
         }
 
-        Optional<AuthAccount> optUser = authAccountRepository.findByUserId(userId);
-
-        if (optUser.isEmpty()) {
-            // アカウントが存在しない場合は、どのアカウントの失敗かを特定できないため履歴を残さず終了（総当たり攻撃への情報漏洩対策）。
-            return;
-        }
-
-        AuthAccount user = optUser.get();
         AuthAccountId accountId = user.id();
         if (accountId == null) {
-            // アカウントは存在するがIDが未採番。基本ありえないが念のため。
             return;
         }
 
         LocalDateTime now = LocalDateTime.now(clock);
-
-        AccountExpiryEvents expiryEvents = accountExpiryHistoryRepository.findByAccountId(accountId);
-
         Operator operator = Operator.of(userId.value());
 
-        // アカウント有効期限切れ
-        if (expiryEvents.isExpired()) {
-            loginHistoryRepository.save(LoginHistory.expired(accountId, now), operator);
+        // 有効期限切れの判定と更新
+        accountExpirySharedService.expireIfNeeded(accountId);
+        if (accountExpirySharedService.isExpired(accountId)) {
+            saveLoginHistory(LoginHistory.expired(accountId, now), operator);
             return;
         }
 
         if (!user.canLogin()) {
-            // ★ DISABLED として履歴を残し、ロック判定はしない
-            loginHistoryRepository.save(LoginHistory.disabled(accountId, now), operator);
+            saveLoginHistory(LoginHistory.disabled(accountId, now), operator);
             return;
         }
 
-        // ◆ ロックイベント一覧から現在のロック状態を判定
         AccountLockEvents lockEvents = lockHistoryRepository.findByAccountId(accountId, 20);
-
         if (lockEvents.isLocked()) {
-            // すでにロック中のアカウントによるログイン試行は 'LOCKED' として履歴のみ記録（連続失敗カウントには影響しない）。
-            LoginHistory lockedHistory = LoginHistory.locked(
-                    accountId,
-                    now
-            );
-            loginHistoryRepository.save(lockedHistory, operator);
+            saveLoginHistory(LoginHistory.locked(accountId, now), operator);
             return;
         }
 
-        // まだロックされていない場合 → 'FAIL' として履歴を追加し、ロックアウトポリシーに基づきロック要否を判定。
+        processFailureAndLockout(accountId, userId, now, lockEvents, operator);
+    }
 
-        // 直近の履歴を「そこそこ十分な件数」取得
-        int limit = 20; // ポリシーのしきい値が6回ならこの程度で充分
-        LoginHistories recentHistories =
-                loginHistoryRepository.findRecentByAccountId(accountId, limit);
+    private AuthAccount findAccount(UserId userId) {
+        return Optional.ofNullable(userId)
+                .flatMap(authAccountRepository::findByUserId)
+                .orElse(null);
+    }
 
-        // 今回の 'FAIL' 履歴を生成
-        LoginHistory failHistory = LoginHistory.fail(
-                accountId,
-                now
-            );
+    private void saveLoginHistory(LoginHistory history, Operator operator) {
+        loginHistoryRepository.save(history, operator);
+    }
 
-        // 今回の失敗を加えて、履歴コレクションを再構成
+    private void processFailureAndLockout(AuthAccountId accountId, UserId userId, LocalDateTime now, AccountLockEvents lockEvents, Operator operator) {
+        // 直近の履歴を取得
+        LoginHistories recentHistories = loginHistoryRepository.findRecentByAccountId(accountId, 20);
+
+        // 今回の失敗履歴
+        LoginHistory failHistory = LoginHistory.fail(accountId, now);
+
+        // 履歴を追加して判定用コレクションを作成
         LoginHistories loginHistories = recentHistories.add(failHistory);
 
-        // 最後のロック解除日時を取得（なければ null）
+        // ロックアウト判定
         LocalDateTime lastUnlockAt = lockEvents.lastUnlockAt().orElse(null);
-
-        // LockPolicy（ドメイン知識）でロックアウトすべきか判定
         boolean shouldLockout = lockPolicy.isLockout(loginHistories, lastUnlockAt);
 
-        // まず今回の 'FAIL' 履歴を保存
-        loginHistoryRepository.save(failHistory, operator);
+        // 失敗履歴保存
+        saveLoginHistory(failHistory, operator);
 
+        // ロックアウト処理
         if (shouldLockout) {
-            // ポリシー違反なら、ロックイベントを追加
             AccountLockEvent lockEvent = AccountLockEvent.lock(
                     accountId,
                     now,
-                    "LOGIN_FAIL_THRESHOLD", // ロック理由
+                    "LOGIN_FAIL_THRESHOLD",
                     Operator.ofUserId(userId)
             );
             lockHistoryRepository.save(lockEvent, operator);
         }
     }
-
-
 }

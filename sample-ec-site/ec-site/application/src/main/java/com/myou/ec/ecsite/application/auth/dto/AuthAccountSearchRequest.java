@@ -1,15 +1,15 @@
 package com.myou.ec.ecsite.application.auth.dto;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 
 /**
  * 認証アカウント検索リクエストを表すDTO。
  */
-@Setter
 @Getter
+@Builder
 public class AuthAccountSearchRequest {
     /**
      * ユーザーID（前方一致）。
@@ -39,6 +39,8 @@ public class AuthAccountSearchRequest {
     /**
      * ページ情報を表す内部クラス。
      */
+    @Getter
+    @Builder
     public static class Page {
         /**
          * ページ番号。
@@ -49,26 +51,13 @@ public class AuthAccountSearchRequest {
          */
         private int pageSize;
 
-        public int getPageNumber() {
-            return pageNumber;
-        }
-
-        public void setPageNumber(int pageNumber) {
-            this.pageNumber = pageNumber;
-        }
-
-        public int getPageSize() {
-            return pageSize;
-        }
-
-        public void setPageSize(int pageSize) {
-            this.pageSize = pageSize;
-        }
     }
 
     /**
      * ソート情報を表す内部クラス。
      */
+    @Getter
+    @Builder
     public static class Sort {
         /**
          * ソートキー。
@@ -79,20 +68,5 @@ public class AuthAccountSearchRequest {
          */
         private String direction;
 
-        public String getSortKey() {
-            return sortKey;
-        }
-
-        public void setSortKey(String sortKey) {
-            this.sortKey = sortKey;
-        }
-
-        public String getDirection() {
-            return direction;
-        }
-
-        public void setDirection(String direction) {
-            this.direction = direction;
-        }
     }
 }

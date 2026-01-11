@@ -62,7 +62,8 @@ public class AuthAccountDetailsService implements UserDetailsService {
                 .orElse(null);
 
         // アカウント有効期限切れ状態かの判定
-        boolean expired = accountExpirySharedService.evaluateAndExpireIfNeeded(accountId);
+        // 判定のみ行い、状態更新は行わない
+        boolean expired = accountExpirySharedService.isExpired(accountId);
 
         // ロック状態の判定
         AccountLockEvents lockEvents = lockHistoryRepository.findByAccountId(accountId, 20);

@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.PasswordHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.Operator; // Import Operator
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import com.myou.ec.ecsite.domain.auth.repository.AuthPasswordHistoryRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthPasswordHistoryMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AuthPasswordHistoryRecord;
@@ -21,8 +21,8 @@ public class AuthPasswordHistoryRepositoryImpl implements AuthPasswordHistoryRep
     }
 
     @Override
-    public void save(PasswordHistory history, Operator operator) { // Use Operator
-        AuthPasswordHistoryRecord record = AuthPasswordHistoryRecord.fromDomain(history, operator); // Pass Operator directly
+    public void save(PasswordHistory history, Operator operator) {
+        AuthPasswordHistoryRecord record = AuthPasswordHistoryRecord.fromDomain(history, operator);
         mapper.insert(record);
     }
 
