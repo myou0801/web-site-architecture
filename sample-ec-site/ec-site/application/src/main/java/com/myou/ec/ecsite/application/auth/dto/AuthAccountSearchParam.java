@@ -12,9 +12,9 @@ import java.util.List;
 @Getter
 public class AuthAccountSearchParam {
     /**
-     * ユーザーID（前方一致）。
+     * ログインID（前方一致）。
      */
-    private String userIdPrefix;
+    private String loginIdPrefix;
     /**
      * アカウントステータスのリスト。
      */

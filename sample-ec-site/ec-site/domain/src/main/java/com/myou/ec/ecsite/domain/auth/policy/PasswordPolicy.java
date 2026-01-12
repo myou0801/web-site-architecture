@@ -1,7 +1,7 @@
 package com.myou.ec.ecsite.domain.auth.policy;
 
 import com.myou.ec.ecsite.domain.auth.exception.PasswordPolicyViolationException;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 
 /**
  * パスワードポリシー（ポリシーパターン）。
@@ -10,7 +10,7 @@ import com.myou.ec.ecsite.domain.auth.model.value.UserId;
  */
 public interface PasswordPolicy {
 
-    void validatePassword(String newRawPassword, UserId userId)
+    void validatePassword(String newRawPassword, LoginId loginId)
                                     throws PasswordPolicyViolationException;
 
 //    /**

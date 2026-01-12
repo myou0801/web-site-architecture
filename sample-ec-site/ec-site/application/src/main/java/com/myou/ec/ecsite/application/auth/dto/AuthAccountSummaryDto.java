@@ -17,9 +17,9 @@ public class AuthAccountSummaryDto {
      */
     private Long authAccountId;
     /**
-     * ユーザーID。
+     * ログインID。
      */
-    private String userId;
+    private String loginId;
     /**
      * アカウントステータス。
      */

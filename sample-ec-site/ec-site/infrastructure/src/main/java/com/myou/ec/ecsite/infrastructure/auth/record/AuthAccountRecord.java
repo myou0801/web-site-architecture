@@ -3,8 +3,8 @@ package com.myou.ec.ecsite.infrastructure.auth.record;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.value.AccountStatus;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import jakarta.annotation.Nullable;
 
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  */
 public record AuthAccountRecord(
         @Nullable Long authAccountId,
-        String userId,
+        String loginId,
         String passwordHash,
         String accountStatus, // ACTIVE, DISABLED, DELETED
         @Nullable LocalDateTime createdAt,
@@ -26,7 +26,7 @@ public record AuthAccountRecord(
     public AuthAccount toDomain() {
         return new AuthAccount(
                 authAccountId != null ? new AuthAccountId(authAccountId) : null,
-                new UserId(userId),
+                new LoginId(loginId),
                 new PasswordHash(passwordHash),
                 AccountStatus.valueOf(accountStatus)
         );

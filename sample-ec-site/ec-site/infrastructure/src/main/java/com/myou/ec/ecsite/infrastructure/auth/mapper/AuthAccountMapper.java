@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface AuthAccountMapper {
     AuthAccountRecord selectByAccountId(@Param("authAccountId") long authAccountId);
-    AuthAccountRecord selectByUserId(@Param("userId") String userId);
+    AuthAccountRecord selectByLoginId(@Param("loginId") String loginId);
     void insert(AuthAccountRecord record);
     void update(AuthAccountRecord record);
 }

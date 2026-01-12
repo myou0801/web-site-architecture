@@ -11,5 +11,5 @@ public interface AuthAccountQuerySharedService {
 
     PageDto<AuthAccountSummaryDto> search(AuthAccountSearchRequest request);
 
-    Optional<AuthAccountDetailDto> findByUserId(String userId);
+    Optional<AuthAccountDetailDto> findByLoginId(String loginId);
 }

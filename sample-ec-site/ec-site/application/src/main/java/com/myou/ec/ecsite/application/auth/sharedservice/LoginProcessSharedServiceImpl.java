@@ -4,8 +4,8 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.*;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import com.myou.ec.ecsite.domain.auth.model.value.Operator;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.policy.LockPolicy;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
@@ -42,11 +42,11 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
     }
 
     @Override
-    public void onLoginSuccess(UserId userId) {
-        AuthAccount user = authAccountRepository.findByUserId(userId)
+    public void onLoginSuccess(LoginId loginId) {
+        AuthAccount authAccount = authAccountRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new AuthDomainException("ログイン成功後にアカウント情報が取得できません。"));
 
-        AuthAccountId accountId = user.id();
+        AuthAccountId accountId = authAccount.id();
         if (accountId == null) {
             throw new AuthDomainException("アカウントID未採番のためログイン履歴を記録できません。");
         }
@@ -58,23 +58,23 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
                 accountId,
                 now
         );
-        loginHistoryRepository.save(successHistory, Operator.ofUserId(userId));
+        loginHistoryRepository.save(successHistory, Operator.ofLoginId(loginId));
     }
 
     @Override
-    public void onLoginFailure(UserId userId) {
-        AuthAccount user = findAccount(userId);
-        if (user == null) {
+    public void onLoginFailure(LoginId loginId) {
+        AuthAccount authAccount = findAccount(loginId);
+        if (authAccount == null) {
             return;
         }
 
-        AuthAccountId accountId = user.id();
+        AuthAccountId accountId = authAccount.id();
         if (accountId == null) {
             return;
         }
 
         LocalDateTime now = LocalDateTime.now(clock);
-        Operator operator = Operator.of(userId.value());
+        Operator operator = Operator.of(loginId.value());
 
         // 有効期限切れの判定と更新
         accountExpirySharedService.expireIfNeeded(accountId);
@@ -83,7 +83,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
             return;
         }
 
-        if (!user.canLogin()) {
+        if (!authAccount.canLogin()) {
             saveLoginHistory(LoginHistory.disabled(accountId, now), operator);
             return;
         }
@@ -94,12 +94,12 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
             return;
         }
 
-        processFailureAndLockout(accountId, userId, now, lockEvents, operator);
+        processFailureAndLockout(accountId, loginId, now, lockEvents, operator);
     }
 
-    private AuthAccount findAccount(UserId userId) {
-        return Optional.ofNullable(userId)
-                .flatMap(authAccountRepository::findByUserId)
+    private AuthAccount findAccount(LoginId loginId) {
+        return Optional.ofNullable(loginId)
+                .flatMap(authAccountRepository::findByLoginId)
                 .orElse(null);
     }
 
@@ -107,7 +107,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
         loginHistoryRepository.save(history, operator);
     }
 
-    private void processFailureAndLockout(AuthAccountId accountId, UserId userId, LocalDateTime now, AccountLockEvents lockEvents, Operator operator) {
+    private void processFailureAndLockout(AuthAccountId accountId, LoginId loginId, LocalDateTime now, AccountLockEvents lockEvents, Operator operator) {
         // 直近の履歴を取得
         LoginHistories recentHistories = loginHistoryRepository.findRecentByAccountId(accountId, 20);
 
@@ -130,7 +130,7 @@ public class LoginProcessSharedServiceImpl implements LoginProcessSharedService 
                     accountId,
                     now,
                     "LOGIN_FAIL_THRESHOLD",
-                    Operator.ofUserId(userId)
+                    Operator.ofLoginId(loginId)
             );
             lockHistoryRepository.save(lockEvent, operator);
         }

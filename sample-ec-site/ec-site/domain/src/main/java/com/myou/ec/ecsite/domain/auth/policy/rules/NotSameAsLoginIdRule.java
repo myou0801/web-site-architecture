@@ -1,6 +1,6 @@
 package com.myou.ec.ecsite.domain.auth.policy.rules;
 
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import com.myou.ec.ecsite.domain.auth.policy.PasswordRule;
 import com.myou.ec.ecsite.domain.auth.policy.PasswordViolation;
 
@@ -15,10 +15,10 @@ public class NotSameAsLoginIdRule implements PasswordRule {
     }
 
     @Override
-    public Optional<PasswordViolation> validate(String newRawPassword, UserId userId) {
-        if (newRawPassword == null || userId == null) return Optional.empty();
+    public Optional<PasswordViolation> validate(String newRawPassword, LoginId loginId) {
+        if (newRawPassword == null || loginId == null) return Optional.empty();
         String t = newRawPassword.trim();
-        if (t.equals(userId.value())) {
+        if (t.equals(loginId.value())) {
             return Optional.of(PasswordViolation.of(messageKey));
         }
         return Optional.empty();

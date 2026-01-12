@@ -1,6 +1,6 @@
 package com.myou.ec.ecsite.domain.auth.policy.rules;
 
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import com.myou.ec.ecsite.domain.auth.policy.PasswordRule;
 import com.myou.ec.ecsite.domain.auth.policy.PasswordViolation;
 
@@ -15,7 +15,7 @@ public class RequiredRule implements PasswordRule {
     }
 
     @Override
-    public Optional<PasswordViolation> validate(String newRawPassword, UserId userId) {
+    public Optional<PasswordViolation> validate(String newRawPassword, LoginId loginId) {
         if (newRawPassword == null) {
             return Optional.of(PasswordViolation.of(messageKey));
         }

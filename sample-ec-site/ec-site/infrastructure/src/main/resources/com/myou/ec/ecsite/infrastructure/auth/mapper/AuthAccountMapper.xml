@@ -7,7 +7,7 @@
 
     <select id="selectByAccountId" resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
         SELECT auth_account_id AS authAccountId,
-               user_id         AS userId,
+               login_id         AS loginId,
                password_hash   AS passwordHash,
                account_status  AS accountStatus,
                created_at      AS createdAt,
@@ -18,9 +18,9 @@
         WHERE auth_account_id = #{authAccountId}
     </select>
 
-    <select id="selectByUserId" resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
+    <select id="selectByLoginId" resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
         SELECT auth_account_id AS authAccountId,
-               user_id         AS userId,
+               login_id         AS loginId,
                password_hash   AS passwordHash,
                account_status  AS accountStatus,
                created_at      AS createdAt,
@@ -28,16 +28,16 @@
                updated_at      AS updatedAt,
                updated_by      AS updatedBy
         FROM auth_account
-        WHERE user_id = #{userId}
+        WHERE login_id = #{loginId}
     </select>
 
     <insert id="insert"
             parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
-        INSERT INTO auth_account (user_id, password_hash,
+        INSERT INTO auth_account (login_id, password_hash,
                                   account_status,
                                   created_by,
                                   updated_at, updated_by)
-        VALUES (#{userId}, #{passwordHash},
+        VALUES (#{loginId}, #{passwordHash},
                 #{accountStatus},
                 #{createdBy},
                 #{updatedAt}, #{updatedBy})
@@ -46,7 +46,7 @@
     <update id="update"
             parameterType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord">
         UPDATE AUTH_ACCOUNT
-        SET user_id        = #{userId},
+        SET login_id        = #{loginId},
             password_hash  = #{passwordHash},
             account_status = #{accountStatus},
             created_at     = #{createdAt},

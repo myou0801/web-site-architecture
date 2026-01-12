@@ -46,12 +46,12 @@ public class AuthAccountQuerySharedServiceImpl implements AuthAccountQueryShared
     }
 
     @Override
-    public Optional<AuthAccountDetailDto> findByUserId(String userId) {
-        if (userId == null || userId.isBlank()) {
-            throw new IllegalArgumentException("userId is required");
+    public Optional<AuthAccountDetailDto> findByLoginId(String loginId) {
+        if (loginId == null || loginId.isBlank()) {
+            throw new IllegalArgumentException("loginId is required");
         }
 
-        Optional<AuthAccountDetailDto> recOpt = authAccountQueryRepository.findAccountDetailByUserId(userId);
+        Optional<AuthAccountDetailDto> recOpt = authAccountQueryRepository.findAccountDetailByLoginId(loginId);
         if (recOpt.isEmpty()) return Optional.empty();
 
         AuthAccountDetailDto r = recOpt.get();
@@ -82,7 +82,7 @@ public class AuthAccountQuerySharedServiceImpl implements AuthAccountQueryShared
 
     private AuthAccountSearchParam toParam(AuthAccountSearchRequest req) {
         AuthAccountSearchParam p = new AuthAccountSearchParam();
-        p.setUserIdPrefix(req.getUserIdPrefix());
+        p.setLoginIdPrefix(req.getLoginIdPrefix());
         p.setAccountStatuses(req.getAccountStatuses());
         p.setLocked(req.getLocked());
         p.setExpired(req.getExpired());

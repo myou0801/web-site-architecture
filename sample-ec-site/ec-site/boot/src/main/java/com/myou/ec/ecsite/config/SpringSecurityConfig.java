@@ -32,7 +32,7 @@ class SpringSecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .usernameParameter("userId") // Match the parameter name in AuthAuthenticationFailureHandler
+                        .usernameParameter("loginId")
                         .passwordParameter("password")
                         .successHandler(successHandler)
                         .failureHandler(failureHandler)

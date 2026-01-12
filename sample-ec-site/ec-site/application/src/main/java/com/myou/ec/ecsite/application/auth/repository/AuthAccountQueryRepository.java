@@ -14,7 +14,7 @@ public interface AuthAccountQueryRepository {
 
     long countAccountSummaries(AuthAccountSearchParam param);
 
-    Optional<AuthAccountDetailDto> findAccountDetailByUserId(String userId);
+    Optional<AuthAccountDetailDto> findAccountDetailByLoginId(String loginId);
 
     List<AuthAccountRoleDto> findRoleRecordsByAccountIds(List<Long> authAccountIds);
 

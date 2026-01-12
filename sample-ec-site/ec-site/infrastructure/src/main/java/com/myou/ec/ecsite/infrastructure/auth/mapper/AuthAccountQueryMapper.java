@@ -16,5 +16,5 @@ public interface AuthAccountQueryMapper {
 
     long countSummaries(AuthAccountSearchParam param);
 
-    Optional<AuthAccountDetailRecord> selectDetailByUserId(@Param("userId") String userId);
+    Optional<AuthAccountDetailRecord> selectDetailByLoginId(@Param("loginId") String loginId);
 }

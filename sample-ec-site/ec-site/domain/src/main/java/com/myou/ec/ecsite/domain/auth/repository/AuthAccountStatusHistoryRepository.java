@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.domain.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthAccountStatusHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.Operator; // Import Operator
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+
 
 /**
  * アカウント状態変更履歴リポジトリ。

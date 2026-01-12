@@ -3,7 +3,7 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 import com.myou.ec.ecsite.domain.auth.exception.AuthDomainException;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthLoginHistoryRepository;
 import org.springframework.security.core.Authentication;
@@ -31,7 +31,7 @@ public class AuthAccountContextSharedServiceImpl implements AuthAccountContextSh
         if (userId == null) {
             return Optional.empty();
         }
-        return authAccountRepository.findByUserId(new UserId(userId));
+        return authAccountRepository.findByLoginId(new LoginId(userId));
     }
 
     @Override
@@ -56,7 +56,7 @@ public class AuthAccountContextSharedServiceImpl implements AuthAccountContextSh
             return null;
         }
         Object principal = authentication.getPrincipal();
-        // シンプルに username=userId として扱う方針
+        // シンプルに username=loginId として扱う方針
         if (principal instanceof org.springframework.security.core.userdetails.User userDetails) {
             return userDetails.getUsername();
         }

@@ -31,15 +31,15 @@ public record Operator(String value) implements Serializable {
     }
 
     /**
-     * ユーザIDから操作者を作成する
-     * @param userId ユーザID
+     * ログインIDから操作者を作成する
+     * @param loginId ログインID
      * @return Operator
      */
-    public static Operator ofUserId(UserId userId){
-        if(userId == null) {
+    public static Operator ofLoginId(LoginId loginId){
+        if(loginId == null) {
             return system();
         }
-        return new Operator(userId.value());
+        return new Operator(loginId.value());
     }
 
     /**
@@ -51,10 +51,10 @@ public record Operator(String value) implements Serializable {
     }
 
     /**
-     * この Operator を UserId に変換する。
-     * @return 変換された UserId
+     * この Operator を LoginId に変換する。
+     * @return 変換された LoginId
      */
-    public UserId toUserId() {
-        return new UserId(this.value);
+    public LoginId toLoginId() {
+        return new LoginId(this.value);
     }
 }

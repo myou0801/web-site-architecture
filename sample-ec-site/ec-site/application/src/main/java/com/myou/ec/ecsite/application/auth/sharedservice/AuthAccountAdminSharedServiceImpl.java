@@ -50,7 +50,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
     }
 
     @Override
-    public AuthAccountId registerAccount(UserId newUserId,
+    public AuthAccountId registerAccount(LoginId newLoginId,
                                          Set<RoleCode> roleCodes) {
 
         Operator operator = currentUserProvider.currentOrSystem();
@@ -60,11 +60,11 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
         LocalDateTime now = LocalDateTime.now(clock);
         // AuthAccount 作成 & 保存
-        AuthAccount user = AuthAccount.newAccount(newUserId, passwordHash);
-        authAccountRepository.save(user, operator);
+        AuthAccount authAccount = AuthAccount.newAccount(newLoginId, passwordHash);
+        authAccountRepository.save(authAccount, operator);
 
         // ID 採番後のアカウントを再取得（ID 必要なため）
-        AuthAccount savedUser = authAccountRepository.findByUserId(newUserId)
+        AuthAccount savedUser = authAccountRepository.findByLoginId(newLoginId)
                 .orElseThrow(() -> new AuthDomainException("アカウント登録後の再取得に失敗しました。"));
 
         AuthAccountId accountId = savedUser.id();
@@ -98,7 +98,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
     @Override
     public void resetPassword(AuthAccountId targetAccountId) {
-        AuthAccount user = authAccountRepository.findById(targetAccountId)
+        AuthAccount authAccount = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         Operator operator = currentUserProvider.currentOrSystem();
@@ -109,7 +109,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         LocalDateTime now = LocalDateTime.now(clock);
 
         // パスワード更新
-        authAccountRepository.save(user.changePassword(passwordHash), operator);
+        authAccountRepository.save(authAccount.changePassword(passwordHash), operator);
 
         // パスワード履歴（ADMIN_RESET）
         PasswordHistory history = PasswordHistory.adminReset(
@@ -132,11 +132,11 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
     @Override
     public void unlockAccount(AuthAccountId targetAccountId) {
-        AuthAccount user = authAccountRepository.findById(targetAccountId)
+        AuthAccount authAccount = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
 
-        AccountLockEvents events = lockHistoryRepository.findByAccountId(user.id(), 20);
+        AccountLockEvents events = lockHistoryRepository.findByAccountId(authAccount.id(), 20);
         if (!events.isLocked()) {
             // 既に未ロックなら何もしない（イベントを増やさない方針）
             return;
@@ -147,7 +147,7 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
         LocalDateTime now = LocalDateTime.now(clock);
 
         AccountLockEvent unlockEvent = AccountLockEvent.unlock(
-                user.id(),
+                authAccount.id(),
                 now,
                 "ADMIN_UNLOCK",
                 operator
@@ -157,23 +157,23 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
     @Override
     public void disableAccount(AuthAccountId targetAccountId) {
-        AuthAccount user = authAccountRepository.findById(targetAccountId)
+        AuthAccount authAccount = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         // すでに無効化されているユーザは処理不要
-        if(!user.accountStatus().canTransitionTo(AccountStatus.DISABLED)){
+        if(!authAccount.accountStatus().canTransitionTo(AccountStatus.DISABLED)){
             return;
         }
 
         Operator operator = currentUserProvider.currentOrSystem();
 
         LocalDateTime now = LocalDateTime.now(clock);
-        AuthAccount disabledUser = user.disable();
+        AuthAccount disabledUser = authAccount.disable();
         authAccountRepository.save(disabledUser, operator);
 
         AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forDisabling(
                 targetAccountId,
-                user.accountStatus(),
+                authAccount.accountStatus(),
                 now,
                 operator,
                 "DISABLE_ACCOUNT"
@@ -183,25 +183,25 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
     @Override
     public void enableAccount(AuthAccountId targetAccountId) {
-        AuthAccount user = authAccountRepository.findById(targetAccountId)
+        AuthAccount authAccount = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         // 有効期限切れのユーザも有効化する
         accountExpirySharedService.unexpireIfExpired(targetAccountId);
 
         // すでに有効化されているユーザは処理不要
-        if(!user.accountStatus().canTransitionTo(AccountStatus.ACTIVE)){
+        if(!authAccount.accountStatus().canTransitionTo(AccountStatus.ACTIVE)){
             return;
         }
 
         Operator operator = currentUserProvider.currentOrSystem();
         LocalDateTime now = LocalDateTime.now(clock);
 
-        authAccountRepository.save(user.activate(), operator);
+        authAccountRepository.save(authAccount.activate(), operator);
 
         AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forActivating(
                 targetAccountId,
-                user.accountStatus(),
+                authAccount.accountStatus(),
                 now,
                 operator,
                 "ENABLE_ACCOUNT"
@@ -221,23 +221,23 @@ public class AuthAccountAdminSharedServiceImpl implements AuthAccountAdminShared
 
     @Override
     public void deleteAccount(AuthAccountId targetAccountId) {
-        AuthAccount user = authAccountRepository.findById(targetAccountId)
+        AuthAccount authAccount = authAccountRepository.findById(targetAccountId)
                 .orElseThrow(() -> new AuthDomainException("対象アカウントが存在しません。"));
 
         // すでに削除されているユーザは処理不要
-        if(!user.accountStatus().canTransitionTo(AccountStatus.DELETED)){
+        if(!authAccount.accountStatus().canTransitionTo(AccountStatus.DELETED)){
             return;
         }
 
         Operator operator = currentUserProvider.currentOrSystem();
 
         LocalDateTime now = LocalDateTime.now(clock);
-        AuthAccount deletedUser = user.markAsDeleted();
+        AuthAccount deletedUser = authAccount.markAsDeleted();
         authAccountRepository.save(deletedUser, operator);
 
         AuthAccountStatusHistory statusHistory = AuthAccountStatusHistory.forDeleting(
                 targetAccountId,
-                user.accountStatus(),
+                authAccount.accountStatus(),
                 now,
                 operator,
                 "DELETE_ACCOUNT"

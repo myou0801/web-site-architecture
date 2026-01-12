@@ -64,19 +64,19 @@ class AuthAccountQueryRepositoryImplTest {
 
             // Depends on the data in `data.sql`
             assertThat(result).hasSize(5);
-            assertThat(result).extracting(AuthAccountSummaryDto::getUserId)
+            assertThat(result).extracting(AuthAccountSummaryDto::getLoginId)
                     .contains("testUser", "adminUser", "lockedUser", "expiredUser", "disabledUser");
         }
 
         @Test
-        @DisplayName("ユーザーIDでアカウントサマリーを検索できること")
+        @DisplayName("ログインIDでアカウントサマリーを検索できること")
         void testFindAccountSummaries_byUserId() {
             AuthAccountSearchParam param = new AuthAccountSearchParam();
-            param.setUserIdPrefix("testUser");
+            param.setLoginIdPrefix("testUser");
             List<AuthAccountSummaryDto> result = authAccountQueryRepository.findAccountSummaries(param);
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getUserId()).isEqualTo("testUser");
+            assertThat(result.get(0).getLoginId()).isEqualTo("testUser");
         }
 
         @Test
@@ -88,7 +88,7 @@ class AuthAccountQueryRepositoryImplTest {
 
             // Assumes 'lockedUser' (id=3) is the only locked user
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getUserId()).isEqualTo("lockedUser");
+            assertThat(result.get(0).getLoginId()).isEqualTo("lockedUser");
             assertThat(result.get(0).isLocked()).isTrue();
         }
 
@@ -101,15 +101,15 @@ class AuthAccountQueryRepositoryImplTest {
             
             // Assumes 'expiredUser' (id=4) is the only expired user
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getUserId()).isEqualTo("expiredUser");
+            assertThat(result.get(0).getLoginId()).isEqualTo("expiredUser");
             assertThat(result.get(0).isExpired()).isTrue();
         }
 
         @Test
-        @DisplayName("存在しないユーザーIDで検索した場合に空のリストが返されること")
+        @DisplayName("存在しないログインIDで検索した場合に空のリストが返されること")
         void testFindAccountSummaries_notFound() {
             AuthAccountSearchParam param = new AuthAccountSearchParam();
-            param.setUserIdPrefix("nonExistentUser");
+            param.setLoginIdPrefix("nonExistentUser");
             List<AuthAccountSummaryDto> result = authAccountQueryRepository.findAccountSummaries(param);
 
             assertThat(result).isEmpty();
@@ -129,10 +129,10 @@ class AuthAccountQueryRepositoryImplTest {
         }
 
         @Test
-        @DisplayName("ユーザーIDで検索した件数を取得できること")
+        @DisplayName("ログインIDで検索した件数を取得できること")
         void testCountAccountSummaries_byUserId() {
             AuthAccountSearchParam param = new AuthAccountSearchParam();
-            param.setUserIdPrefix("adminUser");
+            param.setLoginIdPrefix("adminUser");
             long count = authAccountQueryRepository.countAccountSummaries(param);
             assertThat(count).isEqualTo(1);
         }
@@ -140,29 +140,29 @@ class AuthAccountQueryRepositoryImplTest {
 
     @Nested
     @DisplayName("findAccountDetailByUserId")
-    class FindAccountDetailByUserId {
+    class FindAccountDetailByLoginId {
 
         @Test
-        @DisplayName("存在するユーザーIDでアカウント詳細を取得できること")
+        @DisplayName("存在するログインIDでアカウント詳細を取得できること")
         void testFindAccountDetailByUserId_found() {
             String userId = "testUser";
-            Optional<AuthAccountDetailDto> result = authAccountQueryRepository.findAccountDetailByUserId(userId);
+            Optional<AuthAccountDetailDto> result = authAccountQueryRepository.findAccountDetailByLoginId(userId);
 
             assertThat(result).isPresent();
             result.ifPresent(dto -> {
                 assertAll(
                         () -> assertThat(dto.getAuthAccountId()).isEqualTo(1L),
-                        () -> assertThat(dto.getUserId()).isEqualTo(userId),
+                        () -> assertThat(dto.getLoginId()).isEqualTo(userId),
                         () -> assertThat(dto.getAccountStatus()).isEqualTo("ACTIVE")
                 );
             });
         }
 
         @Test
-        @DisplayName("存在しないユーザーIDで検索した場合にOptional.emptyが返されること")
+        @DisplayName("存在しないログインIDで検索した場合にOptional.emptyが返されること")
         void testFindAccountDetailByUserId_notFound() {
             String userId = "nonExistentUser";
-            Optional<AuthAccountDetailDto> result = authAccountQueryRepository.findAccountDetailByUserId(userId);
+            Optional<AuthAccountDetailDto> result = authAccountQueryRepository.findAccountDetailByLoginId(userId);
 
             assertThat(result).isEmpty();
         }

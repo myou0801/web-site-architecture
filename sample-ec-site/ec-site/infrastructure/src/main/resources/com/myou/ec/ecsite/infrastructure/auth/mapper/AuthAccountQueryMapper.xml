@@ -4,7 +4,7 @@
 
     <sql id="selectAuthAccountColumns">
         AUTH_ACCOUNT_ID,
-        USER_ID,
+        LOGIN_ID,
         ACCOUNT_STATUS,
         LOCKED,
         EXPIRED,
@@ -15,8 +15,8 @@
 
     <sql id="whereAuthAccountCriteria">
         <where>
-            <if test="userIdPrefix != null and userIdPrefix != ''">
-                AND USER_ID LIKE #{userIdPrefix} || '%'
+            <if test="loginIdPrefix != null and loginIdPrefix != ''">
+                AND LOGIN_ID LIKE #{loginIdPrefix} || '%'
             </if>
             <if test="accountStatuses != null and !accountStatuses.isEmpty()">
                 AND ACCOUNT_STATUS IN
@@ -42,11 +42,11 @@
         <include refid="whereAuthAccountCriteria"/>
         ORDER BY
         <choose>
-            <when test="sortKey == 'USER_ID'">USER_ID</when>
+            <when test="sortKey == 'LOGIN_ID'">LOGIN_ID</when>
             <when test="sortKey == 'CREATED_AT'">CREATED_AT</when>
             <when test="sortKey == 'UPDATED_AT'">UPDATED_AT</when>
             <when test="sortKey == 'LAST_LOGIN_AT'">LAST_LOGIN_AT</when>
-            <otherwise>USER_ID</otherwise>
+            <otherwise>LOGIN_ID</otherwise>
         </choose>
         <if test="sortDirection == 'DESC'">DESC</if>
         <if test="sortDirection == 'ASC'">ASC</if>
@@ -61,14 +61,14 @@
         <include refid="whereAuthAccountCriteria"/>
     </select>
 
-    <select id="selectDetailByUserId"
+    <select id="selectDetailByLoginId"
             resultType="com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountDetailRecord">
         SELECT
         <include refid="selectAuthAccountColumns"/>
         FROM
         AUTH_ACCOUNT_CURRENT_V
         WHERE
-        USER_ID = #{userId}
+        LOGIN_ID = #{loginId}
     </select>
 
 </mapper>

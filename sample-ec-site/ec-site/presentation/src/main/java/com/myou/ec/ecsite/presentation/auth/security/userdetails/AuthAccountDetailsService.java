@@ -5,7 +5,7 @@ import com.myou.ec.ecsite.domain.auth.model.AccountLockEvents;
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.LoginHistory;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountLockHistoryRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRoleRepository;
@@ -49,8 +49,8 @@ public class AuthAccountDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
 
-        UserId userId = new UserId(username);
-        AuthAccount user = authAccountRepository.findByUserId(userId)
+        LoginId loginId = new LoginId(username);
+        AuthAccount user = authAccountRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new UsernameNotFoundException("アカウントが存在しません: " + username));
 
         AuthAccountId accountId = user.id();
@@ -81,7 +81,7 @@ public class AuthAccountDetailsService implements UserDetailsService {
 
         return new AuthAccountDetails(
                 accountId,
-                user.userId().value(),
+                user.loginId().value(),
                 user.passwordHash().value(),
                 enabled,
                 accountNonExpired,

@@ -18,9 +18,9 @@ public class AuthAccountDetailDto {
      */
     private Long authAccountId;
     /**
-     * ユーザーID。
+     * ログインID。
      */
-    private String userId;
+    private String loginId;
     /**
      * アカウントステータス。
      */

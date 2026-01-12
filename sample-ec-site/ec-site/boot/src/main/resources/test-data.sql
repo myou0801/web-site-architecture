@@ -3,7 +3,7 @@ VALUES ('ROLE_USER', 'User', TRUE,  'SYSTEM',  'SYSTEM'),
        ('ROLE_ADMIN', 'Admin', TRUE,  'SYSTEM',  'SYSTEM'),
        ('ROLE_GUEST', 'Guest', TRUE,  'SYSTEM',  'SYSTEM');
 
-INSERT INTO AUTH_ACCOUNT (user_id, password_hash, account_status,  created_by,  updated_by)
+INSERT INTO AUTH_ACCOUNT (login_id, password_hash, account_status,  created_by,  updated_by)
 VALUES
     ('testUser', 'pass', 'ACTIVE',  'SYSTEM',  'SYSTEM')
    ,('adminUser', 'pass', 'ACTIVE',  'SYSTEM',  'SYSTEM')

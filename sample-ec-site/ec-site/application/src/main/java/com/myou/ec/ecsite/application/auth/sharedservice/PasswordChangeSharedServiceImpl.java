@@ -51,7 +51,7 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
 
         Operator operator = currentUserProvider.currentOrSystem();
 
-        Optional<PasswordHistory> optLast = authAccountRepository.findByUserId(operator.toUserId())
+        Optional<PasswordHistory> optLast = authAccountRepository.findByLoginId(operator.toLoginId())
                 .flatMap(user -> passwordHistoryRepository.findLastByAccountId(user.id()));
 
         if (optLast.isEmpty()) {
@@ -87,7 +87,7 @@ public class PasswordChangeSharedServiceImpl implements PasswordChangeSharedServ
         }
 
         // パスワード構文チェック
-        passwordPolicy.validatePassword(newRawPassword, user.userId());
+        passwordPolicy.validatePassword(newRawPassword, user.loginId());
 
         // 履歴による再利用禁止チェック（直近 N 件）
         List<PasswordHistory> recentHistories =

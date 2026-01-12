@@ -36,10 +36,10 @@ class AuthAccountRepositoryImplTest {
         authAccountRepositoryImpl = new AuthAccountRepositoryImpl(authAccountMapper, Clock.systemDefaultZone());
     }
 
-    private AuthAccountRecord createAuthAccountRecord(Long id, String userIdValue) {
+    private AuthAccountRecord createAuthAccountRecord(Long id, String loginId) {
         return new AuthAccountRecord(
                 id,
-                userIdValue,
+                loginId,
                 "encodedPassword",
                 "ACTIVE",
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
@@ -49,10 +49,10 @@ class AuthAccountRepositoryImplTest {
         );
     }
 
-    private AuthAccount createAuthAccount(Long id, String userIdValue, List<RoleCode> roleCodes) {
+    private AuthAccount createAuthAccount(Long id, String loginId, List<RoleCode> roleCodes) {
         return new AuthAccount(
                 id != null && id > 0 ? new AuthAccountId(id) : null,
-                new UserId(userIdValue),
+                new LoginId(loginId),
                 new PasswordHash("pass"),
                 AccountStatus.ACTIVE
         );
@@ -64,7 +64,7 @@ class AuthAccountRepositoryImplTest {
     class FindById {
 
         private long testAccountId = 1L;
-        private String testUserId = "testUser";
+        private String testLoginId = "testUser";
 
         @BeforeEach
         void setup() {
@@ -78,7 +78,7 @@ class AuthAccountRepositoryImplTest {
 
             assertThat(result).isPresent();
             assertThat(result.get().id().value()).isEqualTo(testAccountId);
-            assertThat(result.get().userId().value()).isEqualTo(testUserId);
+            assertThat(result.get().loginId().value()).isEqualTo(testLoginId);
             assertThat(result.get().passwordHash().value()).isEqualTo("pass");
             assertThat(result.get().accountStatus()).isEqualTo(AccountStatus.ACTIVE);
         }
@@ -92,13 +92,13 @@ class AuthAccountRepositoryImplTest {
         }
     }
 
-    // --- FindByUserId Tests ---
+    // --- FindByLoginId Tests ---
     @Nested
-    @DisplayName("findByUserId")
-    class FindByUserId {
+    @DisplayName("findByLoginId")
+    class FindByLoginId {
 
         private long testAccountId = 1L;
-        private String testUserId = "testUser";
+        private String testLoginId = "testUser";
 
         @BeforeEach
         void setup() {
@@ -106,23 +106,23 @@ class AuthAccountRepositoryImplTest {
         }
 
         @Test
-        @DisplayName("アカウントがユーザーIDで正常に取得できること")
-        void testFindByUserId_found() {
-            Optional<AuthAccount> result = authAccountRepositoryImpl.findByUserId(new UserId(testUserId));
+        @DisplayName("アカウントがログインIDで正常に取得できること")
+        void testFindByLoginId_found() {
+            Optional<AuthAccount> result = authAccountRepositoryImpl.findByLoginId(new LoginId(testLoginId));
 
             assertThat(result).isPresent();
             assertThat(result.get().id().value()).isEqualTo(testAccountId);
-            assertThat(result.get().userId().value()).isEqualTo(testUserId);
+            assertThat(result.get().loginId().value()).isEqualTo(testLoginId);
             assertThat(result.get().passwordHash().value()).isEqualTo("pass");
             assertThat(result.get().accountStatus()).isEqualTo(AccountStatus.ACTIVE);
         }
 
         @Test
-        @DisplayName("指定されたユーザーIDのアカウントが見つからないこと")
-        void testFindByUserId_notFound() {
-            String nonExistentUserId = "nonExistentUser";
+        @DisplayName("指定されたログインIDのアカウントが見つからないこと")
+        void testFindByLoginId_notFound() {
+            String nonExistentLoginId = "nonExistentUser";
 
-            Optional<AuthAccount> result = authAccountRepositoryImpl.findByUserId(new UserId(nonExistentUserId));
+            Optional<AuthAccount> result = authAccountRepositoryImpl.findByLoginId(new LoginId(nonExistentLoginId));
 
             assertThat(result).isEmpty();
         }
@@ -133,7 +133,7 @@ class AuthAccountRepositoryImplTest {
     @DisplayName("save")
     class Save {
 
-        private String testUserIdForInsert = "newUser";
+        private String testLoginIdForInsert = "newUser";
         private List<RoleCode> testRolesForInsert = List.of(new RoleCode("ROLE_USER"));
 
 
@@ -145,14 +145,14 @@ class AuthAccountRepositoryImplTest {
         @Test
         @DisplayName("新しいアカウントが正常に挿入できること")
         void testSave_insert() {
-            AuthAccount newAccount = createAuthAccount(null, testUserIdForInsert, testRolesForInsert);
+            AuthAccount newAccount = createAuthAccount(null, testLoginIdForInsert, testRolesForInsert);
 
             authAccountRepositoryImpl.save(newAccount, Operator.system());
 
             // Verify insertion by finding it directly via mapper
-            AuthAccountRecord insertedRecord = authAccountMapper.selectByUserId(testUserIdForInsert);
+            AuthAccountRecord insertedRecord = authAccountMapper.selectByLoginId(testLoginIdForInsert);
             assertThat(insertedRecord).isNotNull();
-            assertThat(insertedRecord.userId()).isEqualTo(testUserIdForInsert);
+            assertThat(insertedRecord.loginId()).isEqualTo(testLoginIdForInsert);
             assertThat(insertedRecord.authAccountId()).isNotNull().isPositive(); // ID should be generated
             assertThat(insertedRecord.accountStatus()).isEqualTo(AccountStatus.ACTIVE.name());
 
@@ -167,7 +167,7 @@ class AuthAccountRepositoryImplTest {
             // Create an AuthAccount representing the existing record with updated info
             AuthAccount existingAccount = new AuthAccount(
                     new AuthAccountId(initialRecord.authAccountId()),
-                    new UserId("updatedUser"),
+                    new LoginId("updatedUser"),
                     new PasswordHash("newEncodedPassword"),
                     AccountStatus.DISABLED
             );
@@ -177,7 +177,7 @@ class AuthAccountRepositoryImplTest {
             // Verify update by finding it directly via mapper
             AuthAccountRecord updatedRecord = authAccountMapper.selectByAccountId(existingAccountId);
             assertThat(updatedRecord).isNotNull();
-            assertThat(updatedRecord.userId()).isEqualTo("updatedUser");
+            assertThat(updatedRecord.loginId()).isEqualTo("updatedUser");
             assertThat(updatedRecord.passwordHash()).isEqualTo("newEncodedPassword");
             assertThat(updatedRecord.accountStatus()).isEqualTo(AccountStatus.DISABLED.name());
             assertThat(updatedRecord.updatedBy()).isEqualTo(Operator.system().value());

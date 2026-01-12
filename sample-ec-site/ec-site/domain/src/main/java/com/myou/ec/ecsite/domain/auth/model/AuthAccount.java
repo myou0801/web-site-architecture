@@ -3,7 +3,7 @@ package com.myou.ec.ecsite.domain.auth.model;
 import com.myou.ec.ecsite.domain.auth.model.value.AccountStatus;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.PasswordHash;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 
 import java.util.Objects;
 
@@ -14,23 +14,23 @@ import java.util.Objects;
  * アカウント詳細テーブルで管理する前提。
  *
  * @param id            AUTH_ACCOUNT_ID。null の場合は未採番。
- * @param userId        ユーザーID。
+ * @param loginId        ログインID。
  * @param passwordHash  ハッシュ済みパスワード。
  * @param accountStatus アカウント状態。
  */
-public record AuthAccount(AuthAccountId id, UserId userId, PasswordHash passwordHash, AccountStatus accountStatus) {
+public record AuthAccount(AuthAccountId id, LoginId loginId, PasswordHash passwordHash, AccountStatus accountStatus) {
 
     /**
      * 永続化層からの再構築などに使うコンストラクタ。
      * newAccount(...) などのファクトリを通して生成するのが基本。
      */
     public AuthAccount(AuthAccountId id,
-                       UserId userId,
+                       LoginId loginId,
                        PasswordHash passwordHash,
                        AccountStatus accountStatus) {
 
         this.id = id;
-        this.userId = Objects.requireNonNull(userId, "userId must not be null");
+        this.loginId = Objects.requireNonNull(loginId, "loginId must not be null");
         this.passwordHash = Objects.requireNonNull(passwordHash, "encodedPassword must not be null");
         this.accountStatus = Objects.requireNonNull(accountStatus, "accountStatus must not be null");
     }
@@ -39,15 +39,15 @@ public record AuthAccount(AuthAccountId id, UserId userId, PasswordHash password
      * 新規アカウント作成用のファクトリメソッド。
      * まだ ID は採番されていない（id == null）状態で生成する。
      */
-    public static AuthAccount newAccount(UserId userId,
+    public static AuthAccount newAccount(LoginId loginId,
                                          PasswordHash passwordHash) {
 
-        Objects.requireNonNull(userId, "userId must not be null");
+        Objects.requireNonNull(loginId, "loginId must not be null");
         Objects.requireNonNull(passwordHash, "encodedPassword must not be null");
 
         return new AuthAccount(
                 null,                     // id (未採番)
-                userId,
+                loginId,
                 passwordHash,
                 AccountStatus.ACTIVE     // accountStatus デフォルト ACTIVE
         );
@@ -61,36 +61,36 @@ public record AuthAccount(AuthAccountId id, UserId userId, PasswordHash password
      */
     public AuthAccount changePassword(PasswordHash newPassword) {
         Objects.requireNonNull(newPassword, "newPassword must not be null");
-        return new AuthAccount(this.id, this.userId, newPassword, this.accountStatus);
+        return new AuthAccount(this.id, this.loginId, newPassword, this.accountStatus);
     }
 
     /**
-     * ユーザーIDを変更する。
+     * ログインIDを変更する。
      */
-    public AuthAccount changeUserId(UserId newUserId) {
-        Objects.requireNonNull(newUserId, "newUserId must not be null");
-        return new AuthAccount(this.id, newUserId, this.passwordHash, this.accountStatus);
+    public AuthAccount changeLoginId(LoginId newLoginId) {
+        Objects.requireNonNull(newLoginId, "newLoginId must not be null");
+        return new AuthAccount(this.id, newLoginId, this.passwordHash, this.accountStatus);
     }
 
     /**
      * アカウントを有効にする。
      */
     public AuthAccount activate() {
-        return new AuthAccount(this.id, this.userId, this.passwordHash, AccountStatus.ACTIVE);
+        return new AuthAccount(this.id, this.loginId, this.passwordHash, AccountStatus.ACTIVE);
     }
 
     /**
      * アカウントを無効にする。
      */
     public AuthAccount disable() {
-        return new AuthAccount(this.id, this.userId, this.passwordHash, AccountStatus.DISABLED);
+        return new AuthAccount(this.id, this.loginId, this.passwordHash, AccountStatus.DISABLED);
     }
 
     /**
      * アカウントを論理削除状態にする。
      */
     public AuthAccount markAsDeleted() {
-        return new AuthAccount(this.id, this.userId, this.passwordHash, AccountStatus.DELETED);
+        return new AuthAccount(this.id, this.loginId, this.passwordHash, AccountStatus.DELETED);
     }
 
 
@@ -120,7 +120,7 @@ public record AuthAccount(AuthAccountId id, UserId userId, PasswordHash password
     public String toString() {
         return "AuthAccount{" +
                 "id=" + id +
-                ", userId=" + userId +
+                ", loginId=" + loginId +
                 ", accountStatus=" + accountStatus +
                 '}';
     }

@@ -2,7 +2,7 @@ package com.myou.ec.ecsite.application.auth.sharedservice;
 
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
 
 import java.util.Set;
 
@@ -14,12 +14,12 @@ public interface AuthAccountAdminSharedService {
     /**
      * アカウントを新規登録する。
      *
-     * @param newUserId 作成ユーザーID
+     * @param newLoginId 作成ログインID
      * @param roleCodes 付与するロール一覧
 
-     * @return 登録された ユーザーID
+     * @return 登録された ログインID
      */
-    AuthAccountId registerAccount(UserId newUserId,
+    AuthAccountId registerAccount(LoginId newLoginId,
                                   Set<RoleCode> roleCodes);
 
     /**

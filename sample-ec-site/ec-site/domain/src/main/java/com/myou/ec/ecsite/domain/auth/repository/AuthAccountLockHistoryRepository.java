@@ -4,7 +4,7 @@ import com.myou.ec.ecsite.domain.auth.model.AccountLockEvent;
 import com.myou.ec.ecsite.domain.auth.model.AccountLockEvents;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.Operator; // Import Operator
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+
 
 /**
  * アカウントロック／解除履歴の永続化インタフェース。

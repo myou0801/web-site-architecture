@@ -31,7 +31,7 @@ public class AuthAccountQueryRepositoryImpl implements AuthAccountQueryRepositor
         return records.stream().map(r -> {
             AuthAccountSummaryDto dto = new AuthAccountSummaryDto();
             dto.setAuthAccountId(r.authAccountId());
-            dto.setUserId(r.userId());
+            dto.setLoginId(r.loginId());
             dto.setAccountStatus(r.accountStatus());
             dto.setLocked(r.locked() != null && r.locked());
             dto.setExpired(r.expired() != null && r.expired());
@@ -48,12 +48,12 @@ public class AuthAccountQueryRepositoryImpl implements AuthAccountQueryRepositor
     }
 
     @Override
-    public Optional<AuthAccountDetailDto> findAccountDetailByUserId(String userId) {
-        return accountQueryMapper.selectDetailByUserId(userId)
+    public Optional<AuthAccountDetailDto> findAccountDetailByLoginId(String loginId) {
+        return accountQueryMapper.selectDetailByLoginId(loginId)
                 .map(r -> {
                     AuthAccountDetailDto dto = new AuthAccountDetailDto();
                     dto.setAuthAccountId(r.authAccountId());
-                    dto.setUserId(r.userId());
+                    dto.setLoginId(r.loginId());
                     dto.setAccountStatus(r.accountStatus());
                     dto.setLocked(r.locked() != null && r.locked());
                     dto.setExpired(r.expired() != null && r.expired());

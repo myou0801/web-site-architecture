@@ -90,7 +90,7 @@ public class AccountExpirySharedServiceImpl implements AccountExpirySharedServic
 
     @Transactional
     @Override
-    public void unexpireIfExpired(AuthAccountId accountId) { // Change UserId to Operator
+    public void unexpireIfExpired(AuthAccountId accountId) { // Change LoginId to Operator
         var events = expiryHistoryRepository.findByAccountId(accountId);
         if (!events.isExpired()) {
             return;

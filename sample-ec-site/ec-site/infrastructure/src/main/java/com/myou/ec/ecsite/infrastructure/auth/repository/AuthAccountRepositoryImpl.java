@@ -2,8 +2,8 @@ package com.myou.ec.ecsite.infrastructure.auth.repository;
 
 import com.myou.ec.ecsite.domain.auth.model.AuthAccount;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
-import com.myou.ec.ecsite.domain.auth.model.value.Operator; // Import Operator
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
+import com.myou.ec.ecsite.domain.auth.model.value.LoginId;
+import com.myou.ec.ecsite.domain.auth.model.value.Operator;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountMapper;
 import com.myou.ec.ecsite.infrastructure.auth.record.AuthAccountRecord;
@@ -16,17 +16,17 @@ import java.util.Optional;
 @Repository
 public class AuthAccountRepositoryImpl implements AuthAccountRepository {
 
-    private final AuthAccountMapper userMapper;
+    private final AuthAccountMapper authAccountMapper;
     private final Clock clock;
 
-    public AuthAccountRepositoryImpl(AuthAccountMapper userMapper, Clock clock) {
-        this.userMapper = userMapper;
+    public AuthAccountRepositoryImpl(AuthAccountMapper authAccountMapper, Clock clock) {
+        this.authAccountMapper = authAccountMapper;
         this.clock = clock;
     }
 
     @Override
     public Optional<AuthAccount> findById(AuthAccountId id) {
-        AuthAccountRecord record = userMapper.selectByAccountId(id.value());
+        AuthAccountRecord record = authAccountMapper.selectByAccountId(id.value());
         if (record == null) {
             return Optional.empty();
         }
@@ -34,8 +34,8 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
     }
 
     @Override
-    public Optional<AuthAccount> findByUserId(UserId userId) {
-        AuthAccountRecord record = userMapper.selectByUserId(userId.value());
+    public Optional<AuthAccount> findByLoginId(LoginId loginId) {
+        AuthAccountRecord record = authAccountMapper.selectByLoginId(loginId.value());
         if (record == null) {
             return Optional.empty();
         }
@@ -43,39 +43,39 @@ public class AuthAccountRepositoryImpl implements AuthAccountRepository {
     }
 
     @Override
-    public void save(AuthAccount user, Operator operator) { // Use Operator
+    public void save(AuthAccount authAccount, Operator operator) { // Use Operator
         LocalDateTime now = LocalDateTime.now(clock);
-        if (user.id() == null) {
+        if (authAccount.id() == null) {
             // Insert
             var record = new AuthAccountRecord(
                     null,
-                    user.userId().value(),
-                    user.passwordHash().value(),
-                    user.accountStatus().name(),
+                    authAccount.loginId().value(),
+                    authAccount.passwordHash().value(),
+                    authAccount.accountStatus().name(),
                     null, // createdAt is handled by DB
                     operator.value(), // Use operator.value()
                     now,
                     operator.value() // Use operator.value()
             );
-            userMapper.insert(record);
+            authAccountMapper.insert(record);
         } else {
             // Update
-            AuthAccountRecord currentRecord = userMapper.selectByAccountId(user.id().value());
+            AuthAccountRecord currentRecord = authAccountMapper.selectByAccountId(authAccount.id().value());
             if (currentRecord == null) {
-                throw new IllegalStateException("Attempted to update a non-existent account: " + user.id());
+                throw new IllegalStateException("Attempted to update a non-existent account: " + authAccount.id());
             }
 
             var record = new AuthAccountRecord(
-                    user.id().value(),
-                    user.userId().value(),
-                    user.passwordHash().value(),
-                    user.accountStatus().name(),
+                    authAccount.id().value(),
+                    authAccount.loginId().value(),
+                    authAccount.passwordHash().value(),
+                    authAccount.accountStatus().name(),
                     currentRecord.createdAt(), // preserve original
                     currentRecord.createdBy(), // preserve original
                     now,
                     operator.value() // Use operator.value()
             );
-            userMapper.update(record);
+            authAccountMapper.update(record);
         }
     }
 }

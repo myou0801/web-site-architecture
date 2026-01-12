@@ -3,7 +3,6 @@ package com.myou.ec.ecsite.infrastructure.auth.repository;
 import com.myou.ec.ecsite.domain.auth.model.value.AuthAccountId;
 import com.myou.ec.ecsite.domain.auth.model.value.Operator; // Import Operator
 import com.myou.ec.ecsite.domain.auth.model.value.RoleCode;
-import com.myou.ec.ecsite.domain.auth.model.value.UserId;
 import com.myou.ec.ecsite.domain.auth.repository.AuthAccountRoleRepository;
 import com.myou.ec.ecsite.infrastructure.auth.mapper.AuthAccountRoleMapper;
 import org.springframework.stereotype.Repository;

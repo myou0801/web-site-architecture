@@ -10,7 +10,7 @@ CREATE TABLE AUTH_ACCOUNT
 (
     auth_account_id BIGINT AUTO_INCREMENT PRIMARY KEY,
 
-    user_id         VARCHAR(64)  NOT NULL,
+    login_id         VARCHAR(64)  NOT NULL,
     password_hash   VARCHAR(512) NOT NULL,
 
     -- ライフサイクル状態（enabled/deleted を統合）
@@ -25,7 +25,7 @@ CREATE TABLE AUTH_ACCOUNT
     -- 同時更新対策（任意だが推奨）
     version         INTEGER      NOT NULL DEFAULT 0,
 
-    CONSTRAINT ux_auth_account_user_id UNIQUE (user_id),
+    CONSTRAINT ux_auth_account_login_id UNIQUE (login_id),
     CONSTRAINT ck_auth_account_status CHECK (account_status IN ('ACTIVE', 'DISABLED', 'DELETED'))
 );
 CREATE TABLE AUTH_ROLE
@@ -209,7 +209,7 @@ WHERE t.rn = 1;
 DROP VIEW IF EXISTS AUTH_ACCOUNT_CURRENT_V;
 CREATE VIEW AUTH_ACCOUNT_CURRENT_V AS
 SELECT a.auth_account_id,
-       a.user_id,
+       a.login_id,
        a.account_status,
        COALESCE(l.locked, FALSE)                  AS locked,
        COALESCE((e.event_type = 'EXPIRE'), FALSE) AS expired,

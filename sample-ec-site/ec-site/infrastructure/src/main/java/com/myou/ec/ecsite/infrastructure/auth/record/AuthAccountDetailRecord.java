@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record AuthAccountDetailRecord(
         Long authAccountId,
-        String userId,
+        String loginId,
         String accountStatus,
         Boolean locked,
         Boolean expired,
