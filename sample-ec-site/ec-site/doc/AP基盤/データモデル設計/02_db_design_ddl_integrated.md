@@ -198,7 +198,7 @@ CREATE INDEX ix_auth_login_hist_account_at_desc
     ON AUTH_LOGIN_HISTORY (auth_account_id, login_at DESC, auth_login_history_id DESC);
 
 CREATE INDEX ix_auth_login_hist_account_result_at_desc
-    ON AUTH_LOGIN_HISTORY (auth_account_id, result, login_at DESC);
+    ON AUTH_LOGIN_HISTORY (auth_account_id, result, login_at DESC, auth_login_history_id DESC);
 
 CREATE INDEX ix_auth_lock_hist_account_occurred_desc
     ON AUTH_ACCOUNT_LOCK_HISTORY (auth_account_id, occurred_at DESC, auth_account_lock_history_id DESC);
@@ -219,102 +219,47 @@ CREATE INDEX ix_auth_status_hist_account_occurred_desc
 -- Views（Query sharedService）
 -- ==============
 
-/* --- Query sharedService 用 VIEW（PostgreSQL：DISTINCT ON） --- */
-
-CREATE OR REPLACE VIEW AUTH_ACCOUNT_LOCK_LATEST_V AS
-SELECT DISTINCT ON (auth_account_id)
-    auth_account_id,
-    locked,
-    occurred_at
-FROM AUTH_ACCOUNT_LOCK_HISTORY
-ORDER BY auth_account_id,
-    occurred_at DESC,
-    auth_account_lock_history_id DESC;
-
-/* 最終ロック解除（UNLOCK）の最新 */
-CREATE OR REPLACE VIEW AUTH_ACCOUNT_LAST_UNLOCK_V AS
-SELECT DISTINCT ON (auth_account_id)
-    auth_account_id,
-    occurred_at AS last_unlock_at
-FROM AUTH_ACCOUNT_LOCK_HISTORY
-WHERE locked = FALSE
-ORDER BY auth_account_id,
-    occurred_at DESC,
-    auth_account_lock_history_id DESC;
-
-CREATE OR REPLACE VIEW AUTH_ACCOUNT_EXPIRY_LATEST_V AS
-SELECT DISTINCT ON (auth_account_id)
-    auth_account_id,
-    event_type,
-    occurred_at
-FROM AUTH_ACCOUNT_EXPIRY_HISTORY
-ORDER BY auth_account_id,
-    occurred_at DESC,
-    auth_account_expiry_history_id DESC;
-
-/* 期限解除（UNEXPIRE）の最新 */
-CREATE OR REPLACE VIEW AUTH_ACCOUNT_LAST_UNEXPIRE_V AS
-SELECT DISTINCT ON (auth_account_id)
-    auth_account_id,
-    occurred_at AS unexpire_at
-FROM AUTH_ACCOUNT_EXPIRY_HISTORY
-WHERE event_type = 'UNEXPIRE'
-ORDER BY auth_account_id,
-    occurred_at DESC,
-    auth_account_expiry_history_id DESC;
-
-/* 最終ログイン（SUCCESSの最新）※不要なら削除 */
-CREATE OR REPLACE VIEW AUTH_ACCOUNT_LAST_LOGIN_V AS
-SELECT DISTINCT ON (auth_account_id)
-    auth_account_id,
-    login_at
-FROM AUTH_LOGIN_HISTORY
-WHERE result = 'SUCCESS'
-ORDER BY auth_account_id,
-    login_at DESC,
-    auth_login_history_id DESC;
-
 CREATE OR REPLACE VIEW AUTH_ACCOUNT_CURRENT_V AS
-SELECT a.auth_account_id,
-       a.login_id,
-       a.account_status,
-       COALESCE(l.locked, FALSE)                  AS locked,
-       COALESCE((e.event_type = 'EXPIRE'), FALSE) AS expired,
-       ll.login_at                                AS last_login_at,
-       ul.last_unlock_at                          AS last_unlock_at,
+SELECT
+    a.auth_account_id,
+    a.login_id,
+    a.account_status,
 
-       /* 連続失敗カウント起点（baseAt=max(last_login_at,last_unlock_at)） */
-       CASE
-           WHEN ll.login_at IS NULL AND ul.last_unlock_at IS NULL THEN NULL
-           WHEN ll.login_at IS NULL THEN ul.last_unlock_at
-           WHEN ul.last_unlock_at IS NULL THEN ll.login_at
-           ELSE GREATEST(ll.login_at, ul.last_unlock_at)
-       END AS lock_fail_base_at,
-
-       /* 有効期限切れ年月日（baseAt=max(last_login_at,last_unexpire_at) + 90日） */
-       CASE
-           WHEN ll.login_at IS NULL AND lu.unexpire_at IS NULL THEN NULL
-           WHEN ll.login_at IS NULL THEN (lu.unexpire_at + INTERVAL '90 days')::date
-           WHEN lu.unexpire_at IS NULL THEN (ll.login_at + INTERVAL '90 days')::date
-           ELSE (GREATEST(ll.login_at, lu.unexpire_at) + INTERVAL '90 days')::date
-       END AS expiry_due_date,
-
-       a.created_at,
-       a.updated_at
+    COALESCE(l.locked, FALSE)                  AS locked,
+    COALESCE((e.event_type = 'EXPIRE'), FALSE) AS expired,
+    ll.last_login_at                           AS last_login_at
 FROM AUTH_ACCOUNT a
-         LEFT JOIN AUTH_ACCOUNT_LOCK_LATEST_V l ON l.auth_account_id = a.auth_account_id
-         LEFT JOIN AUTH_ACCOUNT_EXPIRY_LATEST_V e ON e.auth_account_id = a.auth_account_id
-         LEFT JOIN AUTH_ACCOUNT_LAST_LOGIN_V ll ON ll.auth_account_id = a.auth_account_id
-         LEFT JOIN AUTH_ACCOUNT_LAST_UNLOCK_V ul ON ul.auth_account_id = a.auth_account_id
-         LEFT JOIN AUTH_ACCOUNT_LAST_UNEXPIRE_V lu ON lu.auth_account_id = a.auth_account_id;
+LEFT JOIN LATERAL (
+    SELECT h.locked
+    FROM AUTH_ACCOUNT_LOCK_HISTORY h
+    WHERE h.auth_account_id = a.auth_account_id
+    ORDER BY h.occurred_at DESC, h.auth_account_lock_history_id DESC
+    LIMIT 1
+) l ON TRUE
+LEFT JOIN LATERAL (
+    SELECT h.event_type
+    FROM AUTH_ACCOUNT_EXPIRY_HISTORY h
+    WHERE h.auth_account_id = a.auth_account_id
+    ORDER BY h.occurred_at DESC, h.auth_account_expiry_history_id DESC
+    LIMIT 1
+) e ON TRUE
+LEFT JOIN LATERAL (
+    SELECT h.login_at AS last_login_at
+    FROM AUTH_LOGIN_HISTORY h
+    WHERE h.auth_account_id = a.auth_account_id
+      AND h.result = 'SUCCESS'
+    ORDER BY h.login_at DESC, h.auth_login_history_id DESC
+    LIMIT 1
+) ll ON TRUE;
 
 CREATE OR REPLACE VIEW AUTH_ACCOUNT_ROLE_V AS
-SELECT aar.auth_account_id,
-       r.role_code
-FROM AUTH_ACCOUNT_ROLE aar
-         JOIN AUTH_ROLE r
-              ON r.auth_role_id = aar.auth_role_id
-WHERE r.enabled = TRUE;
+SELECT
+    ar.auth_account_id,
+    r.role_code
+FROM AUTH_ACCOUNT_ROLE ar
+JOIN AUTH_ROLE r ON r.auth_role_id = ar.auth_role_id;
+
+
 ```
 
 ---
@@ -495,118 +440,68 @@ CREATE INDEX ix_auth_status_hist_account_occurred_desc
 -- ==============
 
 /* --- Query sharedService 用 VIEW（H2：row_number） --- */
-
-DROP VIEW IF EXISTS AUTH_ACCOUNT_LOCK_LATEST_V;
-CREATE VIEW AUTH_ACCOUNT_LOCK_LATEST_V AS
-SELECT auth_account_id, locked, occurred_at
-FROM (SELECT auth_account_id,
-             locked,
-             occurred_at,
-             ROW_NUMBER() OVER (
-           PARTITION BY auth_account_id
-           ORDER BY occurred_at DESC, auth_account_lock_history_id DESC
-         ) AS rn
-      FROM AUTH_ACCOUNT_LOCK_HISTORY) t
-WHERE t.rn = 1;
-
-DROP VIEW IF EXISTS AUTH_ACCOUNT_LAST_UNLOCK_V;
-CREATE VIEW AUTH_ACCOUNT_LAST_UNLOCK_V AS
-SELECT auth_account_id, last_unlock_at
-FROM (
-    SELECT auth_account_id,
-           occurred_at AS last_unlock_at,
-           ROW_NUMBER() OVER (
-               PARTITION BY auth_account_id
-               ORDER BY occurred_at DESC, auth_account_lock_history_id DESC
-           ) AS rn
-    FROM AUTH_ACCOUNT_LOCK_HISTORY
-    WHERE locked = FALSE
-) t
-WHERE t.rn = 1;
-
-DROP VIEW IF EXISTS AUTH_ACCOUNT_EXPIRY_LATEST_V;
-CREATE VIEW AUTH_ACCOUNT_EXPIRY_LATEST_V AS
-SELECT auth_account_id, event_type, occurred_at
-FROM (SELECT auth_account_id,
-             event_type,
-             occurred_at,
-             ROW_NUMBER() OVER (
-           PARTITION BY auth_account_id
-           ORDER BY occurred_at DESC, auth_account_expiry_history_id DESC
-         ) AS rn
-      FROM AUTH_ACCOUNT_EXPIRY_HISTORY) t
-WHERE t.rn = 1;
-
-/* 期限解除（UNEXPIRE）の最新 */
-DROP VIEW IF EXISTS AUTH_ACCOUNT_LAST_UNEXPIRE_V;
-CREATE VIEW AUTH_ACCOUNT_LAST_UNEXPIRE_V AS
-SELECT auth_account_id, unexpire_at
-FROM (SELECT auth_account_id,
-             occurred_at AS unexpire_at,
-             ROW_NUMBER() OVER (
-           PARTITION BY auth_account_id
-           ORDER BY occurred_at DESC, auth_account_expiry_history_id DESC
-         ) AS rn
-      FROM AUTH_ACCOUNT_EXPIRY_HISTORY
-      WHERE event_type = 'UNEXPIRE') t
-WHERE t.rn = 1;
-
-/* 最終ログイン（SUCCESSの最新）※不要なら削除 */
-DROP VIEW IF EXISTS AUTH_ACCOUNT_LAST_LOGIN_V;
-CREATE VIEW AUTH_ACCOUNT_LAST_LOGIN_V AS
-SELECT auth_account_id, login_at
-FROM (SELECT auth_account_id,
-             login_at,
-             ROW_NUMBER() OVER (
-           PARTITION BY auth_account_id
-           ORDER BY login_at DESC, auth_login_history_id DESC
-         ) AS rn
-      FROM AUTH_LOGIN_HISTORY
-      WHERE result = 'SUCCESS') t
-WHERE t.rn = 1;
-
 DROP VIEW IF EXISTS AUTH_ACCOUNT_CURRENT_V;
 CREATE VIEW AUTH_ACCOUNT_CURRENT_V AS
-SELECT a.auth_account_id,
-       a.login_id,
-       a.account_status,
-       COALESCE(l.locked, FALSE)                  AS locked,
-       COALESCE((e.event_type = 'EXPIRE'), FALSE) AS expired,
-       ll.login_at                                AS last_login_at,
-       ul.last_unlock_at                          AS last_unlock_at,
+SELECT
+    a.auth_account_id,
+    a.login_id,
+    a.account_status,
 
-       /* 連続失敗カウント起点（baseAt=max(last_login_at,last_unlock_at)） */
-       CASE
-           WHEN ll.login_at IS NULL AND ul.last_unlock_at IS NULL THEN NULL
-           WHEN ll.login_at IS NULL THEN ul.last_unlock_at
-           WHEN ul.last_unlock_at IS NULL THEN ll.login_at
-           WHEN ll.login_at >= ul.last_unlock_at THEN ll.login_at
-           ELSE ul.last_unlock_at
-       END AS lock_fail_base_at,
-
-       /* 有効期限切れ年月日（baseAt=max(last_login_at,last_unexpire_at) + 90日） */
-       CASE
-           WHEN ll.login_at IS NULL AND lu.unexpire_at IS NULL THEN NULL
-           WHEN ll.login_at IS NULL THEN CAST(DATEADD('DAY', 90, lu.unexpire_at) AS DATE)
-           WHEN lu.unexpire_at IS NULL THEN CAST(DATEADD('DAY', 90, ll.login_at) AS DATE)
-           ELSE CAST(DATEADD('DAY', 90, CASE WHEN ll.login_at >= lu.unexpire_at THEN ll.login_at ELSE lu.unexpire_at END) AS DATE)
-       END AS expiry_due_date,
-
-       a.created_at,
-       a.updated_at
+    COALESCE(l.locked, FALSE) AS locked,
+    COALESCE((e.event_type = 'EXPIRE'), FALSE) AS expired,
+    ll.login_at AS last_login_at
 FROM AUTH_ACCOUNT a
-         LEFT JOIN AUTH_ACCOUNT_LOCK_LATEST_V l ON l.auth_account_id = a.auth_account_id
-         LEFT JOIN AUTH_ACCOUNT_EXPIRY_LATEST_V e ON e.auth_account_id = a.auth_account_id
-         LEFT JOIN AUTH_ACCOUNT_LAST_LOGIN_V ll ON ll.auth_account_id = a.auth_account_id
-         LEFT JOIN AUTH_ACCOUNT_LAST_UNLOCK_V ul ON ul.auth_account_id = a.auth_account_id
-         LEFT JOIN AUTH_ACCOUNT_LAST_UNEXPIRE_V lu ON lu.auth_account_id = a.auth_account_id;
+LEFT JOIN (
+    SELECT auth_account_id, locked
+    FROM (
+        SELECT
+            auth_account_id,
+            locked,
+            ROW_NUMBER() OVER (
+                PARTITION BY auth_account_id
+                ORDER BY occurred_at DESC, auth_account_lock_history_id DESC
+            ) AS rn
+        FROM AUTH_ACCOUNT_LOCK_HISTORY
+    ) t
+    WHERE t.rn = 1
+) l ON l.auth_account_id = a.auth_account_id
+LEFT JOIN (
+    SELECT auth_account_id, event_type
+    FROM (
+        SELECT
+            auth_account_id,
+            event_type,
+            ROW_NUMBER() OVER (
+                PARTITION BY auth_account_id
+                ORDER BY occurred_at DESC, auth_account_expiry_history_id DESC
+            ) AS rn
+        FROM AUTH_ACCOUNT_EXPIRY_HISTORY
+    ) t
+    WHERE t.rn = 1
+) e ON e.auth_account_id = a.auth_account_id
+LEFT JOIN (
+    SELECT auth_account_id, login_at
+    FROM (
+        SELECT
+            auth_account_id,
+            login_at,
+            ROW_NUMBER() OVER (
+                PARTITION BY auth_account_id
+                ORDER BY login_at DESC, auth_login_history_id DESC
+            ) AS rn
+        FROM AUTH_LOGIN_HISTORY
+        WHERE result = 'SUCCESS'
+    ) t
+    WHERE t.rn = 1
+) ll ON ll.auth_account_id = a.auth_account_id;
 
 DROP VIEW IF EXISTS AUTH_ACCOUNT_ROLE_V;
 CREATE VIEW AUTH_ACCOUNT_ROLE_V AS
-SELECT aar.auth_account_id,
-       r.role_code
-FROM AUTH_ACCOUNT_ROLE aar
-         JOIN AUTH_ROLE r
-              ON r.auth_role_id = aar.auth_role_id
-WHERE r.enabled = TRUE;
+SELECT
+    ar.auth_account_id,
+    r.role_code
+FROM AUTH_ACCOUNT_ROLE ar
+JOIN AUTH_ROLE r ON r.auth_role_id = ar.auth_role_id;
+
+
 ```
