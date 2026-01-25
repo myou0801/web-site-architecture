@@ -16,7 +16,7 @@
     -   `AccountSearchResultDTO`: 検索結果を画面に表示するためのDTO。`AuthAccount`（AP基盤）と`UserAccountDetail`（業務ドメイン）の情報を結合して保持する。
 -   **Domain層 (業務ドメイン)**:
     -   `UserAccountDetail`: ユーザーの氏名、メールアドレスなどの業務的な詳細情報を保持するエンティティ。`AuthAccountId`と`UserId`（AP基盤由来）も保持する。
-    -   `UserAccountDetailRepository`: `UserAccountDetail`エンティティの永続化インターフェース。`userId`と`userName`での検索機能、および`AuthAccountId`での取得機能を提供する。
+    -   `UserAccountDetailRepository`: `UserAccountDetail`エンティティの永続化インターフェース。`loginId`と`userName`での検索機能、および`AuthAccountId`での取得機能を提供する。
 -   **Infrastructure層 (業務ドメイン)**:
     -   `UserAccountDetailRecord`: `USER_ACCOUNT_DETAIL`テーブルのレコードに対応するクラス。
     -   `UserAccountDetailMapper`: MyBatisのMapperインターフェース。`search`メソッドにより、`USER_ACCOUNT_DETAIL`と`AUTH_ACCOUNT`を結合して検索を行う。
@@ -35,7 +35,7 @@
 -   **概要**: ユーザーの業務的な詳細情報を表現するドメインエンティティ。AP基盤の`AuthAccount`と`authAccountId`で紐づく。
 -   **主な属性**:
     -   `authAccountId` (AuthAccountId): 認証アカウントID (AP基盤由来)
-    -   `userId` (UserId): ユーザーID (AP基盤由来)
+    -   `loginId` (UserId): ユーザーID (AP基盤由来)
     -   `userName` (String): ユーザー氏名
     -   `emailAddress` (String): メールアドレス
     -   監査カラム (`createdAt`, `createdBy`, `updatedAt`, `updatedBy`)
@@ -45,13 +45,13 @@
 -   **ファイル**: `domain/src/main/java/com/myou/ec/ecsite/domain/user/repository/UserAccountDetailRepository.java`
 -   **概要**: `UserAccountDetail`エンティティの永続化に関する契約を定義するインターフェース。
 -   **主なメソッド**:
-    -   `List<UserAccountDetail> search(String userId, String userName)`: `userId`および`userName`での部分一致検索。
+    -   `List<UserAccountDetail> search(String loginId, String userName)`: `loginId`および`userName`での部分一致検索。
     -   `Optional<UserAccountDetail> findByAuthAccountId(AuthAccountId authAccountId)`: `AuthAccountId`による単一取得。
 
 ### 3.3. UserAccountDetailRecord
 
 -   **ファイル**: `infrastructure/src/main/java/com/myou/ec/ecsite/infrastructure/user/record/UserAccountDetailRecord.java`
--   **概要**: `USER_ACCOUNT_DETAIL`テーブルのレコード構造を表現するPOJO。`userId`も含む。
+-   **概要**: `USER_ACCOUNT_DETAIL`テーブルのレコード構造を表現するPOJO。`loginId`も含む。
 
 ### 3.4. UserAccountDetailMapper (MyBatis Mapper)
 
@@ -61,7 +61,7 @@
 -   **`search`クエリの詳細**:
     -   `USER_ACCOUNT_DETAIL`テーブルとAP基盤の`AUTH_ACCOUNT`テーブルを`auth_account_id`で`INNER JOIN`する。
     -   `WHERE`句で`AUTH_ACCOUNT.user_id`と`USER_ACCOUNT_DETAIL.user_name`の両方に対し、部分一致（`LIKE CONCAT('%', #{param}, '%')`）検索を動的に適用する。
-    -   `AUTH_ACCOUNT.user_id`も検索結果として取得し、`UserAccountDetailRecord.userId`にマッピングする。
+    -   `AUTH_ACCOUNT.user_id`も検索結果として取得し、`UserAccountDetailRecord.loginId`にマッピングする。
 
 ### 3.5. UserAccountDetailRepositoryImpl (Repository Implementation)
 
@@ -79,7 +79,7 @@
 -   **概要**: アカウント管理画面の検索ロジックを担当するアプリケーションサービス。
 -   **依存関係**: `AuthAccountRepository` (AP基盤), `UserAccountDetailRepository` (業務T), `AuthAccountLockHistoryRepository` (AP基盤)。
 -   **`searchAccounts`メソッドの処理フロー**:
-    1.  `UserAccountDetailRepository.search(userId, userName)`を呼び出し、`UserAccountDetail`のリストを取得する。
+    1.  `UserAccountDetailRepository.search(loginId, userName)`を呼び出し、`UserAccountDetail`のリストを取得する。
     2.  取得した`UserAccountDetail`のリストから`AuthAccountId`のリストを抽出し、それらを使ってAP基盤の`AuthAccountRepository.findById`をループで呼び出し、`AuthAccount`のマップを構築する。（AP基盤変更不可のため、N+1問題は許容する）
     3.  `UserAccountDetail`と`AuthAccount`（および`AuthAccountLockHistoryRepository`で取得したロック情報）を結合し、`AccountSearchResultDTO`のリストを作成して返す。
 

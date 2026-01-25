@@ -1,25 +1,3 @@
-//dependencyResolutionManagement {
-//    versionCatalogs {
-//        libs {
-//            from(files("./gradle/libs.versions.toml"))
-//            version("springBootVersion", "3.2.2")
-//            version("springCloudVersion", "4.1.1")
-//            version("springCloudAwsVersion", "4.1.1")
-//            version("logbackAccessSpringVersion", "4.1.1")
-//            version("logstashLogbackEncoderVersion", "7.4")
-//
-//            plugin('spring-boot-plugin', 'org.springframework.boot').versionRef('springBootVersion')
-//            plugin('spring-dependency-management', 'io.spring.dependency-management').version('1.1.4')
-//            plugin('jig-plugin', 'org.dddjava.jig-gradle-plugin').version('2024.2.1')
-//
-//            library("spring-cloud-dependencies","org.springframework.cloud","spring-cloud-dependencies").versionRef("springCloudVersion")
-//            library("spring-cloud-aws-dependencies","io.awspring.cloud","spring-cloud-aws-dependencies").versionRef("springCloudAwsVersion")
-//            library("logback-access-spring","dev.akkinoc.spring.boot","logback-access-spring-boot-starter").versionRef("logbackAccessSpringVersion")
-//            library("logstash-logback-encoder","net.logstash.logback","logstash-logback-encoder").versionRef("logstashLogbackEncoderVersion")
-
-//        }
-//    }
-//}
 
 rootProject.name = 'ec-site'
 include 'presentation', 'application', 'domain', 'infrastructure', 'boot'
